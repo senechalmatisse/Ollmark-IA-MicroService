@@ -1,0 +1,164 @@
+stages:
+  - lint
+  - sonar
+  - build
+  - test
+  - build-image
+  - scan
+  - dast
+  - acceptance
+  - deploy
+
+variables:
+  DOCKER_REGISTRY: gitlab-dpt-info-sciences.univ-rouen.fr:5555
+  BACKEND_IMAGE_NAME: ${DOCKER_REGISTRY}/${CI_PROJECT_PATH}/backend
+  BACKEND_IMAGE_TAG: ${CI_COMMIT_SHORT_SHA}
+  MAVEN_CLI_OPTS:  "--batch-mode"
+  SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
+  GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
+cache:
+  paths:
+    - .m2/repository
+    - Back/target/
+    - "${SONAR_USER_HOME}/cache"
+    - sonar-scanner/
+checkstyle:
+  stage: lint
+  image: maven:3.9-eclipse-temurin-21
+  script:
+    # On lance uniquement le checkstyle
+    - mvn checkstyle:check -Dcheckstyle.violationSeverity=error
+  artifacts:
+    when: always
+    paths:
+      - target/checkstyle-result.xml
+    reports:
+      junit: target/checkstyle-result.xml # Pour voir les erreurs dans l'interface GitLab
+
+sonar_back:
+  stage: sonar
+  image: maven:3-eclipse-temurin-21
+  script:
+    - mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'master'
+    - if: $CI_COMMIT_BRANCH == 'main'
+    - if: $CI_COMMIT_BRANCH == 'develop'
+  needs:
+    - checkstyle
+
+build-backend:       # This job runs in the build stage, which runs first.
+  stage: build
+  image: maven:3.9-eclipse-temurin-21
+  script:
+    - mvn $MAVEN_CLI_OPTS clean package -DskipTests
+  artifacts:
+    paths:
+      - target/*.jar
+    expire_in: 30 days
+    when: on_success
+  needs:
+    - sonar_back
+
+
+backend-unit-test:
+  stage: test
+  image: maven:3.9-eclipse-temurin-21
+  script:
+    - mvn test
+  artifacts:
+    when: always
+    paths:
+      - target/site/jacoco/
+    reports:
+      junit: target/surefire-reports/TEST-*.xml
+  coverage: '/Total.*?([0-9]{1,3})%/' # Regex pour afficher le % sur GitLab
+  needs:
+    - build-backend
+backend-integration-test:
+  stage: test
+  image: maven:3.9-eclipse-temurin-21
+  script:
+    # On lance les tests, JaCoCo générera le rapport automatiquement à la fin
+    - mvn test -Dtest.groups=integrationTest
+
+  needs:
+    - build-backend
+
+# Docker build jobs
+build-backend-image:
+  stage: build-image
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $DOCKER_REGISTRY
+    - docker build -t $BACKEND_IMAGE_NAME:$BACKEND_IMAGE_TAG -t $BACKEND_IMAGE_NAME:latest .
+    - docker push $BACKEND_IMAGE_NAME:$BACKEND_IMAGE_TAG
+    - docker push $BACKEND_IMAGE_NAME:latest
+  needs:
+    - backend-unit-test
+    - build-backend
+
+# Trivy scan jobs
+trivy-backend:
+  stage: scan
+  image: 
+    name: aquasec/trivy:latest
+    entrypoint: [""]
+  services:
+    - docker:20.10.16-dind
+  before_script:
+    - apk add --no-cache docker-cli
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $DOCKER_REGISTRY
+    - trivy image --exit-code 0 --severity HIGH,CRITICAL $BACKEND_IMAGE_NAME:$BACKEND_IMAGE_TAG
+
+dast-zap-backend:
+  stage: dast
+  image: 
+    name: ghcr.io/zaproxy/zaproxy:stable
+    entrypoint: [""]
+  variables:
+    BACKEND_SERVICE_IMAGE: $DOCKER_REGISTRY/$CI_PROJECT_PATH/backend:$CI_COMMIT_SHORT_SHA
+  services:
+    - name: $BACKEND_SERVICE_IMAGE
+      alias: backend-to-test
+  script:
+    - echo "Configuration de l'espace de travail ZAP..."
+    # On crée le dossier manuellement et on s'assure qu'on peut écrire dedans
+    - mkdir -p /zap/wrk
+    - cd /zap/wrk
+    - echo "Démarrage du scan..."
+    # On lance le scan. ZAP va créer le fichier dans /zap/wrk/zap-report.json
+    - zap-baseline.py -t http://backend-to-test:8080 -I -l WARN -J zap-report.json
+    # On ramène le fichier vers le dossier GitLab pour l'artifact
+    - cp zap-report.json $CI_PROJECT_DIR/zap-report.json
+  artifacts:
+    when: always
+    paths:
+      - zap-report.json
+    reports:
+      dast: zap-report.json
+  needs:
+    - build-backend-image
+  allow_failure: true
+bruno-tests:
+  stage: acceptance
+  image: node:20-alpine
+  services:
+    - name: $DOCKER_REGISTRY/$CI_PROJECT_PATH/backend:$CI_COMMIT_SHORT_SHA
+      alias: backend-to-test
+  variables:
+    GITLAB_CONTINUE_ON_SERVICE_FAILURE: "true"
+  script:
+    - npm install -g @usebruno/cli
+    - echo "Contenu du dossier bruno pour vérification :"
+    - ls -R bruno/ # Ça nous permettra de voir si le fichier est bien là en cas d'échec
+    - echo "Waiting for Spring Boot..."
+    - sleep 25 # On augmente un peu pour être ultra safe
+    # ON RENTRE DANS LE DOSSIER ET ON LANCE LE TEST SUR LE DOSSIER COURANT (.)
+    - cd bruno && bru run . --env-var base_url=http://backend-to-test:8080
+  needs:
+    - build-backend-image

@@ -1,16 +1,227 @@
-# You can override the included template(s) by including variable overrides
-# SAST customization: https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
-# Secret Detection customization: https://docs.gitlab.com/user/application_security/secret_detection/pipeline/configure
-# Dependency Scanning customization: https://docs.gitlab.com/ee/user/application_security/dependency_scanning/#customizing-the-dependency-scanning-settings
-# Container Scanning customization: https://docs.gitlab.com/ee/user/application_security/container_scanning/#customizing-the-container-scanning-settings
-# Note that environment variables can be set in several places
-# See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
 stages:
-- test
-- secret-detection
+  - lint
+  - sonar
+  - build
+  - test
+  - build-image
+  - scan
+  - dast
+  - acceptance
+  - deploy
+
 variables:
-  SECRET_DETECTION_ENABLED: 'true'
+  DOCKER_REGISTRY: gitlab-dpt-info-sciences.univ-rouen.fr:5555
+  BACKEND_IMAGE_NAME: ${DOCKER_REGISTRY}/${CI_PROJECT_PATH}/backend
+  BACKEND_IMAGE_TAG: ${CI_COMMIT_SHORT_SHA}
+  MAVEN_CLI_OPTS: "--batch-mode"
+  SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
+  GIT_DEPTH: "0"
+
+cache:
+  paths:
+    - .m2/repository
+    - target/
+    - "${SONAR_USER_HOME}/cache"
+
+# -----------------------------------------------------------------------------
+# STAGE LINT
+# -----------------------------------------------------------------------------
+checkstyle:
+  stage: lint
+  image: maven:3.9-eclipse-temurin-21
+  script:
+    - mvn checkstyle:check -Dcheckstyle.violationSeverity=error
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^feat\/.*/
+    - if: $CI_COMMIT_BRANCH == "dev"
+    - if: $CI_COMMIT_BRANCH == "preprod"
+    - if: $CI_COMMIT_BRANCH == "main"
+  artifacts:
+    when: always
+    paths:
+      - target/checkstyle-result.xml
+    reports:
+      junit: target/checkstyle-result.xml
+
+# -----------------------------------------------------------------------------
+# STAGE SONAR (UNIQUEMENT PROD)
+# -----------------------------------------------------------------------------
+sonar_back:
+  stage: sonar
+  image: maven:3-eclipse-temurin-21
+  script:
+    - mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  needs:
+    - checkstyle
+
+# -----------------------------------------------------------------------------
+# STAGE BUILD
+# -----------------------------------------------------------------------------
+build-backend:
+  stage: build
+  image: maven:3.9-eclipse-temurin-21
+  script:
+    - mvn $MAVEN_CLI_OPTS clean package -DskipTests
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev"
+    - if: $CI_COMMIT_BRANCH == "preprod"
+    - if: $CI_COMMIT_BRANCH == "main"
+  artifacts:
+    paths:
+      - target/*.jar
+    expire_in: 30 days
+  needs:
+    - job: checkstyle
+    - job: sonar_back
+      optional: true # Car sonar ne tourne que sur main
+
+# -----------------------------------------------------------------------------
+# STAGE TEST (UNIT & INTEGRATION)
+# -----------------------------------------------------------------------------
 secret_detection:
   stage: secret-detection
 include:
 - template: Security/Secret-Detection.gitlab-ci.yml
+  needs:
+    - job: build-backend
+      optional: true # Sur feat, Maven compilera pendant le test car build-backend est absent
+backend-unit-test:
+  stage: test
+  image: maven:3.9-eclipse-temurin-21
+  script:
+    - mvn test
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^feat\/.*/
+    - if: $CI_COMMIT_BRANCH == "dev"
+    - if: $CI_COMMIT_BRANCH == "preprod"
+    - if: $CI_COMMIT_BRANCH == "main"
+  artifacts:
+    when: always
+    paths:
+      - target/site/jacoco/
+    reports:
+      junit: target/surefire-reports/TEST-*.xml
+  coverage: '/Total.*?([0-9]{1,3})%/'
+  needs:
+    - job: build-backend
+      optional: true # Sur feat, Maven compilera pendant le test car build-backend est absent
+
+backend-integration-test:
+  stage: test
+  image: maven:3.9-eclipse-temurin-21
+  script:
+    - mvn test -Dtest.groups=integrationTest
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^feat\/.*/
+    - if: $CI_COMMIT_BRANCH == "dev"
+    - if: $CI_COMMIT_BRANCH == "preprod"
+    - if: $CI_COMMIT_BRANCH == "main"
+  needs:
+    - job: build-backend
+      optional: true
+
+
+# -----------------------------------------------------------------------------
+# STAGE BUILD IMAGE
+# -----------------------------------------------------------------------------
+build-backend-image:
+  stage: build-image
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $DOCKER_REGISTRY
+    - docker build -t $BACKEND_IMAGE_NAME:$BACKEND_IMAGE_TAG -t $BACKEND_IMAGE_NAME:latest .
+    - docker push $BACKEND_IMAGE_NAME:$BACKEND_IMAGE_TAG
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev"
+    - if: $CI_COMMIT_BRANCH == "preprod"
+    - if: $CI_COMMIT_BRANCH == "main"
+  needs:
+    - build-backend
+    - backend-unit-test
+
+# -----------------------------------------------------------------------------
+# STAGE SCAN & DAST (PREPROD & PROD)
+# -----------------------------------------------------------------------------
+trivy-backend:
+  stage: scan
+  image: { name: "aquasec/trivy:latest", entrypoint: [""] }
+  script:
+    - trivy image --exit-code 0 --severity HIGH,CRITICAL $BACKEND_IMAGE_NAME:$BACKEND_IMAGE_TAG
+  rules:
+    - if: $CI_COMMIT_BRANCH == "preprod"
+    - if: $CI_COMMIT_BRANCH == "main"
+  needs: ["build-backend-image"]
+
+dast-zap-backend:
+  stage: dast
+  image: { name: "ghcr.io/zaproxy/zaproxy:stable", entrypoint: [""] }
+  services:
+    - name: $BACKEND_IMAGE_NAME:$BACKEND_IMAGE_TAG
+      alias: backend-to-test
+  script:
+    - mkdir -p /zap/wrk
+    - zap-baseline.py -t http://backend-to-test:8080 -I -l WARN -J zap-report.json
+    - cp /zap/wrk/zap-report.json $CI_PROJECT_DIR/zap-report.json
+  rules:
+    - if: $CI_COMMIT_BRANCH == "preprod"
+    - if: $CI_COMMIT_BRANCH == "main"
+  artifacts:
+    when: always
+    paths: [zap-report.json]
+  allow_failure: true
+  needs: ["build-backend-image"]
+
+# -----------------------------------------------------------------------------
+# STAGE ACCEPTANCE (PREPROD & PROD)
+# -----------------------------------------------------------------------------
+bruno-tests:
+  stage: acceptance
+  image: node:20-alpine
+  services:
+    - name: $BACKEND_IMAGE_NAME:$BACKEND_IMAGE_TAG
+      alias: backend-to-test
+  variables:
+    GITLAB_CONTINUE_ON_SERVICE_FAILURE: "true"
+  script:
+    - npm install -g @usebruno/cli
+    - sleep 25
+    - cd bruno && bru run . --env-var base_url=http://backend-to-test:8080
+  rules:
+    - if: $CI_COMMIT_BRANCH == "preprod"
+    - if: $CI_COMMIT_BRANCH == "main"
+  needs: ["build-backend-image"]
+
+# -----------------------------------------------------------------------------
+# STAGE DEPLOY
+# -----------------------------------------------------------------------------
+deploy-dev:
+  stage: deploy
+  script:
+    - echo "Déploiement automatique en DEV"
+    # Ajoute ici tes commandes SSH / Docker-compose
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev"
+      when: always
+  needs: ["build-backend-image"]
+
+deploy-preprod:
+  stage: deploy
+  script:
+    - echo "Déploiement manuel en PREPROD après validation"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "preprod"
+      when: manual
+  needs: ["bruno-tests", "dast-zap-backend", "trivy-backend"]
+
+deploy-prod:
+  stage: deploy
+  script:
+    - echo "Déploiement manuel en PROD après validation TechLead/Client"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual
+  needs: ["bruno-tests", "dast-zap-backend", "trivy-backend"]
