@@ -206,13 +206,29 @@ bruno-tests:
 # -----------------------------------------------------------------------------
 deploy-develop:
   stage: deploy
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
+  before_script:
+    # Recreate SSH key from Base64
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY_BASE64" | base64 -d > ~/.ssh/id_ed25519
+    - chmod 600 ~/.ssh/id_ed25519
+    # Add VM host to known_hosts to avoid SSH prompt
+    - ssh-keyscan -H $VM_HOST >> ~/.ssh/known_hosts
   script:
-    - echo "Déploiement automatique en develop"
-    # Ajoute ici tes commandes SSH / Docker-compose
+    - |
+      ssh -o StrictHostKeyChecking=no $VM_USER@$VM_HOST "
+        cd ~/ollmark-backend/ms-ollmark-ia &&
+        echo \$CI_REGISTRY_PASSWORD | docker login -u \$CI_REGISTRY_USER --password-stdin $DOCKER_REGISTRY &&
+        docker compose pull &&
+        docker compose up -d --remove-orphans
+      "
   rules:
     - if: $CI_COMMIT_BRANCH == "develop"
       when: always
-  needs: ["build-backend-image"]
+  needs:
+    - build-backend-image
 
 deploy-preprod:
   stage: deploy
