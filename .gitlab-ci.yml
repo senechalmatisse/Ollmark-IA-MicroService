@@ -2,12 +2,14 @@ stages:
   - lint
   - sonar
   - build
+  - secret-detection
   - test
   - build-image
   - scan
   - dast
   - acceptance
   - deploy
+  
 
 variables:
   DOCKER_REGISTRY: gitlab-dpt-info-sciences.univ-rouen.fr:5555
@@ -80,13 +82,16 @@ build-backend:
 # -----------------------------------------------------------------------------
 # STAGE TEST (UNIT & INTEGRATION)
 # -----------------------------------------------------------------------------
+include:
+  - template: Security/Secret-Detection.gitlab-ci.yml
+
+# On surcharge le job du template pour l'intégrer à tes règles
 secret_detection:
   stage: secret-detection
-include:
-- template: Security/Secret-Detection.gitlab-ci.yml
-  needs:
-    - job: build-backend
-      optional: true # Sur feat, Maven compilera pendant le test car build-backend est absent
+  needs: ["build-backend"]
+  rules:
+    - if: $CI_COMMIT_BRANCH == "preprod"
+    - if: $CI_COMMIT_BRANCH == "main"
 backend-unit-test:
   stage: test
   image: maven:3.9-eclipse-temurin-21
