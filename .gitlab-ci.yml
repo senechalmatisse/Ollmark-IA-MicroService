@@ -35,7 +35,7 @@ checkstyle:
     - mvn checkstyle:check -Dcheckstyle.violationSeverity=error
   rules:
     - if: $CI_COMMIT_BRANCH =~ /^feat\/.*/
-    - if: $CI_COMMIT_BRANCH == "dev"
+    - if: $CI_COMMIT_BRANCH == "develop"
     - if: $CI_COMMIT_BRANCH == "preprod"
     - if: $CI_COMMIT_BRANCH == "main"
   artifacts:
@@ -67,7 +67,7 @@ build-backend:
   script:
     - mvn $MAVEN_CLI_OPTS clean package -DskipTests
   rules:
-    - if: $CI_COMMIT_BRANCH == "dev"
+    - if: $CI_COMMIT_BRANCH == "develop"
     - if: $CI_COMMIT_BRANCH == "preprod"
     - if: $CI_COMMIT_BRANCH == "main"
   artifacts:
@@ -99,7 +99,7 @@ backend-unit-test:
     - mvn test
   rules:
     - if: $CI_COMMIT_BRANCH =~ /^feat\/.*/
-    - if: $CI_COMMIT_BRANCH == "dev"
+    - if: $CI_COMMIT_BRANCH == "develop"
     - if: $CI_COMMIT_BRANCH == "preprod"
     - if: $CI_COMMIT_BRANCH == "main"
   artifacts:
@@ -120,7 +120,7 @@ backend-integration-test:
     - mvn test -Dtest.groups=integrationTest
   rules:
     - if: $CI_COMMIT_BRANCH =~ /^feat\/.*/
-    - if: $CI_COMMIT_BRANCH == "dev"
+    - if: $CI_COMMIT_BRANCH == "develop"
     - if: $CI_COMMIT_BRANCH == "preprod"
     - if: $CI_COMMIT_BRANCH == "main"
   needs:
@@ -141,7 +141,7 @@ build-backend-image:
     - docker build -t $BACKEND_IMAGE_NAME:$BACKEND_IMAGE_TAG -t $BACKEND_IMAGE_NAME:latest .
     - docker push $BACKEND_IMAGE_NAME:$BACKEND_IMAGE_TAG
   rules:
-    - if: $CI_COMMIT_BRANCH == "dev"
+    - if: $CI_COMMIT_BRANCH == "develop"
     - if: $CI_COMMIT_BRANCH == "preprod"
     - if: $CI_COMMIT_BRANCH == "main"
   needs:
@@ -203,13 +203,13 @@ bruno-tests:
 # -----------------------------------------------------------------------------
 # STAGE DEPLOY
 # -----------------------------------------------------------------------------
-deploy-dev:
+deploy-develop:
   stage: deploy
   script:
-    - echo "Déploiement automatique en DEV"
+    - echo "Déploiement automatique en develop"
     # Ajoute ici tes commandes SSH / Docker-compose
   rules:
-    - if: $CI_COMMIT_BRANCH == "dev"
+    - if: $CI_COMMIT_BRANCH == "develop"
       when: always
   needs: ["build-backend-image"]
 
