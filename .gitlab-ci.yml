@@ -52,7 +52,9 @@ sonar_back:
   stage: sonar
   image: maven:3-eclipse-temurin-21
   script:
-    - mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+    - mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+      -Dsonar.qualitygate.wait=true  # <--- AJOUTE CECI
+  allow_failure: false
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
   needs:
@@ -97,6 +99,7 @@ backend-unit-test:
   image: maven:3.9-eclipse-temurin-21
   script:
     - mvn test
+  allow_failure: false
   rules:
     - if: $CI_COMMIT_BRANCH =~ /^feat\/.*/
     - if: $CI_COMMIT_BRANCH == "develop"
@@ -118,6 +121,7 @@ backend-integration-test:
   image: maven:3.9-eclipse-temurin-21
   script:
     - mvn test -Dtest.groups=integrationTest
+  allow_failure: false
   rules:
     - if: $CI_COMMIT_BRANCH =~ /^feat\/.*/
     - if: $CI_COMMIT_BRANCH == "develop"
