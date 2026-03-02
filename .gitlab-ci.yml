@@ -34,6 +34,7 @@ checkstyle:
   script:
     - mvn checkstyle:check -Dcheckstyle.violationSeverity=error
   rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
     - if: $CI_COMMIT_BRANCH =~ /^feat\/.*/
     - if: $CI_COMMIT_BRANCH == "develop"
     - if: $CI_COMMIT_BRANCH == "preprod"
@@ -69,6 +70,7 @@ build-backend:
   script:
     - mvn $MAVEN_CLI_OPTS clean package -DskipTests
   rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
     - if: $CI_COMMIT_BRANCH == "develop"
     - if: $CI_COMMIT_BRANCH == "preprod"
     - if: $CI_COMMIT_BRANCH == "main"
@@ -101,6 +103,7 @@ backend-unit-test:
     - mvn test
   allow_failure: false
   rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
     - if: $CI_COMMIT_BRANCH =~ /^feat\/.*/
     - if: $CI_COMMIT_BRANCH == "develop"
     - if: $CI_COMMIT_BRANCH == "preprod"
@@ -123,6 +126,7 @@ backend-integration-test:
     - mvn test -Dtest.groups=integrationTest
   allow_failure: false
   rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
     - if: $CI_COMMIT_BRANCH =~ /^feat\/.*/
     - if: $CI_COMMIT_BRANCH == "develop"
     - if: $CI_COMMIT_BRANCH == "preprod"
@@ -224,7 +228,7 @@ deploy-develop:
       - ssh -o StrictHostKeyChecking=no $VM_USER@$VM_HOST "~/ollmark-backend/ms-ollmark-ia/deploy.sh"
   rules:
     - if: $CI_COMMIT_BRANCH == "develop"
-      when: always
+      when: on_success
   needs:
     - build-backend-image
 
