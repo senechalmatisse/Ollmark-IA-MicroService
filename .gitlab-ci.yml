@@ -149,6 +149,9 @@ build-backend-image:
     - docker build -t $BACKEND_IMAGE_NAME:$BACKEND_IMAGE_TAG -t $BACKEND_IMAGE_NAME:latest .
     - docker push $BACKEND_IMAGE_NAME:$BACKEND_IMAGE_TAG
     - docker push $BACKEND_IMAGE_NAME:latest
+  after_script:
+    - docker system prune -af || true
+
   rules:
     - if: $CI_COMMIT_BRANCH == "develop"
     - if: $CI_COMMIT_BRANCH == "preprod"
