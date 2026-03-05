@@ -100,7 +100,7 @@ backend-unit-test:
   stage: test
   image: maven:3.9-eclipse-temurin-21
   script:
-    - mvn test
+    - mvn test jacoco:check
   allow_failure: false
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
