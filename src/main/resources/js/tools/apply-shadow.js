@@ -1,0 +1,2 @@
+shape.shadows = [{ offsetX: {{offsetX}}, offsetY: {{offsetY}}, blur: {{blur}}, spread: 0, hidden: false, color: '{{color}}' }];
+return { id: shape.id, shadow: { offsetX: {{offsetX}}, offsetY: {{offsetY}}, blur: {{blur}} } };

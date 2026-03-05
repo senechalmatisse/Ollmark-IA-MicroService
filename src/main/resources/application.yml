@@ -1,0 +1,213 @@
+# ============================================
+# Configuration du serveur Penpot
+# ============================================
+
+server:
+  port: 4401
+  address: 0.0.0.0
+
+# ============================================
+# Configuration Penpot
+# ============================================
+penpot:
+  ai:
+    # =============================
+    # CONFIGURATION DUAL-MODEL
+    # =============================
+
+    # Modèle léger de routage (classification d’intention)
+    router:
+      model: ${PENPOT_ROUTER_MODEL:llama3.1}
+      temperature: ${PENPOT_ROUTER_TEMPERATURE:0.0}
+      max-tokens: ${PENPOT_ROUTER_MAX_TOKENS:256}
+
+    # Modèle exécuteur principal (tool calling + génération)
+    executor:
+        model: ${PENPOT_EXECUTOR_MODEL:qwen3:8b}
+        temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
+        max-tokens: ${PENPOT_EXECUTOR_MAX_TOKENS:4096}
+        num-ctx: ${PENPOT_EXECUTOR_NUM_CTX:32000}
+
+    # Adresse du serveur pour les clients externes
+    server-address: ${PENPOT_SERVER_ADDRESS:localhost}
+    # Port WebSocket pour la communication avec le plugin
+    websocket-port: ${PENPOT_WEBSOCKET_PORT:4401}
+    # Port REPL (si activé)
+    repl-port: ${PENPOT_REPL_PORT:4403}
+    # Mode distant : true si le plugin est hébergé ailleurs
+    remote-mode: ${PENPOT_REMOTE_MODE:false}
+    # Mode multi-utilisateur : permet plusieurs connexions simultanées
+    multi-user: ${PENPOT_MULTI_USER:false}
+    # Niveau de log : trace, debug, info, warn, error
+    log-level: ${PENPOT_LOG_LEVEL:debug}
+    # Répertoire pour les fichiers de log
+    log-dir: ${PENPOT_LOG_DIR:logs}
+    # Accès au système de fichiers (pour les opérations futures)
+    file-system-access: true
+    # Configuration de la mémoire de conversation
+    chat:
+      memory:
+        # Nombre maximum de messages à conserver en mémoire par conversation
+        max-messages: ${PENPOT_CHAT_MEMORY_MAX_MESSAGES:50}
+    # Configuration RAG (Retrieval-Augmented Generation)
+    rag:
+      templates-path: ${PENPOT_RAG_TEMPLATES_PATH:classpath:data/rag/templates/*.json}
+      similarity-threshold: ${PENPOT_RAG_SIMILARITY_THRESHOLD:0.5}
+      top-k: ${PENPOT_RAG_TOP_K:5}
+      query-variants: ${PENPOT_RAG_QUERY_VARIANTS:3}
+
+# ============================================
+# Configuration Spring AI avec Ollama
+# ============================================
+spring:
+  ai:
+    ollama:
+      # URL de base d'Ollama sur la VM distante
+      base-url: ${OLLAMA_BASE_URL}
+
+      # Configuration du chat unifiée sur l'exécuteur
+      chat:
+        options:
+          model: ${PENPOT_EXECUTOR_MODEL:qwen3:8b}
+          temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
+          max-tokens: ${PENPOT_EXECUTOR_MAX_TOKENS:4096}
+          function-calling: auto
+          num_ctx: ${PENPOT_EXECUTOR_NUM_CTX:32000}
+        observations:
+          log-prompt: ${SPRING_AI_LOG_PROMPT:false}
+
+      tools:
+        observations:
+          include-content: true
+
+      # Configuration des embeddings
+      embedding:
+        options:
+          model: ${OLLAMA_EMBEDDING_MODEL:hf.co/unsloth/embeddinggemma-300m-GGUF:Q8_0}
+
+    # ============================================
+    # CONFIGURATION CHAT MEMORY
+    # ============================================
+    chat:
+      memory:
+        repository:
+          jdbc:
+            initialize-schema: always
+
+# ============================================
+# Configuration de la base de données H2
+# ============================================
+  datasource:
+    url: jdbc:h2:file:./data/penpot-chatmemory;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 20000
+      max-lifetime: 1800000
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: false
+        trace: false
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+
+# ============================================
+# Configuration des logs
+# ============================================
+logging:
+  level:
+    com.penpot.ai: ${penpot.ai.log-level:DEBUG}
+    org.springframework.ai.chat.client: TRACE
+    org.springframework.ai.rag: DEBUG
+    org.springframework.ai.chat.memory: DEBUG
+    org.springframework.ai.chat.memory.repository.jdbc: DEBUG
+    org.springframework.ai.chat.client.advisor: DEBUG
+    org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor: DEBUG
+    com.penpot.ai.adapters.out.ai.RequestComplexityAnalyzer: DEBUG
+    org.springframework.ai.ollama: ${penpot.ai.log-level}
+    org.springframework.web.socket: INFO
+    org.springframework.web.client: INFO
+
+  file:
+    name: ${penpot.ai.log-dir}/penpot.log
+    max-size: 10MB
+    max-history: 30
+    total-size-cap: 100MB
+
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# ============================================
+# Configuration Spring Boot
+# ============================================
+  application:
+    name: penpot-ai-server
+
+# ============================================
+# Configuration des endpoints Actuator (monitoring)
+# ============================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,loggers,refresh
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# ============================================
+# Notes de configuration
+# ============================================
+# 
+# OLLAMA VM DISTANTE :
+# - Interface Open WebUI : http://<OLLAMA_IP>:3000/
+#   → Utilisez cette interface pour gérer les modèles, voir l'historique, etc.
+#   → Authentification requise (user/password)
+# 
+# - API Ollama directe : http://<OLLAMA_IP>:11434/
+#   → Pour les requêtes HTTP directes sans UI
+#   → Exemple : curl http://<OLLAMA_IP>:11434/api/tags
+# 
+# MODÈLES :
+# - Chat : qwen3:8b
+# - Router : llama3.1
+# - Embeddings : embeddinggemma-300m
+# 
+# BASE DE DONNÉES H2 :
+# - Console accessible : http://localhost:4401/h2-console
+# - JDBC URL : jdbc:h2:file:./data/penpot-chatmemory
+# - Username : sa
+# - Password : (vide)
+# 
+# VARIABLES D'ENVIRONNEMENT :
+# Toutes les valeurs peuvent être surchargées via des variables d'environnement.
+# Exemple : export OLLAMA_MODEL=llama3:8b
+# 
+# CHAT MEMORY :
+# - La table SPRING_AI_CHAT_MEMORY sera créée automatiquement au démarrage
+# - Stocke automatiquement l'historique des conversations
+# - Limite : 20 messages par défaut (configurable via penpot.ai.chat.memory.max-messages)
+# - Persiste dans H2 (survit aux redémarrages)
+# 
+# RAG TEMPLATES :
+# - Templates marketing pré-configurés
+# - Recherche sémantique via embeddings Ollama
+# - Extensible : ajoutez vos propres templates JSON
+# 
+# ============================================
