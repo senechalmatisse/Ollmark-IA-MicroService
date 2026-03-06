@@ -3,7 +3,7 @@
 # ============================================
 
 server:
-  port: 4401
+  port: 8081
   address: 0.0.0.0
 
 # ============================================
@@ -31,7 +31,7 @@ penpot:
     # Adresse du serveur pour les clients externes
     server-address: ${PENPOT_SERVER_ADDRESS:localhost}
     # Port WebSocket pour la communication avec le plugin
-    websocket-port: ${PENPOT_WEBSOCKET_PORT:4401}
+    websocket-port: ${PENPOT_WEBSOCKET_PORT:8081}
     # Port REPL (si activé)
     repl-port: ${PENPOT_REPL_PORT:4403}
     # Mode distant : true si le plugin est hébergé ailleurs
@@ -190,14 +190,14 @@ management:
 # - Embeddings : embeddinggemma-300m
 # 
 # BASE DE DONNÉES H2 :
-# - Console accessible : http://localhost:4401/h2-console
+# - Console accessible : http://localhost:8081/h2-console
 # - JDBC URL : jdbc:h2:file:./data/penpot-chatmemory
 # - Username : sa
 # - Password : (vide)
 # 
 # VARIABLES D'ENVIRONNEMENT :
 # Toutes les valeurs peuvent être surchargées via des variables d'environnement.
-# Exemple : export OLLAMA_MODEL=llama3:8b
+# Exemple : export OLLAMA_MODEL=qwen3:8b
 # 
 # CHAT MEMORY :
 # - La table SPRING_AI_CHAT_MEMORY sera créée automatiquement au démarrage
