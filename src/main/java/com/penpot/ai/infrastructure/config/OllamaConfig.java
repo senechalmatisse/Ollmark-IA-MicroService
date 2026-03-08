@@ -28,7 +28,7 @@ import java.util.Map;
  * <ul>
  *     <li>{@code executorChatClient} ({@code @Primary}) — défini ici, modèle qwen3:8b
  *         avec mémoire et factory de complexité.</li>
- *     <li>{@code routerChatClient} — défini dans {@link RouterConfig}, modèle llama3.1
+ *     <li>{@code routerChatClient} — défini dans {@link RouterConfig}, modèle phi3:mini
  *         sans mémoire, dédié à la classification d'intention.</li>
  * </ul>
  * <p>Le qualifier {@code "executorChatClient"} est utilisé dans {@code OllamaAiAdapter}

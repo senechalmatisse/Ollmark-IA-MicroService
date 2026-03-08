@@ -32,15 +32,11 @@ import java.util.regex.Pattern;
 @Component
 public class RequestComplexityAnalyzer {
 
-    // ==================== SEUILS ====================
-
     /** Longueur minimale pour suspecter une tâche complexe. */
     private static final int COMPLEX_LENGTH_THRESHOLD = 150;
 
     /** Longueur minimale pour suspecter une tâche créative. */
     private static final int CREATIVE_LENGTH_THRESHOLD = 60;
-
-    // ==================== MOTS-CLÉS COMPLEXITÉ ====================
 
     /** Indications de tâche complexe et multi-étapes. */
     private static final List<String> COMPLEX_KEYWORDS = List.of(
@@ -63,11 +59,9 @@ public class RequestComplexityAnalyzer {
 
     /** Pattern pour détecter plusieurs conjonctions de séquence dans un message. */
     private static final Pattern SEQUENCE_PATTERN = Pattern.compile(
-        "(?i)(puis|ensuite|après|then|after|and also|et aussi|également)",
-        Pattern.CASE_INSENSITIVE
+        "(puis|ensuite|après|then|after|and also|et aussi|également)",
+        Pattern.CASE_INSENSITIVE | Pattern.CANON_EQ | Pattern.UNICODE_CASE
     );
-
-    // ==================== MOTS-CLÉS CRÉATIF ====================
 
     /** Indications de tâche créative nécessitant diversité. */
     private static final List<String> CREATIVE_KEYWORDS = List.of(
@@ -85,8 +79,6 @@ public class RequestComplexityAnalyzer {
         "comment", "how", "quel", "what", "quoi",
         "mieux", "better", "améliore", "improve"
     );
-
-    // ==================== MOTS-CLÉS SIMPLE ====================
 
     /** Indications de tâche atomique simple. */
     private static final List<String> SIMPLE_KEYWORDS = List.of(

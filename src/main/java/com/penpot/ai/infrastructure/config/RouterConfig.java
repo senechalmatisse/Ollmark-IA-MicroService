@@ -11,13 +11,14 @@ import org.springframework.context.annotation.*;
  * Configuration du ChatClient dédié au routing d'intention.
  *
  * <h2>Séparation des responsabilités</h2>
+ * Cette classe est délibérément séparée de {@link OllamaConfig} pour respecter SRP :
  * {@code OllamaConfig} configure l'exécuteur (qwen3:8b avec mémoire),
- * {@code RouterConfig} configure le classifieur (llama3.1 sans mémoire).
+ * {@code RouterConfig} configure le classifieur (phi3:mini sans mémoire).
  *
  * <h2>Paramètres intentionnels</h2>
  * <ul>
  *   <li>{@code temperature=0.0} : classification déterministe, pas de créativité</li>
- *   <li>{@code numPredict=256} : une réponse JSON courte suffit, limite les tokens gaspillés</li>
+ *   <li>{@code numPredict=150} : une réponse JSON courte suffit, limite les tokens gaspillés</li>
  *   <li>Pas de {@code MessageChatMemoryAdvisor} : le router ne doit pas avoir de mémoire
  *       (chaque requête est indépendante)</li>
  * </ul>
@@ -29,19 +30,13 @@ public class RouterConfig {
     /**
      * Modèle utilisé pour le routing.
      * Configurable via {@code penpot.ai.router.model} dans application.properties.
-     * Défaut : {@code llama3.1}.
+     * Défaut : {@code phi3:mini} (3.8B params, excellent classifieur).
      */
     @Value("${penpot.ai.router.model:llama3.1}")
     private String routerModel;
 
-    @Value("${penpot.ai.router.temperature:0.0}")
-    private Double routerTemperature;
-
-    @Value("${penpot.ai.router.max-tokens:256}")
-    private Integer routerMaxTokens;
-
     /**
-     * Crée une instance dédiée de {@link OllamaChatModel} pour llama3.1.
+     * Crée une instance dédiée de {@link OllamaChatModel} pour phi3:mini.
      *
      * @param ollamaApi l'API Ollama partagée, injectée automatiquement par Spring AI
      * @return un ChatClient léger dédié à la classification
@@ -52,18 +47,18 @@ public class RouterConfig {
 
         OllamaChatOptions routerOptions = OllamaChatOptions.builder()
             .model(routerModel)
-            .temperature(routerTemperature)
-            .numPredict(routerMaxTokens)
+            .temperature(0.0)
+            .numPredict(150)
             .build();
 
-        OllamaChatModel chatModel = OllamaChatModel.builder()
+        OllamaChatModel routerModel = OllamaChatModel.builder()
             .ollamaApi(ollamaApi)
             .defaultOptions(routerOptions)
             .build();
 
-        log.info("[RouterConfig] Router ChatClient ready (model={}, temperature={}, numPredict={})",
-            routerModel, routerTemperature, routerMaxTokens);
+        log.info("[RouterConfig] Router ChatClient ready (model={}, temperature=0.0, numPredict=150)",
+            this.routerModel);
 
-        return ChatClient.builder(chatModel).build();
+        return ChatClient.builder(routerModel).build();
     }
 }

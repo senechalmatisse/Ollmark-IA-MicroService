@@ -13,7 +13,7 @@ import java.util.Set;
  * d'échec de classification, elles retournent {@code Set.of(ToolCategory.INSPECTION)}
  * comme fallback minimal sûr.
  *
- * @see com.penpot.ai.application.router.IntentRouterService Implémentation llama3.1
+ * @see com.penpot.ai.application.router.IntentRouterService Implémentation phi3:mini
  */
 public interface ToolRouterPort {
 

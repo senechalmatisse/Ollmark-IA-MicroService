@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import reactor.core.publisher.Flux;
 
-
 /**
  * Implémentation du use case de chat conversationnel.
  * 
@@ -58,9 +57,7 @@ import reactor.core.publisher.Flux;
 @RequiredArgsConstructor
 public class ConversationChatUseCaseImpl implements ConversationChatUseCase {
 
-    /**
-     * Port vers le service d'IA.
-     */
+    /** Port vers le service d'IA. */
     private final AiServicePort aiService;
 
     @Override

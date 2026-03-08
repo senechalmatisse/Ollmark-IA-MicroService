@@ -13,6 +13,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+/**
+ * Tests d'intégration pour {@link PenpotAssetTools}.
+ * <p>
+ * Cette classe valide le comportement des outils de manipulation d'assets Penpot,
+ * en s'assurant que les commandes de style (couleur, dégradé, ombre, bordure) 
+ * sont correctement transformées en scripts d'exécution.
+ * </p>
+ * * <p><b>Composants testés :</b></p>
+ * <ul>
+ * <li><b>Application du Style :</b> Remplissage, contours (stroke) et ombres.</li>
+ * <li><b>Gestion des Fallbacks :</b> Validation des valeurs par défaut pour les paramètres nuls ou hors limites.</li>
+ * <li><b>Validation métier :</b> Vérification stricte des plages de valeurs (ex: opacité entre 0 et 1).</li>
+ * </ul>
+ * * <p>Les dépendances externes comme {@link ExecuteCodeUseCase} sont mockées pour 
+ * simuler les retours du moteur d'exécution Penpot.</p>
+ */
 @SpringBootTest
 @ActiveProfiles("test")
 @DisplayName("PenpotAssetTools — Integration")
@@ -28,12 +44,17 @@ class PenpotAssetToolsTest {
     private PenpotAssetTools penpotAssetTools;
 
     private static final String SHAPE_ID = "shape-integration-001";
-
+    /**
+     * Réinitialise les mocks avant chaque test pour éviter la pollution entre les cas de test.
+     */
     @BeforeEach
     void resetMocks() {
         reset(executeCodeUseCase);
     }
-
+    /**
+     * Tests liés à l'application de couleurs de remplissage (Fill Color).
+     * Vérifie la gestion de l'opacité et le formatage de la réponse.
+     */
     @Nested
     @DisplayName("applyFillColor")
     class ApplyFillColorIntegrationTests {
@@ -84,7 +105,10 @@ class PenpotAssetToolsTest {
             verify(executeCodeUseCase, times(2)).execute(any());
         }
     }
-
+    /**
+     * Tests liés à l'application de dégradés linéaires.
+     * Vérifie notamment le comportement par défaut de l'angle du dégradé.
+     */
     @Nested
     @DisplayName("applyGradient")
     class ApplyGradientIntegrationTests {
@@ -118,7 +142,10 @@ class PenpotAssetToolsTest {
             assertThat(result).contains("\"success\": true");
         }
     }
-
+    /**
+     * Tests liés à la gestion des contours (Stroke).
+     * Valide que les épaisseurs nulles ou négatives sont remplacées par la valeur par défaut (1px).
+     */
     @Nested
     @DisplayName("applyStroke")
     class ApplyStrokeIntegrationTests {
@@ -167,7 +194,10 @@ class PenpotAssetToolsTest {
             verify(executeCodeUseCase, times(2)).execute(any());
         }
     }
-
+    /**
+     * Tests liés à l'application d'ombres portées.
+     * Vérifie que la couleur par défaut est appliquée si aucune n'est spécifiée.
+     */
     @Nested
     @DisplayName("applyShadow")
     class ApplyShadowIntegrationTests {
@@ -215,7 +245,13 @@ class PenpotAssetToolsTest {
             assertThat(result).contains("\"success\": true");
         }
     }
-
+    /**
+     * Tests liés à la mise à jour de l'opacité globale d'un élément.
+     * <p>
+     * Contrairement aux autres outils, cette méthode applique une validation stricte
+     * et retourne un échec JSON si la valeur est en dehors de l'intervalle [0.0, 1.0].
+     * </p>
+     */
     @Nested
     @DisplayName("updateOpacity")
     class UpdateOpacityIntegrationTests {

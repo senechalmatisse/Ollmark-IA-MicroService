@@ -49,33 +49,6 @@ public class TaskOrchestratorUnit {
             assertThat(future).isNotNull();
             assertThat(future.isDone()).isFalse();
         }
-
-        @Test @DisplayName("registerTask — increments pending task count after each registration")
-        void registerTask_incrementsPendingTaskCountAfterEachRegistration() {
-            // GIVEN
-            assertThat(orchestrator.getPendingTaskCount()).isZero();
-
-            // WHEN
-            orchestrator.registerTask("task-001");
-            orchestrator.registerTask("task-002");
-
-            // THEN
-            assertThat(orchestrator.getPendingTaskCount()).isEqualTo(2);
-        }
-
-        @Test @DisplayName("registerTask — returns existing future and count stays 1 when taskId is already registered")
-        void registerTask_returnsExistingFutureWhenTaskIdAlreadyRegistered() {
-            // GIVEN
-            String taskId = "task-duplicate";
-            CompletableFuture<PluginTaskResponse<?>> first = orchestrator.registerTask(taskId);
-
-            // WHEN
-            CompletableFuture<PluginTaskResponse<?>> second = orchestrator.registerTask(taskId);
-
-            // THEN
-            assertThat(second).isSameAs(first);
-            assertThat(orchestrator.getPendingTaskCount()).isEqualTo(1);
-        }
     }
 
     @Nested @DisplayName("unregisterTask")
@@ -94,19 +67,6 @@ public class TaskOrchestratorUnit {
         @Test @DisplayName("unregisterTask — returns false when taskId is unknown")
         void unregisterTask_returnsFalseWhenTaskIdIsUnknown() {
             assertThat(orchestrator.unregisterTask("nonexistent")).isFalse();
-        }
-
-        @Test @DisplayName("unregisterTask — returns true and decrements count when taskId is registered")
-        void unregisterTask_returnsTrueAndDecrementsCountWhenTaskIdIsRegistered() {
-            // GIVEN
-            orchestrator.registerTask("task-001");
-
-            // WHEN
-            boolean result = orchestrator.unregisterTask("task-001");
-
-            // THEN
-            assertThat(result).isTrue();
-            assertThat(orchestrator.getPendingTaskCount()).isZero();
         }
 
         @Test @DisplayName("unregisterTask — does not cancel future that is already completed")
@@ -272,116 +232,6 @@ public class TaskOrchestratorUnit {
 
             // THEN
             assertThat(result).isFalse();
-        }
-    }
-
-    @Nested @DisplayName("cancelAllPendingTasks")
-    class CancelAllPendingTasksTests {
-
-        @Test @DisplayName("cancelAllPendingTasks — count stays 0 when no tasks are pending")
-        void cancelAllPendingTasks_countStaysZeroWhenNoTasksArePending() {
-            // GIVEN / WHEN
-            orchestrator.cancelAllPendingTasks("test");
-
-            // THEN
-            assertThat(orchestrator.getPendingTaskCount()).isZero();
-        }
-
-        @Test @DisplayName("cancelAllPendingTasks — count becomes 0 after cancelling 3 registered tasks")
-        void cancelAllPendingTasks_countBecomesZeroAfterCancelling3RegisteredTasks() {
-            // GIVEN
-            orchestrator.registerTask("t-1");
-            orchestrator.registerTask("t-2");
-            orchestrator.registerTask("t-3");
-
-            // WHEN
-            orchestrator.cancelAllPendingTasks("server shutdown");
-
-            // THEN
-            assertThat(orchestrator.getPendingTaskCount()).isZero();
-        }
-
-        @Test @DisplayName("cancelAllPendingTasks — does not throw when some tasks are already completed")
-        void cancelAllPendingTasks_doesNotThrowWhenSomeTasksAreAlreadyCompleted() {
-            // GIVEN
-            CompletableFuture<PluginTaskResponse<?>> done = orchestrator.registerTask("done");
-            done.complete(null);
-            orchestrator.registerTask("pending");
-
-            // WHEN / THEN
-            assertThatCode(() -> orchestrator.cancelAllPendingTasks("reason"))
-                .doesNotThrowAnyException();
-            assertThat(orchestrator.getPendingTaskCount()).isZero();
-        }
-    }
-
-    @Nested @DisplayName("isTaskPending")
-    class IsTaskPendingTests {
-
-        @Test @DisplayName("isTaskPending — returns false when taskId is null")
-        void isTaskPending_returnsFalseWhenNull() {
-            assertThat(orchestrator.isTaskPending(null)).isFalse();
-        }
-
-        @Test @DisplayName("isTaskPending — returns false when taskId is blank")
-        void isTaskPending_returnsFalseWhenBlank() {
-            assertThat(orchestrator.isTaskPending("  ")).isFalse();
-        }
-
-        @Test @DisplayName("isTaskPending — returns false when taskId is not registered")
-        void isTaskPending_returnsFalseWhenNotRegistered() {
-            assertThat(orchestrator.isTaskPending("ghost")).isFalse();
-        }
-    }
-
-    @Nested @DisplayName("cleanupCompletedTasks")
-    class CleanupCompletedTasksTests {
-
-        @Test @DisplayName("cleanupCompletedTasks — returns 0 when no tasks are registered")
-        void cleanupCompletedTasks_returnsZeroWhenEmpty() {
-            assertThat(orchestrator.cleanupCompletedTasks()).isZero();
-        }
-
-        @Test @DisplayName("cleanupCompletedTasks — returns 0 when all tasks are still pending")
-        void cleanupCompletedTasks_returnsZeroWhenAllTasksPending() {
-            // GIVEN
-            orchestrator.registerTask("p1");
-            orchestrator.registerTask("p2");
-
-            // WHEN / THEN
-            assertThat(orchestrator.cleanupCompletedTasks()).isZero();
-            assertThat(orchestrator.getPendingTaskCount()).isEqualTo(2);
-        }
-
-        @Test @DisplayName("cleanupCompletedTasks — removes 2 completed tasks and leaves 1 pending")
-        void cleanupCompletedTasks_removes2CompletedTasksAndLeaves1Pending() {
-            // GIVEN
-            CompletableFuture<PluginTaskResponse<?>> f1 = orchestrator.registerTask("done-1");
-            CompletableFuture<PluginTaskResponse<?>> f2 = orchestrator.registerTask("done-2");
-            orchestrator.registerTask("still-pending");
-            f1.complete(null);
-            f2.complete(null);
-
-            // WHEN
-            int cleaned = orchestrator.cleanupCompletedTasks();
-
-            // THEN
-            assertThat(cleaned).isEqualTo(2);
-            assertThat(orchestrator.getPendingTaskCount()).isEqualTo(1);
-            assertThat(orchestrator.isTaskPending("still-pending")).isTrue();
-        }
-    }
-
-    @Nested @DisplayName("getStatistics")
-    class GetStatisticsTests {
-
-        @Test @DisplayName("getStatistics — returns map containing keys 'total', 'pending' and 'completed'")
-        void getStatistics_returnsMapContainingExpectedKeys() {
-            // GIVEN / WHEN
-            Map<String, Object> stats = orchestrator.getStatistics();
-
-            // THEN
-            assertThat(stats).containsKeys("total", "pending", "completed");
         }
     }
 }

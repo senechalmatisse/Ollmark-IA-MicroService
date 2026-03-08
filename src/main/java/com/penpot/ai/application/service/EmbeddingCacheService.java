@@ -8,22 +8,14 @@ import org.springframework.stereotype.Service;
 
 import static com.penpot.ai.infrastructure.config.EmbeddingCacheConfig.QUERY_EMBEDDINGS_CACHE;
 
+import java.util.List;
+
 /**
- * Service d'embedding avec cache ABSOLU.
- * 
- * Principe :
- * - Même requête = même embedding (jamais recalculé)
- * - Hash de la query → embedding
- * - Cache permanent (pas d'expiration)
- * 
- * Gain de performance :
- * - Sans cache : ~100-200ms par requête (appel réseau Ollama)
- * - Avec cache : <1ms (lookup en mémoire)
- * - Gain : 100x-200x
- * 
- * Exemples :
- * - "social media post" appelé 10 fois → 1 seul calcul
- * - "instagram post" appelé 5 fois → 1 seul calcul
+ * Service d'optimisation dédié à la génération et à la mise en cache absolue des plongements lexicaux (embeddings).
+ * <p>
+ * Une requête identique produira systématiquement le même vecteur mathématique. Par conséquent, il déploie une stratégie 
+ * de cache permanent (sans expiration) qui associe l'empreinte de la requête (hash) à son tableau de flottants résultant.
+ * </p>
  */
 @Slf4j
 @Service
@@ -33,56 +25,51 @@ public class EmbeddingCacheService {
     private final EmbeddingModel embeddingModel;
 
     /**
-     * Génère l'embedding d'une requête avec cache ABSOLU.
-     * 
-     * Le cache utilise la query comme clé :
-     * - Clé : hash de la query string
-     * - Valeur : tableau de floats (embedding vector)
-     * 
-     * Spring Cache gère automatiquement :
-     * - Le hashing de la clé
-     * - Le stockage en mémoire
-     * - La récupération depuis le cache
-     * 
-     * @param query la requête à embedder
-     * @return le vecteur d'embedding (typiquement 1024 dimensions pour mxbai-embed-large)
+     * Génère le vecteur de représentation mathématique (embedding) d'une requête courte en s'appuyant sur une stratégie de cache absolu.
+     *
+     * @param query La phrase ou la requête textuelle formulée par l'utilisateur nécessitant une vectorisation.
+     * @return      Un tableau unidimensionnel de nombres à virgule flottante représentant l'embedding de la requête 
+     * (comportant typiquement 1024 dimensions pour un modèle tel que mxbai-embed-large).
      */
     @Cacheable(value = QUERY_EMBEDDINGS_CACHE, key = "#query")
     public float[] embedQuery(String query) {
         log.debug("Computing embedding for query: {} (CACHE MISS)", truncate(query, 50));
+
         long startTime = System.currentTimeMillis();
-
-        EmbeddingResponse response = embeddingModel.embedForResponse(java.util.List.of(query));
+        EmbeddingResponse response = embeddingModel.embedForResponse(List.of(query));
         float[] embedding = response.getResult().getOutput();
-
         long duration = System.currentTimeMillis() - startTime;
 
         log.info("Embedding computed in {}ms (dimensions: {}) - CACHED for query: {}", 
             duration, 
             embedding.length, 
-            truncate(query, 50));
+            truncate(query, 50)
+        );
 
         return embedding;
     }
 
     /**
-     * Génère l'embedding d'un document avec cache.
-     * Utilisé pour les templates lors de l'indexation.
-     * 
-     * @param content le contenu du document
-     * @return le vecteur d'embedding
+     * Calcule et met en cache l'empreinte vectorielle d'un document complet, une opération particulièrement onéreuse.
+     *
+     * @param content L'intégralité du contenu textuel du document ou du gabarit à analyser.
+     * @return        Le vecteur d'embedding correspondant au contenu fourni.
      */
     @Cacheable(value = QUERY_EMBEDDINGS_CACHE, key = "#content.hashCode()")
     public float[] embedDocument(String content) {
         log.debug("Computing embedding for document (length: {} chars)", content.length());
-        EmbeddingResponse response = embeddingModel.embedForResponse(java.util.List.of(content));
+        EmbeddingResponse response = embeddingModel.embedForResponse(List.of(content));
         float[] embedding = response.getResult().getOutput();
         log.debug("Document embedding computed (dimensions: {})", embedding.length);
         return embedding;
     }
 
     /**
-     * Tronque une string pour les logs.
+     * Fonction utilitaire chargée de formater les chaînes de caractères destinées aux logs.
+     *
+     * @param str       La chaîne de caractères originelle à traiter.
+     * @param maxLength La limite maximale de caractères autorisée avant troncature.
+     * @return          La chaîne originale si sa taille est conforme, ou une version raccourcie complétée de points de suspension.
      */
     private String truncate(String str, int maxLength) {
         if (str == null) return "null";

@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PenpotInspectorTools — Unit")
-public class PenpotInspectorToolsUnit {
+class PenpotInspectorToolsUnit {
 
     @Mock
     private PenpotToolExecutor toolExecutor;
@@ -42,7 +42,7 @@ public class PenpotInspectorToolsUnit {
         @DisplayName("getPageContext — delegates to toolExecutor with operation 'get page context'")
         void getPageContextDelegatesToToolExecutorWithCorrectOperationName() {
             when(toolExecutor.execute(anyString(), eq("get page context"), any()))
-                    .thenReturn("[]");
+                .thenReturn("[]");
 
             String result = penpotInspectorTools.getPageContext("compact");
 
@@ -54,7 +54,7 @@ public class PenpotInspectorToolsUnit {
         @DisplayName("getPageContext — uses default verbosity 'compact' when verbosity is null")
         void getPageContextUsesDefaultCompactWhenNull() {
             when(toolExecutor.execute(anyString(), anyString(), any()))
-                    .thenReturn("[]");
+                .thenReturn("[]");
 
             penpotInspectorTools.getPageContext(null);
 
@@ -69,7 +69,7 @@ public class PenpotInspectorToolsUnit {
         @DisplayName("getPageContext — trims verbosity (\"  full  \" -> \"full\")")
         void getPageContextTrimsVerbosity() {
             when(toolExecutor.execute(anyString(), anyString(), any()))
-                    .thenReturn("[]");
+                .thenReturn("[]");
 
             penpotInspectorTools.getPageContext("   full   ");
 
@@ -83,7 +83,7 @@ public class PenpotInspectorToolsUnit {
         @DisplayName("getPageContext — generated JS contains curated fields & JSON.stringify(out)")
         void getPageContextGeneratedJsContainsCuratedFields() {
             when(toolExecutor.execute(anyString(), anyString(), any()))
-                    .thenReturn("[]");
+                .thenReturn("[]");
 
             penpotInspectorTools.getPageContext("compact");
 
@@ -92,12 +92,12 @@ public class PenpotInspectorToolsUnit {
 
             String js = jsCaptor.getValue();
             assertThat(js)
-                    .contains("penpot.currentPage")
-                    .contains("findShapes")
-                    .contains("id: s.id")
-                    .contains("width: s.width")
-                    .contains("height: s.height")
-                    .contains("return JSON.stringify(out)");
+                .contains("penpot.currentPage")
+                .contains("findShapes")
+                .contains("id: s.id")
+                .contains("width: s.width")
+                .contains("height: s.height")
+                .contains("return JSON.stringify(out)");
         }
     }
 
@@ -114,7 +114,7 @@ public class PenpotInspectorToolsUnit {
         void getPropertiesFromShapeDelegatesToToolExecutor() {
             String stub = "Shape " + SHAPE_ID + " (...)";
             when(toolExecutor.execute(anyString(), eq("get properties from shape"), any()))
-                    .thenReturn(stub);
+                .thenReturn(stub);
 
             String result = penpotInspectorTools.getPropertiesFromShape(SHAPE_ID, "compact");
 
@@ -126,7 +126,7 @@ public class PenpotInspectorToolsUnit {
         @DisplayName("getPropertiesFromShape — defaults verbosity to 'compact' when verbosity is blank")
         void getPropertiesFromShapeFefaultsVerbosityWhenBlank() {
             when(toolExecutor.execute(anyString(), anyString(), any()))
-                    .thenReturn("ok");
+                .thenReturn("ok");
 
             penpotInspectorTools.getPropertiesFromShape(SHAPE_ID, "   ");
 
@@ -141,7 +141,7 @@ public class PenpotInspectorToolsUnit {
         @DisplayName("getPropertiesFromShape — lowercases verbosity (\"FULL\" -> \"full\")")
         void getPropertiesFromShapeLowercasesVerbosity() {
             when(toolExecutor.execute(anyString(), anyString(), any()))
-                    .thenReturn("ok");
+                .thenReturn("ok");
 
             penpotInspectorTools.getPropertiesFromShape(SHAPE_ID, "FULL");
 
@@ -155,7 +155,7 @@ public class PenpotInspectorToolsUnit {
         @DisplayName("getPropertiesFromShape — generated JS contains fills/strokes/text handling")
         void getPropertiesFromShapeGeneratedJsContainsFillsAndStrokesHandling() {
             when(toolExecutor.execute(anyString(), anyString(), any()))
-                    .thenReturn("ok");
+                .thenReturn("ok");
 
             penpotInspectorTools.getPropertiesFromShape(SHAPE_ID, "compact");
 
@@ -164,11 +164,11 @@ public class PenpotInspectorToolsUnit {
 
             String js = jsCaptor.getValue();
             assertThat(js)
-                    .contains("let fillsSummary")
-                    .contains("let strokesSummary")
-                    .contains("shape.fills === \"mixed\"")
-                    .contains("Array.isArray(shape.strokes)")
-                    .contains("type === \"text\"");
+                .contains("let fillsSummary")
+                .contains("let strokesSummary")
+                .contains("shape.fills === \"mixed\"")
+                .contains("Array.isArray(shape.strokes)")
+                .contains("type === \"text\"");
         }
     }
 
@@ -184,7 +184,7 @@ public class PenpotInspectorToolsUnit {
         @DisplayName("getCenterFromShape — generated JS computes fallback center from x/y/width/height")
         void getCenterFromShapeGeneratedJsComputesFallbackCenter() {
             when(toolExecutor.execute(anyString(), eq("get center from shape"), any()))
-                    .thenReturn("Center of " + SHAPE_ID + ": cx=5, cy=5");
+                .thenReturn("Center of " + SHAPE_ID + ": cx=5, cy=5");
 
             penpotInspectorTools.getCenterFromShape(SHAPE_ID);
 
@@ -193,9 +193,9 @@ public class PenpotInspectorToolsUnit {
 
             String js = jsCaptor.getValue();
             assertThat(js)
-                    .contains("return \"Center of \"")
-                    .contains("cx = (shape.x ?? 0) + ((shape.width ?? 0) / 2)")
-                    .contains("cy = (shape.y ?? 0) + ((shape.height ?? 0) / 2)");
+                .contains("return \"Center of \"")
+                .contains("cx = (shape.x ?? 0) + ((shape.width ?? 0) / 2)")
+                .contains("cy = (shape.y ?? 0) + ((shape.height ?? 0) / 2)");
         }
     }
 
@@ -211,7 +211,7 @@ public class PenpotInspectorToolsUnit {
         @DisplayName("getParentFromShape — delegates to toolExecutor with operation 'get parent from shape'")
         void getParentFromShapeDelegates() {
             when(toolExecutor.execute(anyString(), eq("get parent from shape"), any()))
-                    .thenReturn("Parent of " + SHAPE_ID + ": p1");
+                .thenReturn("Parent of " + SHAPE_ID + ": p1");
 
             String result = penpotInspectorTools.getParentFromShape(SHAPE_ID);
 
@@ -223,7 +223,7 @@ public class PenpotInspectorToolsUnit {
         @DisplayName("getChildrenFromShape — delegates to toolExecutor with operation 'get children from shape'")
         void getChildrenFromShapeDelegates() {
             when(toolExecutor.execute(anyString(), eq("get children from shape"), any()))
-                    .thenReturn("Children of " + SHAPE_ID + ": c1, c2");
+                .thenReturn("Children of " + SHAPE_ID + ": c1, c2");
 
             String result = penpotInspectorTools.getChildrenFromShape(SHAPE_ID);
 
@@ -235,7 +235,7 @@ public class PenpotInspectorToolsUnit {
         @DisplayName("getShapesColors — generated JS includes fillsState and Set-based aggregation")
         void getShapesColorsGeneratedJsContainsFillsStateAndSet() {
             when(toolExecutor.execute(anyString(), eq("get shapes colors"), any()))
-                    .thenReturn("Colors of " + SHAPE_ID + ": #fff");
+                .thenReturn("Colors of " + SHAPE_ID + ": #fff");
 
             penpotInspectorTools.getShapesColors(SHAPE_ID);
 
@@ -244,15 +244,15 @@ public class PenpotInspectorToolsUnit {
 
             String js = jsCaptor.getValue();
             assertThat(js)
-                    .contains("let fillsState = \"ok\"")
-                    .contains("const colors = new Set()")
-                    .contains("fillsState = \"mixed\"")
-                    .contains("Array.from(colors)");
+                .contains("let fillsState = \"ok\"")
+                .contains("const colors = new Set()")
+                .contains("fillsState = \"mixed\"")
+                .contains("Array.from(colors)");
         }
     }
 
     // =========================================================================
-    // New hierarchy tools (coverage for new methods)
+    // hierarchy tools
     // =========================================================================
 
     @Nested
@@ -263,20 +263,20 @@ public class PenpotInspectorToolsUnit {
         @DisplayName("getComponentRoot — delegates correctly")
         void getComponentRootDelegates() {
             when(toolExecutor.execute(anyString(), eq("get component root"), any()))
-                    .thenReturn("Root result");
+                .thenReturn("Root result");
 
             String result = penpotInspectorTools.getComponentRoot(SHAPE_ID);
 
             assertThat(result).isEqualTo("Root result");
             verify(toolExecutor, times(1))
-                    .execute(anyString(), eq("get component root"), any());
+                .execute(anyString(), eq("get component root"), any());
         }
 
         @Test
         @DisplayName("getComponentRoot — JS contains hierarchy traversal logic")
         void getComponentRootContainsTraversalLogic() {
             when(toolExecutor.execute(anyString(), anyString(), any()))
-                    .thenReturn("Root result");
+                .thenReturn("Root result");
 
             penpotInspectorTools.getComponentRoot(SHAPE_ID);
 
@@ -285,22 +285,22 @@ public class PenpotInspectorToolsUnit {
 
             String js = jsCaptor.getValue();
             assertThat(js)
-                    .contains("while (current)")
-                    .contains("chain.push")
-                    .contains("parent");
+                .contains("while (current)")
+                .contains("chain.push")
+                .contains("parent");
         }
 
         @Test
         @DisplayName("getShapeParentIndex — delegates correctly")
         void getShapeParentIndexDelegates() {
             when(toolExecutor.execute(anyString(), eq("get shape parent index"), any()))
-                    .thenReturn("Index result");
+                .thenReturn("Index result");
 
             String result = penpotInspectorTools.getShapeParentIndex(SHAPE_ID);
 
             assertThat(result).isEqualTo("Index result");
             verify(toolExecutor, times(1))
-                    .execute(anyString(), eq("get shape parent index"), any());
+                .execute(anyString(), eq("get shape parent index"), any());
         }
     }
 }

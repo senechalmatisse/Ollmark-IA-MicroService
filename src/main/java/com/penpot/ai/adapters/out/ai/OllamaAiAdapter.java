@@ -26,31 +26,37 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 
 /**
- * Adaptateur sortant centralisé vers le service d'IA conversationnelle Ollama.
+ * Adaptateur de sortie constituant le point de bascule principal vers le service d'intelligence artificielle conversationnelle.
+ * <p>
+ * Ce composant d'infrastructure implémente le port métier {@link AiServicePort} et orchestre un pipeline de traitement complet.
+ * Dans un premier temps, chaque message entrant est évalué par le {@link RequestComplexityAnalyzer} afin de déterminer le profil matériel adéquat. 
+ * Ensuite, le message est soumis au routeur via le port {@link ToolRouterPort}, qui identifie l'intention de l'utilisateur et sélectionne les catégories d'outils pertinentes. 
+ * Le résolveur {@link ToolCategoryResolver} convertit alors ces catégories en instances d'outils concrètes. 
+ * Finalement, la fabrique {@link ChatClientFactory} instancie le client d'exécution final, enrichi des outils filtrés et des divers conseillers nécessaires.
+ * </p>
  *
- * <h2>Pipeline complet avec router</h2>
+ * <h2>Pipeline complet de traitement (Routing)</h2>
  * <pre>
  * userMessage
- *     │
- *     ├─ (1) RequestComplexityAnalyzer  →  TaskComplexity
- *     │                                    (SIMPLE / CREATIVE / COMPLEX)
- *     │
- *     ├─ (2) ToolRouterPort.route()     →  Set&lt;ToolCategory&gt;
- *     │       llama3.1                     ex: {COLOR_AND_STYLE, INSPECTION}
- *     │
- *     ├─ (3) ToolCategoryResolver       →  Object[] tools  (sous-ensemble filtré)
- *     │       PenpotToolRegistry            ex: [assetTools, inspectorTools]
- *     │
- *     └─ (4) ChatClientFactory          →  ChatClient  (options selon complexité)
- *             qwen3:8b                       + RAG advisor + Memory advisor
- *                                            + tools filtrés
- *                                            → String response
+ * │
+ * ├─ (1) RequestComplexityAnalyzer  →  TaskComplexity (SIMPLE / CREATIVE / COMPLEX)
+ * │
+ * ├─ (2) ToolRouterPort.route()     →  Set&lt;ToolCategory&gt; (ex: {COLOR_AND_STYLE, INSPECTION})
+ * │       (via modèle léger)
+ * │
+ * ├─ (3) ToolCategoryResolver       →  Object[] tools (sous-ensemble filtré d'outils)
+ * │       (via PenpotToolRegistry)
+ * │
+ * └─ (4) ChatClientFactory          →  Exécution du ChatClient adapté
+ *        (via modèle lourd)
+ * + Injection des outils filtrés
+ * + Ajout des Advisors (RAG, Memory, etc.)
+ * → Retourne un Flux de chaînes de caractères (Streaming)
  * </pre>
- * 
- * @see ToolRouterPort       Port de routing llama3.1
- * @see ToolCategoryResolver Registry de résolution catégorie → tools
- * @see ChatClientFactory    Factory de complexité qwen3:8b
- * @see RequestComplexityAnalyzer Analyseur de complexité
+ * @see ToolRouterPort       Port définissant le routage des requêtes.
+ * @see ToolCategoryResolver Service de résolution liant les catégories aux implémentations techniques.
+ * @see ChatClientFactory    Usine générant les clients IA selon la complexité exigée.
+ * @see RequestComplexityAnalyzer Composant d'analyse sémantique initiale.
  */
 @Slf4j
 @Component
@@ -58,30 +64,46 @@ import reactor.core.publisher.Flux;
 @Primary
 public class OllamaAiAdapter implements AiServicePort {
 
-    /** Factory pour adapter les options selon la complexité détectée. */
+    /**
+     * Factory spécialisée permettant d'adapter les paramètres du client IA
+     * en fonction de la complexité détectée.
+     */
     private final ChatClientFactory chatClientFactory;
 
-    /** Analyseur de complexité des requêtes. */
+    /** Analyseur en charge de déterminer la complexité inhérente aux requêtes utilisateur. */
     private final RequestComplexityAnalyzer complexityAnalyzer;
 
-    /** Mémoire de conversation persistée. */
+    /**
+     * Gestionnaire de la mémoire conversationnelle,
+     * permettant de maintenir le contexte entre les interactions.
+     */
     private final ChatMemory chatMemory;
 
     /** Service de configuration des prompts système. */
     private final PromptsConfigService promptsConfigService;
 
-    /** RAG Modulaire : advisor complet avec rewrite + multi-query + retrieval. */
+    /**
+     * Conseiller gérant l'architecture RAG modulaire,
+     * englobant la réécriture de requêtes,
+     * le multi-requêtage et la récupération documentaire.
+     */
     private final RetrievalAugmentationAdvisor retrievalAugmentationAdvisor;
 
-    /** Inspection First Advisor */
+    /**
+     * Conseiller assurant la prévalence des phases d'inspection
+     * avant toute tentative de modification.
+     */
     private final InspectionFirstAdvisor inspectionFirstAdvisor;
 
-    /** Port de routing : analyse l'intention et retourne les catégories de tools. */
+    /**
+     * Port de routage chargé d'analyser l'intention utilisateur
+     * pour en déduire les catégories d'outils nécessaires.
+     */
     private final ToolRouterPort toolRouter;
 
     /**
-     * Résolveur : convertit un {@link Set}&lt;{@link ToolCategory}&gt; en tableau
-     * d'instances de tools Spring AI.
+     * Composant de résolution traduisant un ensemble de catégories conceptuelles
+     * en un tableau d'instances d'outils techniques Spring AI.
      */
     private final ToolCategoryResolver toolCategoryResolver;
 
@@ -105,23 +127,37 @@ public class OllamaAiAdapter implements AiServicePort {
         this.inspectionFirstAdvisor = inspectionFirstAdvisor;
     }
 
+    /**
+     * Pilote le traitement complet d'une requête conversationnelle et retourne une réponse sous forme de flux de données continu (streaming).
+     * En suivant l'architecture du pipeline,
+     * <ol>
+     *   <li>la méthode évalue en premier lieu la complexité de l'interaction.</li> 
+     *   <li>Elle délègue ensuite l'analyse sémantique au routeur afin de circonscrire strictement les outils mis à disposition du modèle.</li>
+     *   <li>Une fois les instances résolues et le client approprié instancié, l'exécution finale est déclenchée avec injection du contexte, des conseillers et des instructions systèmes.</li>
+     * </ol>
+     *
+     * @param conversationId L'identifiant unique permettant de lier l'interaction à son contexte mémoriel.
+     * @param userMessage    La requête textuelle formulée par l'utilisateur.
+     * @param userToken      Le jeton de sécurité ou d'identification de l'utilisateur (peut être nul).
+     * @return               Un flux réactif ({@link Flux}) émettant les fragments de texte générés par le modèle au fil de l'eau.
+     */
     @Override
     public Flux<String> chat(String conversationId, String userMessage, String userToken) {
         try {
-            // Étape 1 : Complexité
+            // Étape 1 : Évaluation de la complexité
             TaskComplexity complexity = complexityAnalyzer.analyze(userMessage);
             log.info("Processing chat (conversation={}, complexity={}, messageLength={})",
                 conversationId, complexity, userMessage.length());
 
-            // Étape 2 : Router
+            // Étape 2 : Routage sémantique
             Set<ToolCategory> categories = toolRouter.route(userMessage);
             log.info("[Router] → categories: {}", categories);
 
-            // Étape 3 : Résolution des tools
+            // Étape 3 : Résolution des dépendances techniques
             Object[] tools = toolCategoryResolver.resolveTools(categories);
             log.info("[Registry] → {} tool instance(s) selected", tools.length);
 
-            // Étape 4 : Exécuteur
+            // Étape 4 : Exécution
             ChatClient adaptedClient = chatClientFactory.buildForComplexity(complexity);
             return adaptedClient.prompt()
                 .system(promptsConfigService.getInitialInstructions())
@@ -151,63 +187,6 @@ public class OllamaAiAdapter implements AiServicePort {
         }
     }
 
-    /**
-     * Génère un plan de design structuré ({@link DesignPlan}) à partir d'une requête.
-     *
-     * <p>Utilise toujours le profil COMPLEX (thinking activé) et le
-     * {@code StructuredOutputValidationAdvisor} avec 3 tentatives pour garantir
-     * un JSON valide conforme au schéma {@link DesignPlan}.</p>
-     *
-     * <p>Note : le planning n'utilise <b>pas</b> le router — il expose volontairement
-     * tous les tools via le RAG advisor pour que le modèle puisse planifier
-     * une séquence complète d'opérations.</p>
-     *
-     * @param conversationId identifiant de la conversation
-     * @param userMessage    requête de design à planifier
-     * @return le plan structuré, ou un plan {@code explain} en cas d'échec
-     */
-    public DesignPlan planDesign(String conversationId, String userMessage) {
-        try {
-            log.info("Planning design for conversation={}", conversationId);
-
-            var validationAdvisor = StructuredOutputValidationAdvisor
-                .builder()
-                .outputType(DesignPlan.class)
-                .maxRepeatAttempts(3)
-                .build();
-
-            ChatClient planningClient = chatClientFactory.buildForComplexity(TaskComplexity.COMPLEX);
-            DesignPlan plan = planningClient.prompt()
-                .system(buildPlanningSystemPrompt())
-                .user(userMessage)
-                .advisors(
-                    inspectionFirstAdvisor,
-                    validationAdvisor,
-                    retrievalAugmentationAdvisor,
-                    new SimpleLoggerAdvisor()
-                )
-                .advisors(advisor -> advisor.param(CONVERSATION_ID, conversationId))
-                .call()
-                .entity(DesignPlan.class);
-
-            if (plan == null) {
-                log.warn("planDesign returned null — falling back to explain plan");
-                return DesignPlan.explain("Unable to generate a design plan. Please try rephrasing.");
-            }
-
-            log.info("Design plan generated: action={}, shapes={}, complexity={}",
-                plan.action(),
-                plan.hasShapes() ? plan.shapes().size() : 0,
-                plan.complexity());
-            return plan;
-        } catch (Exception e) {
-            log.error("Error during design planning for conversation={}", conversationId, e);
-            return DesignPlan.explain(
-                "Design planning failed: " + e.getMessage() + ". Please try again."
-            );
-        }
-    }
-
     @Override
     @Transactional
     public void clearConversation(String conversationId) {
@@ -228,33 +207,11 @@ public class OllamaAiAdapter implements AiServicePort {
     }
 
     /**
-     * Construit le prompt système pour la génération de plans de design.
-     * Ajoute les instructions JSON au prompt de base de prompts.yml.
+     * Agence dynamiquement la liste des conseillers à injecter dans le pipeline d'exécution conversationnel.
+     *
+     * @param categories L'ensemble des catégories sémantiques ciblées pour la requête courante.
+     * @return           Une liste ordonnée d'instances {@link Advisor} prêtes à être attachées au client IA.
      */
-    private String buildPlanningSystemPrompt() {
-        return promptsConfigService.getInitialInstructions() + """
-
-            ## PLANNING MODE
-            You are in PLANNING mode. You must respond ONLY with a valid JSON object
-            matching the DesignPlan schema. No explanation, no markdown, no text outside the JSON.
-
-            The JSON must contain:
-            - "action": one of [create_design, modify_element, search_template, explain]
-            - "complexity": one of [simple, creative, complex]
-            - "template_id": RAG template ID or null
-            - "shapes": ordered array of shape instructions with tool name and parameters
-            - "global_parameters": board dimensions, colors, typography
-            - "execution_order": human-readable steps list
-            - "user_facing_message": confirmation message for the user
-
-            Each shape in "shapes" must have:
-            - "tool": exact tool name (createBoard, createRectangle, createText, etc.)
-            - "name": descriptive name
-            - "parameters": tool parameters object
-            - "depends_on": list of shape names this depends on (can be empty)
-            """;
-    }
-
     private List<Advisor> buildAdvisors(Set<ToolCategory> categories) {
         List<Advisor> advisors = new ArrayList<>();
         advisors.add(inspectionFirstAdvisor);

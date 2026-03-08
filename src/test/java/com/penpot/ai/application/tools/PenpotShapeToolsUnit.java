@@ -1,13 +1,22 @@
 package com.penpot.ai.application.tools;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import static org.mockito.ArgumentMatchers.*;
-import org.mockito.*;
-import static org.mockito.Mockito.*;
-import org.mockito.junit.jupiter.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import com.penpot.ai.application.tools.support.PenpotToolExecutor;
@@ -15,7 +24,7 @@ import com.penpot.ai.application.tools.support.PenpotToolExecutor;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 @DisplayName("PenpotShapeTools")
-public class PenpotShapeToolsUnit {
+class PenpotShapeToolsUnit {
 
     @Mock
     private PenpotToolExecutor toolExecutor;

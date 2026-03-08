@@ -53,34 +53,4 @@ class PromptsConfigServiceTest {
             assertThat(instructions).isInstanceOf(String.class);
         }
     }
-
-    @Nested
-    @DisplayName("reloadConfiguration — live reload")
-    class ReloadConfigurationIntegrationTests {
-
-        @Test
-        @DisplayName("reloadConfiguration — does not throw and service remains functional after reload")
-        void reloadConfiguration_doesNotThrowAndServiceRemainsFunctionalAfterReload() {
-            // GIVEN / WHEN
-            promptsConfigService.reloadConfiguration();
-
-            // THEN
-            assertThat(promptsConfigService.getInitialInstructions())
-                .isNotNull().isNotBlank();
-        }
-
-        @Test
-        @DisplayName("reloadConfiguration — getInitialInstructions returns consistent value before and after reload")
-        void reloadConfiguration_getInitialInstructionsReturnsConsistentValueBeforeAndAfterReload() {
-            // GIVEN
-            String before = promptsConfigService.getInitialInstructions();
-
-            // WHEN
-            promptsConfigService.reloadConfiguration();
-            String after = promptsConfigService.getInitialInstructions();
-
-            // THEN
-            assertThat(after).isEqualTo(before);
-        }
-    }
 }

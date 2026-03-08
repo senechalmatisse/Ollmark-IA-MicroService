@@ -63,6 +63,14 @@ public class RagTemplateService {
     private int topK;
 
     /**
+     * Contrôle l'indexation au démarrage.
+     * <p>{@code true} (défaut) = comportement normal, les templates sont chargés et vectorisés.</p>
+     * <p>{@code false} = chargement des métadonnées uniquement, sans appel à l'EmbeddingModel.
+     */
+    @Value("${penpot.ai.rag.eager-embedding:true}")
+    private boolean eagerEmbedding;
+
+    /**
      * Registre en mémoire (cache) des modèles chargés, permettant un accès direct et optimisé
      * lors des opérations de restitution qui ne nécessitent pas de calcul de similarité. 
      */
@@ -72,9 +80,15 @@ public class RagTemplateService {
     @PostConstruct
     public void init() {
         try {
-            loadAndIndexTemplates();
-            log.info("RAG initialized — {} templates loaded (6 themes × 4 formats)",
-                    templatesCache.size());
+            if (eagerEmbedding) {
+                loadAndIndexTemplates();
+                log.info("RAG initialized — {} templates loaded and indexed (6 themes × 4 formats)",
+                        templatesCache.size());
+            } else {
+                loadTemplatesWithoutIndexing();
+                log.info("RAG initialized (no embedding) — {} templates loaded (eager-embedding=false)",
+                        templatesCache.size());
+            }
         } catch (Exception e) {
             log.error("Failed to initialize RAG Template Service", e);
         }
@@ -114,6 +128,28 @@ public class RagTemplateService {
         if (!documents.isEmpty()) {
             vectorStore.add(documents);
             log.info("Indexed {} templates in VectorStore", documents.size());
+        }
+    }
+
+    /**
+     * Charge uniquement les métadonnées des templates, sans vectorisation.
+     */
+    private void loadTemplatesWithoutIndexing() throws IOException {
+        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+        Resource[] resources = resolver.getResources(templatesPath);
+
+        log.info("Loading {} template files (metadata only) from {}", resources.length, templatesPath);
+
+        for (Resource resource : resources) {
+            try {
+                MarketingTemplate template = objectMapper.readValue(
+                        resource.getInputStream(), MarketingTemplate.class);
+                templatesCache.put(template.getId(), template);
+                log.debug("Loaded (no index): {}", template.getId());
+            } catch (Exception e) {
+                log.error("Failed to load template from {}: {}",
+                        resource.getFilename(), e.getMessage());
+            }
         }
     }
 
@@ -183,9 +219,9 @@ public class RagTemplateService {
                 System.currentTimeMillis() - start);
 
         return results.stream()
-            .map(doc -> templatesCache.get((String) doc.getMetadata().get("id")))
+            .map(doc -> templatesCache.get(doc.getMetadata().get("id")))
             .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     /**
@@ -207,7 +243,7 @@ public class RagTemplateService {
     public List<MarketingTemplate> getTemplatesByType(String type) {
         return templatesCache.values().stream()
             .filter(t -> type.equalsIgnoreCase(t.getType()))
-            .collect(Collectors.toList());
+            .toList();
     }
 
     /**
@@ -219,7 +255,7 @@ public class RagTemplateService {
     public List<MarketingTemplate> getTemplatesByTag(String tag) {
         return templatesCache.values().stream()
             .filter(t -> t.getTags() != null && t.getTags().contains(tag))
-            .collect(Collectors.toList());
+            .toList();
     }
 
     /**
@@ -247,8 +283,8 @@ public class RagTemplateService {
      */
     public Set<String> getAvailableTypes() {
         return templatesCache.values().stream()
-                .map(MarketingTemplate::getType)
-                .collect(Collectors.toSet());
+            .map(MarketingTemplate::getType)
+            .collect(Collectors.toSet());
     }
 
     /**

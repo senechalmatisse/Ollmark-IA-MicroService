@@ -19,7 +19,6 @@ import static org.mockito.Mockito.*;
  * afin de vérifier la délégation correcte et la gestion des retours
  * (succès / échec) sans exécuter de JavaScript réel.</p>
  */
-
 @SpringBootTest
 @ActiveProfiles("test")
 @DisplayName("PenpotInspectorTools — Integration")

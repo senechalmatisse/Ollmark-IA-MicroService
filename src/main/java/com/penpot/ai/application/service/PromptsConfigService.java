@@ -18,6 +18,16 @@ import java.util.Map;
 @Service
 public class PromptsConfigService {
 
+    private static final String INITIAL_INSTRUCTIONS_KEY = "initial_instructions";
+    private static final String DEFAULT_INSTRUCTIONS = """
+        Tu es un **agent expert Penpot orienté création de contenu marketing graphique automatisé**.
+        Tes responsabilités sont :
+        1. Orchestrer les appels aux tools Penpot
+        2. Exploiter les résultats fournis par le RAG (templates, intentions, patterns)
+        3. Traduire une intention marketing en design graphique structuré
+        4. Respecter strictement les contraintes de design existantes
+    """;
+
     private Map<String, Object> promptsConfig;
 
     @PostConstruct
@@ -30,17 +40,16 @@ public class PromptsConfigService {
             ClassPathResource resource = new ClassPathResource("data/prompts.yml");
             if (!resource.exists()) {
                 log.warn("prompts.yml not found, using default configuration");
-                promptsConfig = Map.of("initial_instructions", getDefaultInstructions());
+                promptsConfig = Map.of(INITIAL_INSTRUCTIONS_KEY, DEFAULT_INSTRUCTIONS);
                 return;
             }
 
             Yaml yaml = new Yaml();
             try (InputStream inputStream = resource.getInputStream()) {
-                @SuppressWarnings("unchecked")
                 Map<String, Object> config = yaml.load(inputStream);
                 if (config == null) {
                     log.warn("prompts.yml is empty, using default configuration");
-                    promptsConfig = Map.of("initial_instructions", getDefaultInstructions());
+                    promptsConfig = Map.of(INITIAL_INSTRUCTIONS_KEY, DEFAULT_INSTRUCTIONS);
                     return;
                 }
                 promptsConfig = config;
@@ -48,7 +57,7 @@ public class PromptsConfigService {
             }
         } catch (IOException e) {
             log.error("Failed to load prompts.yml, using default configuration", e);
-            promptsConfig = Map.of("initial_instructions", getDefaultInstructions());
+            promptsConfig = Map.of(INITIAL_INSTRUCTIONS_KEY, DEFAULT_INSTRUCTIONS);
         }
     }
 
@@ -59,31 +68,8 @@ public class PromptsConfigService {
      */
     public String getInitialInstructions() {
         return (String) promptsConfig.getOrDefault(
-            "initial_instructions", 
-            getDefaultInstructions()
+            INITIAL_INSTRUCTIONS_KEY, 
+            DEFAULT_INSTRUCTIONS
         );
-    }
-
-    public Object getConfigValue(String key) {
-        return promptsConfig.get(key);
-    }
-
-    public void reloadConfiguration() {
-        loadPromptsConfig();
-        log.info("Configuration cache cleared and reloaded");
-    }
-
-    /**
-     * Retourne les instructions par défaut si le fichier prompts.yml n'existe pas.
-     */
-    private String getDefaultInstructions() {
-        return """
-            You are an expert assistant for the Penpot Plugin API.
-
-            Your role is to help users:
-            - Generate JavaScript code for Penpot plugins
-
-            Always provide clear, concise, and executable code examples.
-            """;
     }
 }

@@ -4,28 +4,29 @@ import lombok.experimental.UtilityClass;
 
 import java.util.*;
 
+import com.penpot.ai.shared.util.JsStringUtils;
+
 /**
- * Utilitaire de génération des fragments JavaScript Penpot récurrents.
+ * Classe utilitaire responsable de la génération dynamique et centralisée des fragments de code JavaScript destinés à l'API Penpot. 
  */
 @UtilityClass
 public class PenpotJsSnippets {
 
     /**
-     * Génère le code JS pour trouver une forme par ID, avec fallback sur la sélection.
-     * <p>Variable résultante dans le scope JS : {@code shape}.</p>
+     * Construit le script JavaScript permettant de récupérer une forme géométrique spécifique à partir de son identifiant unique. 
      *
-     * @param shapeId UUID de la forme Penpot
+     * @param shapeId L'identifiant unique (UUID) de la forme cible au sein de l'environnement Penpot.
+     * @return        Le fragment de code JavaScript prêt à être exécuté par le moteur de rendu.
      */
     public static String findShapeOrFallback(String shapeId) {
         return JsScriptLoader.loadWith("snippets/find-shape.js", Map.of("shapeId", shapeId));
     }
 
     /**
-     * Génère le code JS pour trouver la <em>première</em> forme d'une liste d'IDs,
-     * avec fallback sur le premier élément sélectionné.
-     * <p>Variable résultante : {@code shape}.</p>
+     * Produit un fragment de code visant à isoler le premier élément d'une collection d'identifiants. 
      *
-     * @param shapeIds liste d'IDs (utilise uniquement le premier)
+     * @param shapeIds La liste des identifiants disponibles, dont seul le premier élément sera exploité par le script généré.
+     * @return         Le code JavaScript effectuant la sélection prioritaire ou son repli.
      */
     public static String findFirstShapeOrFallback(List<String> shapeIds) {
         if (shapeIds == null || shapeIds.isEmpty()) {
@@ -36,13 +37,11 @@ public class PenpotJsSnippets {
     }
 
     /**
-     * Génère le code JS pour collecter plusieurs formes avec fallback sur la sélection.
-     * <p>Variable résultante : {@code shapes} (tableau).</p>
+     * Génère dynamiquement un script chargé d'agréger un ensemble de formes géométriques en itérant sur une liste d'identifiants. 
      *
-     * <p>Si {@code ids} est null ou vide, utilise directement {@code penpot.selection}.</p>
-     *
-     * @param ids      liste des UUIDs (null ou vide = utiliser la sélection courante)
-     * @param toolName nom du tool pour les messages de console
+     * @param ids      La collection des UUIDs à localiser ; une valeur nulle ou vide déclenche le comportement de repli sur la sélection courante.
+     * @param toolName La nomenclature de l'outil appelant, injectée dans les messages de journalisation pour faciliter le débogage côté client.
+     * @return         Le bloc d'instructions JavaScript accomplissant l'agrégation robuste des entités visuelles.
      */
     public static String collectShapesOrFallback(List<String> ids, String toolName) {
         if (ids == null || ids.isEmpty()) {
@@ -69,48 +68,36 @@ public class PenpotJsSnippets {
     }
 
     /**
-     * Génère le code JS pour créer un élément texte Penpot.
+     * Construit de bout en bout le code JavaScript nécessaire à l'instanciation et au paramétrage d'un nouvel élément textuel 
+     * au sein du canevas Penpot.
      *
-     * <p>Extrait ici car dupliqué dans {@code PenpotShapeTools} et {@code PenpotContentTools}.
-     * Variable résultante : {@code text}.</p>
-     *
-     * @param content    contenu textuel
-     * @param x          position X
-     * @param y          position Y
-     * @param fontSize   taille de police (null = ignoré)
-     * @param fontWeight graisse (null = ignoré)
-     * @param fillColor  couleur hex (null = ignoré)
-     * @param name       nom de l'élément (null = ignoré)
+     * @param content    Le contenu sémantique brut à afficher, soumis automatiquement à un processus d'échappement.
+     * @param x          La coordonnée horizontale de positionnement sur l'espace de travail.
+     * @param y          La coordonnée verticale de positionnement sur l'espace de travail.
+     * @param fontSize   La dimension de la police d'écriture (paramètre ignoré si nul ou inférieur à zéro).
+     * @param fontWeight L'épaisseur typographique souhaitée (paramètre ignoré si nul ou vide).
+     * @param fillColor  Le code couleur hexadécimal à appliquer en remplissage (paramètre ignoré si nul ou vide).
+     * @param name       L'intitulé technique de l'élément dans l'arborescence des calques (paramètre ignoré si nul ou vide).
+     * @return           Le script JavaScript complet orchestrant la création de la zone de texte.
      */
     public static String createText(
         String content, int x, int y,
         Integer fontSize, String fontWeight, String fillColor, String name
     ) {
-        String escaped = escapeJsString(content);
+        String escaped = JsStringUtils.jsSafe(content);
         StringBuilder code = new StringBuilder();
-        code.append(String.format("const text = penpot.createText('%s');\n", escaped));
-        code.append(String.format("text.x = %d;\n", x));
-        code.append(String.format("text.y = %d;\n", y));
+        code.append(String.format("const text = penpot.createText('%s');%n", escaped));
+        code.append(String.format("text.x = %d;%n", x));
+        code.append(String.format("text.y = %d;%n", y));
         if (fontSize != null && fontSize > 0)
-            code.append(String.format("text.fontSize = %d;\n", fontSize));
+            code.append(String.format("text.fontSize = %d;%n", fontSize));
         if (fontWeight != null && !fontWeight.isBlank())
-            code.append(String.format("text.fontWeight = '%s';\n", fontWeight));
+            code.append(String.format("text.fontWeight = '%s';%n", fontWeight));
         if (fillColor != null && !fillColor.isBlank())
-            code.append(String.format("text.fills = [{ fillColor: '%s' }];\n", fillColor));
+            code.append(String.format("text.fills = [{ fillColor: '%s' }];%n", fillColor));
         if (name != null && !name.isBlank())
-            code.append(String.format("text.name = '%s';\n", escapeJsString(name)));
+            code.append(String.format("text.name = '%s';%n", JsStringUtils.jsSafe(name)));
         code.append("return text.id;\n");
         return code.toString();
-    }
-
-    /**
-     * Échappe une chaîne pour inclusion dans du code JavaScript entre single quotes.
-     */
-    public static String escapeJsString(String s) {
-        if (s == null) return "";
-        return s.replace("\\", "\\\\")
-                .replace("'", "\\'")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r");
     }
 }

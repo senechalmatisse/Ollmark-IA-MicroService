@@ -42,11 +42,26 @@ public class PenpotToolRegistry implements ToolCategoryResolver {
     private final PenpotContentTools contentTools;
     private final PenpotDeleteTools deleteTools;
     private final PenpotInspectorTools inspectorTools;
-    private final TemplateSearchTools templateSearchTools;
+    private final TemplateSearchTools  templateSearchTools;
 
-    // Le registry immuable construit au démarrage
+    /**
+     * Le dictionnaire immuable consignant le mapping entre catégories et outils,
+     * scellé au démarrage de l'application.
+     */
     private Map<ToolCategory, List<Object>> registry;
 
+    /**
+     * Initialise le registre en injectant l'ensemble des outils disponibles dans le contexte applicatif.
+     *
+     * @param shapeTools          Outils dédiés à la génération de formes géométriques.
+     * @param transformTools      Outils gérant les altérations spatiales.
+     * @param assetTools          Outils administrant les ressources graphiques.
+     * @param layoutTools         Outils orchestrant le positionnement et l'alignement des éléments.
+     * @param contentTools        Outils responsables de la création de contenus textuels ou médias.
+     * @param deleteTools         Outils dédiés à la suppression d'entités sur le canevas.
+     * @param inspectorTools      Outils d'analyse et d'extraction des propriétés des objets.
+     * @param templateSearchTools Outils interrogeant la base de connaissances (RAG) pour la recherche de gabarits.
+     */
     public PenpotToolRegistry(
         PenpotShapeTools shapeTools,
         PenpotTransformTools transformTools,
@@ -68,7 +83,7 @@ public class PenpotToolRegistry implements ToolCategoryResolver {
     }
 
     /**
-     * Construit le registry au démarrage de l'application.
+     * Construit et verrouille la cartographie des outils lors de la phase d'initialisation du composant.
      *
      * <p>Utilisation de {@link Map#copyOf} pour rendre le registry immuable
      * après construction — aucune modification possible à l'exécution.</p>
@@ -78,22 +93,19 @@ public class PenpotToolRegistry implements ToolCategoryResolver {
         Map<ToolCategory, List<Object>> mutable = new EnumMap<>(ToolCategory.class);
 
         // --- Création de formes ---
-        mutable.put(ToolCategory.SHAPE_CREATION, List.of(shapeTools, contentTools));
+        mutable.put(ToolCategory.SHAPE_CREATION, List.of(shapeTools, contentTools, templateSearchTools));
 
         // --- Modification de formes (transform + shape partagés) ---
-        mutable.put(ToolCategory.SHAPE_MODIFICATION, List.of(shapeTools, transformTools, inspectorTools));
+        mutable.put(ToolCategory.SHAPE_MODIFICATION, List.of(shapeTools, transformTools, inspectorTools, layoutTools));
 
         // --- Couleurs et styles (assets gère les palettes) ---
-        mutable.put(ToolCategory.COLOR_AND_STYLE, List.of(assetTools, inspectorTools));
+        mutable.put(ToolCategory.COLOR_AND_STYLE, List.of(assetTools, inspectorTools, templateSearchTools));
 
         // --- Mise en page et alignement ---
         mutable.put(ToolCategory.LAYOUT_AND_ALIGNMENT, List.of(layoutTools, inspectorTools));
 
-        // --- Contenu textuel et médias ---
-        mutable.put(ToolCategory.CONTENT_AND_TEXT, List.of(contentTools, inspectorTools));
-
-        // --- Gestion des assets partagés ---
-        mutable.put(ToolCategory.ASSET_MANAGEMENT, List.of(assetTools));
+        // --- Contenu marketing textuel et médias ---
+        mutable.put(ToolCategory.CONTENT_AND_TEXT, List.of(contentTools, inspectorTools, templateSearchTools));
 
         // --- Inspection (toujours inclus comme contexte) ---
         mutable.put(ToolCategory.INSPECTION, List.of(inspectorTools));
@@ -105,8 +117,6 @@ public class PenpotToolRegistry implements ToolCategoryResolver {
         mutable.put(ToolCategory.TEMPLATE_SEARCH, List.of(templateSearchTools));
 
         this.registry = Map.copyOf(mutable);
-
-        logRegistryStats();
     }
 
     /**
@@ -119,6 +129,9 @@ public class PenpotToolRegistry implements ToolCategoryResolver {
      *   <li>Déduplique sur l'identité d'objet (référence Java).</li>
      *   <li>Retourne un tableau {@code Object[]} attendu par {@code ChatClient.tools(...)}.</li>
      * </ol>
+     * 
+     * @param categories L'ensemble des catégories d'outils réclamées par le routeur d'intention.
+     * @return           Un tableau d'objets contenant les instances uniques d'outils à injecter dans le contexte du LLM.
      */
     @Override
     public Object[] resolveTools(Set<ToolCategory> categories) {
@@ -142,36 +155,5 @@ public class PenpotToolRegistry implements ToolCategoryResolver {
         log.debug("[Registry] Resolved {} tool instance(s) for categories: {}",
             tools.length, categories);
         return tools;
-    }
-
-    /**
-     * Retourne le nombre de tools enregistrés pour une catégorie.
-     * Utile pour les tests et le monitoring.
-     */
-    public int toolCountForCategory(ToolCategory category) {
-        return registry.getOrDefault(category, List.of()).size();
-    }
-
-    /**
-     * Retourne une vue immuable du registry complet.
-     * Exposé pour les endpoints de diagnostic (/actuator/router-stats, etc.).
-     */
-    public Map<ToolCategory, List<Object>> getRegistry() {
-        return registry;
-    }
-
-    private void logRegistryStats() {
-        int totalMappings = registry.values().stream()
-            .mapToInt(List::size)
-            .sum();
-        log.info("[Registry] Initialized with {} categories, {} tool-category mappings",
-            registry.size(), totalMappings);
-        registry.forEach((cat, tools) ->
-            log.debug("[Registry]   {} → {} tool(s): {}",
-                cat,
-                tools.size(),
-                tools.stream()
-                    .map(t -> t.getClass().getSimpleName())
-                    .collect(Collectors.joining(", "))));
     }
 }

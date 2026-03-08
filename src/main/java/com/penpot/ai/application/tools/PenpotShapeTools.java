@@ -2,12 +2,11 @@ package com.penpot.ai.application.tools;
 
 import java.util.Locale;
 
-import org.springframework.ai.tool.annotation.Tool;
-import org.springframework.ai.tool.annotation.ToolParam;
+import org.springframework.ai.tool.annotation.*;
 import org.springframework.stereotype.Component;
 
-import com.penpot.ai.application.tools.support.PenpotJsSnippets;
-import com.penpot.ai.application.tools.support.PenpotToolExecutor;
+import com.penpot.ai.application.tools.support.*;
+import com.penpot.ai.shared.util.JsStringUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -222,8 +221,6 @@ public class PenpotShapeTools {
         return toolExecutor.createShape(buildBooleanCode(boolType, shapeIds, name), "boolean");
     }
 
-    // ==================== CODE GENERATION METHODS ====================
-
     /**
      * Construit le code JavaScript exécuté par Penpot pour créer un rectangle.
      *
@@ -242,7 +239,7 @@ public class PenpotShapeTools {
         if (fillColor != null && !fillColor.isBlank())
             code.append(String.format("rect.fills = [{ fillColor: '%s' }];\n", fillColor));
         if (name != null && !name.isBlank())
-            code.append(String.format("rect.name = '%s';\n", PenpotJsSnippets.escapeJsString(name)));
+            code.append(String.format("rect.name = '%s';\n", JsStringUtils.jsSafe(name)));
         code.append("return rect.id;\n");
         return code.toString();
     }
@@ -261,7 +258,7 @@ public class PenpotShapeTools {
         if (fillColor != null && !fillColor.isBlank())
             code.append(String.format("ellipse.fills = [{ fillColor: '%s' }];\n", fillColor));
         if (name != null && !name.isBlank())
-            code.append(String.format("ellipse.name = '%s';\n", PenpotJsSnippets.escapeJsString(name)));
+            code.append(String.format("ellipse.name = '%s';\n", JsStringUtils.jsSafe(name)));
         code.append("return ellipse.id;\n");
         return code.toString();
     }
@@ -276,7 +273,7 @@ public class PenpotShapeTools {
         code.append("const board = penpot.createBoard();\n");
         code.append(String.format("board.resize(%d, %d);\n", width, height));
         if (name != null && !name.isBlank())
-            code.append(String.format("board.name = '%s';\n", PenpotJsSnippets.escapeJsString(name)));
+            code.append(String.format("board.name = '%s';\n", JsStringUtils.jsSafe(name)));
         if (backgroundColor != null && !backgroundColor.isBlank())
             code.append(String.format("board.fills = [{ fillColor: '%s' }];\n", backgroundColor));
         code.append("return board.id;\n");
@@ -314,7 +311,7 @@ public class PenpotShapeTools {
         code.append(String.format("group.x = %d;\n", x));
         code.append(String.format("group.y = %d;\n", y));
         if (name != null && !name.isBlank())
-            code.append(String.format("group.name = '%s';\n", PenpotJsSnippets.escapeJsString(name)));
+            code.append(String.format("group.name = '%s';\n", JsStringUtils.jsSafe(name)));
         code.append("return group.id;\n");
         return code.toString();
     }
@@ -361,8 +358,6 @@ public class PenpotShapeTools {
     ) {
         String pathData = generateTrianglePath(width, height, type);
         String color = (fillColor != null && !fillColor.isBlank()) ? fillColor : "#CCCCCC";
-
-        // SVG embarqué dans le JS — même pattern que buildStarCode
         String svg = String.format(
                 "<svg width='%d' height='%d' viewBox='0 0 %d %d' xmlns='http://www.w3.org/2000/svg'>"
                 + "<path d='%s' fill='%s'/></svg>",
@@ -376,7 +371,7 @@ public class PenpotShapeTools {
         code.append(String.format("group.x = %d;\n", x));
         code.append(String.format("group.y = %d;\n", y));
         if (name != null && !name.isBlank()) {
-            code.append(String.format("group.name = '%s';\n", PenpotJsSnippets.escapeJsString(name)));
+            code.append(String.format("group.name = '%s';\n", JsStringUtils.jsSafe(name)));
         }
         code.append("return group.id;\n");
         return code.toString();
@@ -406,8 +401,9 @@ public class PenpotShapeTools {
     }
 
     /**
-     * Génère le JS pour une opération booléenne Penpot.
-     */
+    * Génère le JS pour une opération booléenne Penpot.
+    *
+    */
     private String buildBooleanCode(String boolType, String shapeIds, String name) {
         String resolvedType = resolveBooleanType(boolType);
         String[] ids = shapeIds.split(",");
@@ -436,7 +432,7 @@ public class PenpotShapeTools {
 
         if (name != null && !name.isBlank()) {
             code.append(String.format("result.name = '%s';\n",
-                PenpotJsSnippets.escapeJsString(name)));
+                JsStringUtils.jsSafe(name)));
         }
         code.append("return result.id;\n");
         return code.toString();

@@ -113,9 +113,7 @@ public class InspectionFirstAdvisor implements CallAdvisor {
      * @return ensemble de catégories sous forme de chaînes
      */
     private Set<String> extractCategories(Object raw) {
-        if (raw == null) {
-            return Collections.emptySet();
-        }
+        if (raw == null) return Collections.emptySet();
         if (raw instanceof Collection<?> col) {
             Set<String> out = new HashSet<>();
             for (Object o : col) out.add(String.valueOf(o));

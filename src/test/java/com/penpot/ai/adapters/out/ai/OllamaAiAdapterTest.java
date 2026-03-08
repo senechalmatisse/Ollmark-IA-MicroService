@@ -246,92 +246,6 @@ class OllamaAiAdapterTest {
     }
 
     // =========================================================================
-    // planDesign()
-    // =========================================================================
-
-    @Nested
-    @DisplayName("planDesign()")
-    class PlanDesignMethod {
-
-        @Test
-        @DisplayName("shouldReturnDesignPlan_givenValidMessage_whenPlanDesignIsCalled")
-        void shouldReturnDesignPlan_givenValidMessage_whenPlanDesignIsCalled() {
-            // GIVEN a valid user message and a properly configured planning client
-            String conversationId = "plan-001";
-            String userMessage = "Create a landing page for a SaaS product";
-            DesignPlan expectedPlan = mock(DesignPlan.class);
-
-            when(promptsConfigService.getInitialInstructions()).thenReturn("system prompt");
-            when(chatClientFactory.buildForComplexity(TaskComplexity.COMPLEX)).thenReturn(chatClient);
-            mockFluentChainForEntity(expectedPlan);
-
-            // WHEN planDesign() is called
-            DesignPlan result = adapter.planDesign(conversationId, userMessage);
-
-            // THEN the returned plan should be the one produced by the model
-            assertThat(result).isEqualTo(expectedPlan);
-            verify(chatClientFactory).buildForComplexity(TaskComplexity.COMPLEX);
-        }
-
-        @Test
-        @DisplayName("shouldAlwaysUseCOMPLEXProfile_givenAnyMessage_whenPlanDesignIsCalled")
-        void shouldAlwaysUseCOMPLEXProfile_givenAnyMessage_whenPlanDesignIsCalled() {
-            // GIVEN a simple-looking message
-            String conversationId = "plan-002";
-            String userMessage = "Move a button";
-
-            when(promptsConfigService.getInitialInstructions()).thenReturn("system");
-            when(chatClientFactory.buildForComplexity(TaskComplexity.COMPLEX)).thenReturn(chatClient);
-            mockFluentChainForEntity(mock(DesignPlan.class));
-
-            // WHEN planDesign() is called
-            adapter.planDesign(conversationId, userMessage);
-
-            // THEN it must always use COMPLEX — planning always requires the thinking model
-            verify(chatClientFactory).buildForComplexity(TaskComplexity.COMPLEX);
-            verify(chatClientFactory, never()).buildForComplexity(TaskComplexity.SIMPLE);
-            verify(chatClientFactory, never()).buildForComplexity(TaskComplexity.CREATIVE);
-        }
-
-        @Test
-        @DisplayName("shouldReturnExplainPlan_givenModelReturnsNull_whenPlanDesignIsCalled")
-        void shouldReturnExplainPlan_givenModelReturnsNull_whenPlanDesignIsCalled() {
-            // GIVEN the model returns null for the entity
-            String conversationId = "plan-003";
-            String userMessage = "Generate a design";
-
-            when(promptsConfigService.getInitialInstructions()).thenReturn("system");
-            when(chatClientFactory.buildForComplexity(TaskComplexity.COMPLEX)).thenReturn(chatClient);
-            mockFluentChainForEntity(null);
-
-            // WHEN planDesign() is called
-            DesignPlan result = adapter.planDesign(conversationId, userMessage);
-
-            // THEN a fallback explain plan should be returned (not null, not throwing)
-            assertThat(result).isNotNull();
-        }
-
-        @Test
-        @DisplayName("shouldNotUseToolRouter_givenAnyMessage_whenPlanDesignIsCalled")
-        void shouldNotUseToolRouter_givenAnyMessage_whenPlanDesignIsCalled() {
-            // GIVEN any user message
-            String conversationId = "plan-005";
-            String userMessage = "Create a full social media post";
-
-            when(promptsConfigService.getInitialInstructions()).thenReturn("system");
-            when(chatClientFactory.buildForComplexity(TaskComplexity.COMPLEX)).thenReturn(chatClient);
-            mockFluentChainForEntity(mock(DesignPlan.class));
-
-            // WHEN planDesign() is called
-            adapter.planDesign(conversationId, userMessage);
-
-            // THEN
-            verifyNoInteractions(toolRouter);
-            verifyNoInteractions(toolCategoryResolver);
-        }
-    }
-
-    // =========================================================================
     // clearConversation()
     // =========================================================================
 
@@ -411,7 +325,6 @@ class OllamaAiAdapterTest {
      * chatClient.prompt() → .system() → .user() → .advisors() → .advisors() → .tools()
      * → .toolContext() → .stream() → .content() → Flux
      */
-    @SuppressWarnings("unchecked")
     private void mockFluentChainForStream(Flux<String> content) {
         when(chatClient.prompt()).thenReturn(requestSpec);
         when(requestSpec.system(anyString())).thenReturn(requestSpec);
@@ -422,20 +335,5 @@ class OllamaAiAdapterTest {
         when(requestSpec.toolContext(any())).thenReturn(requestSpec);
         when(requestSpec.stream()).thenReturn(streamResponseSpec);
         when(streamResponseSpec.content()).thenReturn(content.doOnError(e -> {}));
-    }
-
-    /**
-     * Stubs the full Spring AI fluent chain for entity (structured output) responses.
-     */
-    @SuppressWarnings("unchecked")
-    private void mockFluentChainForEntity(DesignPlan plan) {
-        when(chatClient.prompt()).thenReturn(requestSpec);
-        when(requestSpec.system(anyString())).thenReturn(requestSpec);
-        when(requestSpec.user(anyString())).thenReturn(requestSpec);
-        when(requestSpec.advisors(any(org.springframework.ai.chat.client.advisor.api.Advisor[].class)))
-            .thenReturn(requestSpec);
-        when(requestSpec.advisors(any(java.util.function.Consumer.class))).thenReturn(requestSpec);
-        when(requestSpec.call()).thenReturn(callResponseSpec);
-        when(callResponseSpec.entity(DesignPlan.class)).thenReturn(plan);
     }
 }

@@ -3,21 +3,23 @@ package com.penpot.ai.application.tools;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import com.penpot.ai.application.tools.support.PenpotToolExecutor;
 
 @SpringBootTest
-@ActiveProfiles("test")
 @DisplayName("PenpotShapeTools - Integration Tests")
-public class PenpotShapeToolsTest {
+class PenpotShapeToolsTest {
 
     @Autowired
     private PenpotShapeTools penpotShapeTools;

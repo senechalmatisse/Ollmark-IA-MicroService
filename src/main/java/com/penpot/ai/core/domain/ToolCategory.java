@@ -15,6 +15,7 @@ package com.penpot.ai.core.domain;
  * correctement sans connaître l'implémentation.
  */
 public enum ToolCategory {
+    
 
     /**
      * Création de nouvelles formes géométriques.
@@ -45,12 +46,6 @@ public enum ToolCategory {
      * Ex: créer un titre, un paragraphe, insérer une image.
      */
     CONTENT_AND_TEXT,
-
-    /**
-     * Gestion des assets partagés (composants, styles globaux).
-     * Ex: créer un composant, lier un style de couleur.
-     */
-    ASSET_MANAGEMENT,
 
     /**
      * Inspection et lecture de l'état de la page.

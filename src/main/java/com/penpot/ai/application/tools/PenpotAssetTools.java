@@ -1,6 +1,8 @@
 package com.penpot.ai.application.tools;
 
 import com.penpot.ai.application.tools.support.*;
+import com.penpot.ai.shared.util.JsStringUtils;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.*;
@@ -371,9 +373,9 @@ public class PenpotAssetTools {
     private String buildFillCode(String shapeId, String fillColor, float opacity) {
         String opacityStr = String.format(Locale.US, "%.2f", opacity);
         return PenpotJsSnippets.findShapeOrFallback(shapeId)
-            + JsScriptLoader.loadWith("tools/apply-fill.js", Map.of(
+            + JsScriptLoader.loadWith("tools/asset/apply-fill.js", Map.of(
                 "fillColor", fillColor,
-                "opacity",   opacityStr));
+                "opacity", opacityStr));
     }
 
     /**
@@ -395,7 +397,7 @@ public class PenpotAssetTools {
         float sinA = (float) Math.sin(radians);
 
         return PenpotJsSnippets.findShapeOrFallback(shapeId)
-            + JsScriptLoader.loadWith("tools/apply-gradient.js", Map.of(
+            + JsScriptLoader.loadWith("tools/asset/apply-gradient.js", Map.of(
                 "startX", String.format(Locale.US, "%.4f", 0.5f - 0.5f * cosA),
                 "startY", String.format(Locale.US, "%.4f", 0.5f - 0.5f * sinA),
                 "endX", String.format(Locale.US, "%.4f", 0.5f + 0.5f * cosA),
@@ -415,7 +417,7 @@ public class PenpotAssetTools {
      */
     private String buildStrokeCode(String shapeId, String strokeColor, float strokeWidth) {
         return PenpotJsSnippets.findShapeOrFallback(shapeId)
-            + JsScriptLoader.loadWith("tools/apply-stroke.js", Map.of(
+            + JsScriptLoader.loadWith("tools/asset/apply-stroke.js", Map.of(
                 "strokeColor", strokeColor,
                 "strokeWidth", String.format(Locale.US, "%.1f", strokeWidth)));
     }
@@ -432,7 +434,7 @@ public class PenpotAssetTools {
      */
     private String buildShadowCode(String shapeId, float offsetX, float offsetY, float blur, String color) {
         return PenpotJsSnippets.findShapeOrFallback(shapeId)
-            + JsScriptLoader.loadWith("tools/apply-shadow.js", Map.of(
+            + JsScriptLoader.loadWith("tools/asset/apply-shadow.js", Map.of(
                 "offsetX", String.format(Locale.US, "%.1f", offsetX),
                 "offsetY", String.format(Locale.US, "%.1f", offsetY),
                 "blur", String.format(Locale.US, "%.1f", blur),
@@ -448,7 +450,7 @@ public class PenpotAssetTools {
      */
     private String buildOpacityCode(String shapeId, float opacity) {
         return PenpotJsSnippets.findShapeOrFallback(shapeId)
-            + JsScriptLoader.loadWith("tools/update-opacity.js",
+            + JsScriptLoader.loadWith("tools/asset/update-opacity.js",
                 Map.of("opacity", String.format(Locale.US, "%.2f", opacity)));
     }
 
@@ -540,7 +542,7 @@ public class PenpotAssetTools {
         String delayArg = "after-delay".equals(trigger) ? String.format(", %d", delay) : "";
 
         return PenpotJsSnippets.findShapeOrFallback(shapeId)
-            + JsScriptLoader.loadWith("tools/add-interaction.js", Map.of(
+            + JsScriptLoader.loadWith("tools/asset/add-interaction.js", Map.of(
                 "actionJs", actionJs,
                 "trigger", trigger,
                 "delayArg", delayArg,
@@ -590,7 +592,7 @@ public class PenpotAssetTools {
     private String buildRemoveInteractionCode(String shapeId, int interactionIndex) {
         String idx = String.valueOf(interactionIndex);
         return PenpotJsSnippets.findShapeOrFallback(shapeId)
-            + JsScriptLoader.loadWith("tools/remove-interaction.js", Map.of("index", idx));
+            + JsScriptLoader.loadWith("tools/asset/remove-interaction.js", Map.of("index", idx));
     }
 
     /**
@@ -608,8 +610,8 @@ public class PenpotAssetTools {
      */
     private String buildReplaceImageCode(String shapeId, String newImageUrl, boolean keepAspectRatio) {
         return PenpotJsSnippets.findShapeOrFallback(shapeId)
-            + JsScriptLoader.loadWith("tools/replace-image.js", Map.of(
-                "imageUrl", PenpotJsSnippets.escapeJsString(newImageUrl),
+            + JsScriptLoader.loadWith("tools/asset/replace-image.js", Map.of(
+                "imageUrl", JsStringUtils.jsSafe(newImageUrl),
                 "keepAspectRatio", String.valueOf(keepAspectRatio)));
     }
 }

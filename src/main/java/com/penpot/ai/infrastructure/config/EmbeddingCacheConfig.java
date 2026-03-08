@@ -15,14 +15,10 @@ import org.springframework.context.annotation.*;
 @EnableCaching
 public class EmbeddingCacheConfig {
 
-    /**
-     * Nom du cache pour les embeddings de requêtes.
-     */
+    /** Nom du cache pour les embeddings de requêtes. */
     public static final String QUERY_EMBEDDINGS_CACHE = "query-embeddings";
 
-    /**
-     * Nom du cache pour les embeddings de documents.
-     */
+    /** Nom du cache pour les embeddings de documents. */
     public static final String DOCUMENT_EMBEDDINGS_CACHE = "document-embeddings";
 
     /**
