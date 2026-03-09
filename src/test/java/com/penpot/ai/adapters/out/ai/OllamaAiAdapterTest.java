@@ -1,6 +1,7 @@
 package com.penpot.ai.adapters.out.ai;
 
 import com.penpot.ai.application.advisor.InspectionFirstAdvisor;
+import com.penpot.ai.application.advisor.MissingInformationAdvisor;
 import com.penpot.ai.application.router.ToolCategoryResolver;
 import com.penpot.ai.application.service.PromptsConfigService;
 import com.penpot.ai.core.domain.*;
@@ -45,6 +46,7 @@ class OllamaAiAdapterTest {
     @Mock private ToolRouterPort toolRouter;
     @Mock private ToolCategoryResolver toolCategoryResolver;
     @Mock private InspectionFirstAdvisor inspectionFirstAdvisor;
+    @Mock private MissingInformationAdvisor missingInformationAdvisor;
 
     // ---- Spring AI fluent chain mocks ----
     @Mock private ChatClient chatClient;
@@ -64,7 +66,8 @@ class OllamaAiAdapterTest {
             retrievalAugmentationAdvisor,
             toolRouter,
             toolCategoryResolver,
-            inspectionFirstAdvisor
+            inspectionFirstAdvisor,
+            missingInformationAdvisor
         );
     }
 

@@ -96,6 +96,12 @@ public class OllamaAiAdapter implements AiServicePort {
     private final InspectionFirstAdvisor inspectionFirstAdvisor;
 
     /**
+     * Conseiller de garde-fou forçant une réponse générique sans code
+     * lorsque les informations fournies sont insuffisantes.
+     */
+    private final MissingInformationAdvisor missingInformationAdvisor;
+
+    /**
      * Port de routage chargé d'analyser l'intention utilisateur
      * pour en déduire les catégories d'outils nécessaires.
      */
@@ -115,7 +121,8 @@ public class OllamaAiAdapter implements AiServicePort {
         RetrievalAugmentationAdvisor retrievalAugmentationAdvisor,
         ToolRouterPort toolRouter,
         ToolCategoryResolver toolCategoryResolver,
-        InspectionFirstAdvisor inspectionFirstAdvisor
+        InspectionFirstAdvisor inspectionFirstAdvisor,
+        MissingInformationAdvisor missingInformationAdvisor
     ) {
         this.chatClientFactory = chatClientFactory;
         this.complexityAnalyzer = complexityAnalyzer;
@@ -125,6 +132,7 @@ public class OllamaAiAdapter implements AiServicePort {
         this.toolRouter = toolRouter;
         this.toolCategoryResolver = toolCategoryResolver;
         this.inspectionFirstAdvisor = inspectionFirstAdvisor;
+        this.missingInformationAdvisor = missingInformationAdvisor;
     }
 
     /**
@@ -214,6 +222,7 @@ public class OllamaAiAdapter implements AiServicePort {
      */
     private List<Advisor> buildAdvisors(Set<ToolCategory> categories) {
         List<Advisor> advisors = new ArrayList<>();
+        advisors.add(missingInformationAdvisor);
         advisors.add(inspectionFirstAdvisor);
 
         if (categories.contains(ToolCategory.TEMPLATE_SEARCH) 
