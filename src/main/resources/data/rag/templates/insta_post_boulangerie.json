@@ -1,0 +1,127 @@
+{
+  "id": "insta_post_boulangerie",
+  "type": "social_media_post",
+  "description": "Post Instagram carré 1080x1080 pour boulangerie, pain, croissant, viennoiserie, pâtisserie artisanale. Design coloré mobile-first avec titre percutant, placeholder produit centré, badge prix circulaire et slogan en bas. Palette boulangerie.",
+  "tags": [
+    "instagram",
+    "post",
+    "carré",
+    "square",
+    "réseaux_sociaux",
+    "social_media",
+    "promo",
+    "promotion",
+    "prix",
+    "boulangerie",
+    "pain",
+    "croissant",
+    "brioche",
+    "viennoiserie",
+    "pâtisserie",
+    "gâteau",
+    "tarte",
+    "fournil",
+    "artisanal",
+    "matin",
+    "café",
+    "alimentaire",
+    "food",
+    "marketing"
+  ],
+  "metadata": {
+    "format": {
+      "width": 1080.0,
+      "height": 1080.0,
+      "unit": "px"
+    }
+  },
+  "layout_structure": [
+    {
+      "element": "background",
+      "tool": "penpotShapeTools.createRectangle",
+      "params": {
+        "x": 0,
+        "y": 0,
+        "width": 1080,
+        "height": 1080,
+        "fillColor": "#FDF5E6"
+      }
+    },
+    {
+      "element": "top_bar",
+      "tool": "penpotShapeTools.createRectangle",
+      "params": {
+        "x": 0,
+        "y": 0,
+        "width": 1080,
+        "height": 8,
+        "fillColor": "#8B4513"
+      }
+    },
+    {
+      "element": "main_title",
+      "tool": "penpotContentTools.createText",
+      "params": {
+        "content": "TITRE_PRODUIT",
+        "x": 60,
+        "y": 60,
+        "width": 960,
+        "fontSize": 80,
+        "fontWeight": "bold",
+        "fillColor": "#3E2000"
+      }
+    },
+    {
+      "element": "product_placeholder",
+      "tool": "penpotShapeTools.createRectangle",
+      "params": {
+        "x": 190,
+        "y": 280,
+        "width": 700,
+        "height": 580,
+        "fillColor": "#D2691E"
+      }
+    },
+    {
+      "element": "price_badge",
+      "tool": "penpotShapeTools.createCircle",
+      "params": {
+        "x": 860,
+        "y": 790,
+        "radius": 90,
+        "fillColor": "#8B4513"
+      }
+    },
+    {
+      "element": "price_text",
+      "tool": "penpotContentTools.createText",
+      "params": {
+        "content": "PRIX",
+        "x": 800,
+        "y": 848,
+        "fontSize": 34,
+        "fontWeight": "bold",
+        "fillColor": "#FFFFFF"
+      }
+    },
+    {
+      "element": "slogan",
+      "tool": "penpotContentTools.createText",
+      "params": {
+        "content": "NOM_MARQUE",
+        "x": 60,
+        "y": 980,
+        "width": 700,
+        "fontSize": 28,
+        "fontWeight": "regular",
+        "fillColor": "#8B4513"
+      }
+    }
+  ],
+  "text_placeholders": {
+    "TITRE_PRODUIT": "Nom court en majuscules",
+    "PRIX": "Prix avec unité",
+    "NOM_MARQUE": "Nom ou slogan",
+    "description": "Template insta_post pour boulangerie, pain, croissant, viennoiserie, pâtisserie artisanale"
+  }
+}

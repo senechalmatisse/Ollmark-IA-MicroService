@@ -1,0 +1,24 @@
+{
+  "id": "poster_a4_boulangerie",
+  "type": "poster_a4",
+  "description": "Affiche A4 promotionnelle pour boulangerie et pâtisserie artisanale. Fond crème chaud élégant, titre brun chocolat massif, zone produit centrale arrondie terracotta, badge prix et footer brun professionnel. Idéal pour pain, croissant, brioche, viennoiserie, pâtisserie, gâteau, tarte, fournil, artisanal.",
+  "tags": ["poster", "poster_a4", "affiche", "boulangerie", "pain", "croissant", "brioche", "viennoiserie", "pâtisserie", "gâteau", "tarte", "fournil", "artisanal", "chaleureux", "matin", "petit_déjeuner", "café", "promo", "prix"],
+  "metadata": { "format": { "width": 1000.0, "height": 1414.0, "unit": "px" } },
+  "layout_structure": [
+    { "element": "background", "tool": "penpotShapeTools.createRectangle", "params": { "x": 0, "y": 0, "width": 1000, "height": 1414, "fillColor": "#FDF5E6" } },
+    { "element": "top_bar", "tool": "penpotShapeTools.createRectangle", "params": { "x": 0, "y": 0, "width": 1000, "height": 10, "fillColor": "#8B4513" } },
+    { "element": "main_title", "tool": "penpotContentTools.createText", "params": { "content": "TITRE_PRODUIT", "x": 80, "y": 60, "width": 840, "fontSize": 88, "fontWeight": "bold", "fillColor": "#3E2000" } },
+    { "element": "subtitle", "tool": "penpotContentTools.createText", "params": { "content": "QUALITE_ORIGINE", "x": 80, "y": 260, "width": 840, "fontSize": 28, "fontWeight": "regular", "fillColor": "#8B4513" } },
+    { "element": "product_placeholder", "tool": "penpotShapeTools.createRectangle", "params": { "x": 240, "y": 330, "width": 520, "height": 560, "fillColor": "#D2691E" } },
+    { "element": "price_badge", "tool": "penpotShapeTools.createCircle", "params": { "x": 720, "y": 820, "radius": 90, "fillColor": "#8B4513" } },
+    { "element": "price_text", "tool": "penpotContentTools.createText", "params": { "content": "PRIX_PIECE", "x": 660, "y": 876, "fontSize": 36, "fontWeight": "bold", "fillColor": "#FFFFFF" } },
+    { "element": "footer", "tool": "penpotShapeTools.createRectangle", "params": { "x": 0, "y": 1214, "width": 1000, "height": 200, "fillColor": "#6D3A1A" } },
+    { "element": "brand_name", "tool": "penpotContentTools.createText", "params": { "content": "NOM_MARQUE", "x": 80, "y": 1280, "width": 840, "fontSize": 48, "fontWeight": "bold", "fillColor": "#FFFFFF" } }
+  ],
+  "text_placeholders": {
+    "TITRE_PRODUIT": "Nom du produit en majuscules, ex: CROISSANT BEURRE, PAIN AU LEVAIN",
+    "QUALITE_ORIGINE": "Fabrication, ex: Fait maison chaque matin · Beurre AOP",
+    "PRIX_PIECE": "Prix, ex: 1,20€ pièce ou 4,50€ les 4",
+    "NOM_MARQUE": "Nom de la boulangerie, ex: Boulangerie Martin"
+  }
+}

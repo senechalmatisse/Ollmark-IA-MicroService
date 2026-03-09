@@ -1,0 +1,11 @@
+flowY += COMPONENT_SPACING;
+const timer = penpot.createText("02:15:30");
+timer.name = "Countdown";
+timer.fontSize = 34;
+timer.fontWeight = "bold";
+timer.fills = [{ fillColor: TEXT_COLOR, fillOpacity: 1 }];
+timer.x = columnX;
+timer.y = flowY;
+timer.resize(300, 10);
+created.push(timer);
+flowY += timer.height + 30;
