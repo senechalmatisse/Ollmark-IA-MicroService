@@ -3,7 +3,7 @@
 # ============================================
 
 server:
-  port: 8081
+  port: 8080
   address: 0.0.0.0
 
 # ============================================
@@ -95,38 +95,6 @@ spring:
             initialize-schema: always
 
 # ============================================
-# Configuration de la base de données H2
-# ============================================
-  datasource:
-    url: jdbc:h2:file:./data/penpot-chatmemory;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: ""
-
-    hikari:
-      maximum-pool-size: 10
-      minimum-idle: 2
-      connection-timeout: 20000
-      max-lifetime: 1800000
-
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-      settings:
-        web-allow-others: false
-        trace: false
-
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: false
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.H2Dialect
-
-# ============================================
 # Configuration des logs
 # ============================================
 logging:
@@ -188,12 +156,6 @@ management:
 # - Chat : qwen3:8b
 # - Router : llama3.1
 # - Embeddings : embeddinggemma-300m
-# 
-# BASE DE DONNÉES H2 :
-# - Console accessible : http://localhost:8081/h2-console
-# - JDBC URL : jdbc:h2:file:./data/penpot-chatmemory
-# - Username : sa
-# - Password : (vide)
 # 
 # VARIABLES D'ENVIRONNEMENT :
 # Toutes les valeurs peuvent être surchargées via des variables d'environnement.
