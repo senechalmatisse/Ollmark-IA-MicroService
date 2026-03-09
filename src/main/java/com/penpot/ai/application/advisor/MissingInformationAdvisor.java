@@ -26,10 +26,20 @@ public class MissingInformationAdvisor implements CallAdvisor {
         ou ne permet pas d'identifier précisément la cible/action :
         - Ne fournis AUCUN code (JavaScript, JSON, pseudo-code, commandes shell, etc.).
         - Ne propose pas de snippet partiel.
-        - Réponds uniquement avec un message générique de clarification.
+                - Explique précisément quelles informations sont manquantes côté utilisateur.
+                - Donne une réponse structurée sous forme de liste à puces.
+                - Pour chaque information manquante, indique :
+                    1) le nom du champ attendu,
+                    2) pourquoi il est nécessaire,
+                    3) un exemple de valeur valide.
 
-        Format attendu de réponse dans ce cas :
-        "Je n'ai pas assez d'informations pour répondre précisément. Merci de préciser le contexte et l'objectif attendu."
+                Format attendu de réponse dans ce cas :
+                "Informations manquantes :
+                - [champ 1] : [raison]. Exemple : [valeur exemple]
+                - [champ 2] : [raison]. Exemple : [valeur exemple]
+                - [champ N] : [raison]. Exemple : [valeur exemple]
+
+                Merci de fournir ces éléments pour que je puisse répondre précisément."
         """;
 
     @Override
