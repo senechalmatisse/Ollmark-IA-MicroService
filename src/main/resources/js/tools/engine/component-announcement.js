@@ -1,0 +1,18 @@
+flowY += COMPONENT_SPACING;
+const bar = penpot.createRectangle();
+bar.name = "Announcement/Bar";
+bar.x = columnX;
+bar.y = flowY;
+bar.resize(COMPONENT_WIDTH, 48);
+bar.borderRadius = 16;
+bar.fills = [{ fillColor: 'rgba(255,255,255,0.18)', fillOpacity: 1 }];
+created.push(bar);
+const barText = penpot.createText("Offre du jour • Livraison rapide • Stock limité");
+barText.x = bar.x + 20;
+barText.y = bar.y + 14;
+barText.fontSize = 14;
+barText.fontWeight = "bold";
+barText.fills = [{ fillColor: TEXT_COLOR, fillOpacity: 0.95 }];
+barText.resize(COMPONENT_WIDTH - 40, 10);
+created.push(barText);
+flowY += bar.height + 30;

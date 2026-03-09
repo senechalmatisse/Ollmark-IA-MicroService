@@ -1,0 +1,24 @@
+{
+  "id": "poster_a4_viande",
+  "type": "poster_a4",
+  "description": "Affiche A4 promotionnelle pour viandes et boucherie. Fond crème chaud, titre rouge boucherie massif, zone produit centrale, badge prix circulaire rouge et footer bordeaux institutionnel. Idéal pour boeuf, veau, agneau, porc, poulet, volaille, boucherie, charcuterie, steak, rôti, côtelette.",
+  "tags": ["poster", "poster_a4", "affiche", "viande", "boeuf", "veau", "agneau", "porc", "poulet", "volaille", "boucherie", "charcuterie", "steak", "rôti", "côtelette", "label_rouge", "frais", "promo", "prix"],
+  "metadata": { "format": { "width": 1000.0, "height": 1414.0, "unit": "px" } },
+  "layout_structure": [
+    { "element": "background", "tool": "penpotShapeTools.createRectangle", "params": { "x": 0, "y": 0, "width": 1000, "height": 1414, "fillColor": "#FDF2F2" } },
+    { "element": "top_bar", "tool": "penpotShapeTools.createRectangle", "params": { "x": 0, "y": 0, "width": 1000, "height": 10, "fillColor": "#922B21" } },
+    { "element": "main_title", "tool": "penpotContentTools.createText", "params": { "content": "TITRE_PRODUIT", "x": 80, "y": 60, "width": 840, "fontSize": 88, "fontWeight": "bold", "fillColor": "#4A0E0E" } },
+    { "element": "subtitle", "tool": "penpotContentTools.createText", "params": { "content": "QUALITE_ORIGINE", "x": 80, "y": 260, "width": 840, "fontSize": 28, "fontWeight": "regular", "fillColor": "#922B21" } },
+    { "element": "product_placeholder", "tool": "penpotShapeTools.createRectangle", "params": { "x": 240, "y": 330, "width": 520, "height": 560, "fillColor": "#F1948A" } },
+    { "element": "price_badge", "tool": "penpotShapeTools.createCircle", "params": { "x": 720, "y": 820, "radius": 90, "fillColor": "#922B21" } },
+    { "element": "price_text", "tool": "penpotContentTools.createText", "params": { "content": "PRIX_KG", "x": 660, "y": 876, "fontSize": 36, "fontWeight": "bold", "fillColor": "#FFFFFF" } },
+    { "element": "footer", "tool": "penpotShapeTools.createRectangle", "params": { "x": 0, "y": 1214, "width": 1000, "height": 200, "fillColor": "#7B241C" } },
+    { "element": "brand_name", "tool": "penpotContentTools.createText", "params": { "content": "NOM_MARQUE", "x": 80, "y": 1280, "width": 840, "fontSize": 48, "fontWeight": "bold", "fillColor": "#FFFFFF" } }
+  ],
+  "text_placeholders": {
+    "TITRE_PRODUIT": "Nom de la viande en majuscules, ex: CÔTE DE BOEUF, POULET FERMIER",
+    "QUALITE_ORIGINE": "Race ou label, ex: Boeuf Charolais · Élevé en plein air",
+    "PRIX_KG": "Prix avec unité, ex: 18,90€/kg",
+    "NOM_MARQUE": "Nom de la boucherie, ex: Boucherie Dupont"
+  }
+}

@@ -1,0 +1,164 @@
+{
+  "id": "flyer_a5_mer",
+  "type": "flyer_a5",
+  "description": "Flyer A5 haute résolution 1748x2480 pour produits de la mer, poisson, saumon, fruits de mer, pêche fraîche. Structure promotionnelle classique avec header coloré, titre massif, grande zone produit, badge prix et call-to-action en bas. Palette mer.",
+  "tags": [
+    "flyer",
+    "flyer_a5",
+    "prospectus",
+    "promo",
+    "promotion",
+    "prix",
+    "impression",
+    "portrait",
+    "poisson",
+    "saumon",
+    "thon",
+    "crevettes",
+    "fruits_de_mer",
+    "huîtres",
+    "moules",
+    "mer",
+    "maritime",
+    "pêche",
+    "poissonnerie",
+    "alimentaire",
+    "food",
+    "marketing"
+  ],
+  "metadata": {
+    "format": {
+      "width": 1748.0,
+      "height": 2480.0,
+      "unit": "px"
+    }
+  },
+  "layout_structure": [
+    {
+      "element": "background",
+      "tool": "penpotShapeTools.createRectangle",
+      "params": {
+        "x": 0,
+        "y": 0,
+        "width": 1748,
+        "height": 2480,
+        "fillColor": "#EBF5FB"
+      }
+    },
+    {
+      "element": "header",
+      "tool": "penpotShapeTools.createRectangle",
+      "params": {
+        "x": 0,
+        "y": 0,
+        "width": 1748,
+        "height": 200,
+        "fillColor": "#1A5276"
+      }
+    },
+    {
+      "element": "brand_header",
+      "tool": "penpotContentTools.createText",
+      "params": {
+        "content": "NOM_MARQUE",
+        "x": 80,
+        "y": 65,
+        "width": 1588,
+        "fontSize": 80,
+        "fontWeight": "bold",
+        "fillColor": "#FFFFFF"
+      }
+    },
+    {
+      "element": "main_title",
+      "tool": "penpotContentTools.createText",
+      "params": {
+        "content": "TITRE_PRODUIT",
+        "x": 80,
+        "y": 260,
+        "width": 1588,
+        "fontSize": 150,
+        "fontWeight": "bold",
+        "fillColor": "#0D2137"
+      }
+    },
+    {
+      "element": "subtitle",
+      "tool": "penpotContentTools.createText",
+      "params": {
+        "content": "QUALITE_ORIGINE",
+        "x": 80,
+        "y": 560,
+        "width": 1588,
+        "fontSize": 55,
+        "fontWeight": "regular",
+        "fillColor": "#1A5276"
+      }
+    },
+    {
+      "element": "product_placeholder",
+      "tool": "penpotShapeTools.createRectangle",
+      "params": {
+        "x": 274,
+        "y": 720,
+        "width": 1200,
+        "height": 1000,
+        "fillColor": "#5DADE2"
+      }
+    },
+    {
+      "element": "price_badge",
+      "tool": "penpotShapeTools.createCircle",
+      "params": {
+        "x": 1380,
+        "y": 1620,
+        "radius": 170,
+        "fillColor": "#1A5276"
+      }
+    },
+    {
+      "element": "price_text",
+      "tool": "penpotContentTools.createText",
+      "params": {
+        "content": "PRIX",
+        "x": 1240,
+        "y": 1730,
+        "fontSize": 80,
+        "fontWeight": "bold",
+        "fillColor": "#FFFFFF"
+      }
+    },
+    {
+      "element": "cta_bar",
+      "tool": "penpotShapeTools.createRectangle",
+      "params": {
+        "x": 0,
+        "y": 2180,
+        "width": 1748,
+        "height": 300,
+        "fillColor": "#154360"
+      }
+    },
+    {
+      "element": "cta_text",
+      "tool": "penpotContentTools.createText",
+      "params": {
+        "content": "CTA_MESSAGE",
+        "x": 80,
+        "y": 2295,
+        "width": 1588,
+        "fontSize": 55,
+        "fontWeight": "bold",
+        "fillColor": "#FFFFFF"
+      }
+    }
+  ],
+  "text_placeholders": {
+    "TITRE_PRODUIT": "Nom en majuscules",
+    "QUALITE_ORIGINE": "Origine ou qualité",
+    "PRIX": "Prix avec unité",
+    "NOM_MARQUE": "Nom du commerce",
+    "CTA_MESSAGE": "ex: Disponible dans votre rayon",
+    "description": "Template flyer_a5 pour produits de la mer, poisson, saumon, fruits de mer, pêche fraîche"
+  }
+}

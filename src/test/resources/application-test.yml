@@ -1,0 +1,95 @@
+# ============================================
+# Configuration de test
+# ============================================
+server:
+  port: 0
+
+# ============================================
+# Configuration Penpot (Valeurs statiques de test)
+# ============================================
+penpot:
+  ai:
+    router:
+      model: llama3.1
+      temperature: 0.0
+      max-tokens: 64
+    executor:
+      model: qwen3:8b
+      temperature: 0.0
+      max-tokens: 512
+      num-ctx: 2048
+    server-address: localhost
+    websocket-port: 0
+    repl-port: 0
+    remote-mode: false
+    multi-user: false
+    log-level: warn
+    log-dir: target/test-logs
+    file-system-access: false
+    chat:
+      memory:
+        max-messages: 10
+    rag:
+      templates-path: classpath:data/rag/templates/*.json
+      similarity-threshold: 0.5
+      top-k: 3
+      query-variants: 1
+
+# ============================================
+# Configuration Spring AI - pointe vers WireMock
+# ============================================
+spring:
+  ai:
+    ollama:
+      base-url: http://localhost:${wiremock.server.port:8080}
+      chat:
+        options:
+          # Rétablissement des valeurs statiques pour isoler l'environnement de test
+          model: qwen3:8b
+          temperature: 0.0
+          max-tokens: 512
+          num_ctx: 2048
+        observations:
+          log-prompt: false
+      embedding:
+        options:
+          model: hf.co/unsloth/embeddinggemma-300m-GGUF:Q8_0
+
+    chat:
+      memory:
+        repository:
+          jdbc:
+            initialize-schema: always
+
+  # ============================================
+  # Base de données H2 en mémoire pour les tests
+  # ============================================
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+
+  h2:
+    console:
+      enabled: false
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+
+# ============================================
+# Logs
+# ============================================
+logging:
+  level:
+    com.penpot.ai: WARN
+    org.springframework.ai: WARN
+    org.springframework.web.socket: WARN
+    org.hibernate: WARN
+  file:
+    name: target/test-logs/penpot-test.log
