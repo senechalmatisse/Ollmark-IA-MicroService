@@ -95,9 +95,9 @@ spring:
             initialize-schema: always
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/penpot_ai}
-    username: ${SPRING_DATASOURCE_USERNAME:penpot_ai}
-    password: ${SPRING_DATASOURCE_PASSWORD:penpot_ai_secret}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USER}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD}}
     driver-class-name: org.postgresql.Driver
 # ============================================
 # Configuration des logs
