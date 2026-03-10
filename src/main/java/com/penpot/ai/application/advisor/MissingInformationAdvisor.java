@@ -12,16 +12,16 @@ import org.springframework.stereotype.Component;
 /**
  * Composant qui détecte les paramètres manquants lors de l''appel d''une fonction.
  *
- * <p><strong>Rôle</strong> : Après qu''une fonction soit exécutée, ce composant vérifie
+ * Rôle: Après qu''une fonction soit exécutée, ce composant vérifie
  * si ses paramètres requis sont présents. Si des paramètres manquent, il génère un message
- * utilisateur structuré listant ce qui fait défaut.</p>
+ * utilisateur structuré listant ce qui fait défaut.
  *
- * <p><strong>Exemple</strong> : Une fonction changeColor(uuid, colorHex) est appelée
+ * Exemple : Une fonction changeColor(uuid, colorHex) est appelée
  * avec uuid="ABC123" mais sans colorHex. Le composant génère :
- * "Manque : La teinte HEX de la couleur. Exemple : #FF5733"</p>
- *
- * <p><strong>Sécurité</strong> : Le message ne révèle jamais le nom de la fonction,
- * seulement les paramètres requis qui manquent.</p>
+ * "Manque : La teinte HEX de la couleur. Exemple : #FF5733"
+ * 
+ * Sécurité : Le message ne révèle jamais le nom de la fonction,
+ * seulement les paramètres requis qui manquent.
  */
 @Slf4j
 @Component
