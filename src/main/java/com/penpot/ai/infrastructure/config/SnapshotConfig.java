@@ -1,4 +1,33 @@
 
+/**
+ * Configuration class for automatic ThreadLocal propagation in reactive streams.
+ * 
+ * <p>This configuration enables the automatic propagation of the {@code conversationId} ThreadLocal
+ * from the HTTP thread to Reactor's {@code boundedElastic} threads, ensuring that conversation
+ * context is maintained across asynchronous operations.
+ * 
+ * <h2>Propagation Mechanism</h2>
+ * <ol>
+ *   <li>{@link Hooks#enableAutomaticContextPropagation()} — Activates automatic context propagation</li>
+ *   <li>{@link ContextRegistry} registers accessor methods for the {@code conversationId} ThreadLocal</li>
+ *   <li>{@code contextWrite()} in the reactive flux stores the value in the Reactor Context</li>
+ *   <li>Reactor automatically restores the ThreadLocal before each operator execution</li>
+ * </ol>
+ * 
+ * <h2>Usage</h2>
+ * <p>This configuration is automatically instantiated by Spring during application startup.
+ * The {@link #enableContextPropagation()} method is invoked via {@code @PostConstruct}
+ * to configure the Reactor context propagation at initialization time.
+ * 
+ * <h2>Related Classes</h2>
+ * <ul>
+ *   <li>{@link SnapshotAspect} — Manages conversationId ThreadLocal storage and retrieval</li>
+ * </ul>
+ * 
+ * @see SnapshotAspect
+ * @see io.micrometer.context.ContextRegistry
+ * @see reactor.core.publisher.Hooks
+ */
 package com.penpot.ai.infrastructure.config;
 import com.penpot.ai.application.tools.support.SnapshotAspect;
 import org.springframework.context.annotation.Configuration;

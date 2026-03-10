@@ -1,3 +1,28 @@
+/**
+ * Aspect for intercepting Penpot tool operations to populate the SnapshotCollector.
+ * 
+ * This aspect uses Spring AOP to capture shape modifications and maintain snapshot state
+ * across different execution contexts. It manages conversation context propagation via
+ * InheritableThreadLocal to track interactions across HTTP and async (boundedElastic) threads.
+ * 
+ * <h2>Key Responsibilities:</h2>
+ * <ul>
+ *   <li>Intercepts shape modification operations (move, resize, rotate, etc.)</li>
+ *   <li>Captures shape state before modifications using ExecuteCodeUseCase</li>
+ *   <li>Registers modifications with SnapshotCollector for audit/replay purposes</li>
+ *   <li>Manages conversation context propagation across thread boundaries</li>
+ * </ul>
+ * 
+ * <h2>Conversation Context Management:</h2>
+ * The aspect uses an InheritableThreadLocal to propagate conversationId from the HTTP
+ * request thread to the Spring AI boundedElastic thread pool. This ensures shape modifications
+ * can be correctly associated with their conversation context.
+ * 
+ * @see SnapshotCollector
+ * @see ExecuteCodeUseCase
+ * @see ShapeState
+ * @see ShapeModification
+ */
 package com.penpot.ai.application.tools.support;
 
 import java.util.List;
@@ -18,10 +43,95 @@ import com.penpot.ai.core.ports.in.ExecuteCodeUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+
 /**
- * Aspect qui intercepte les tools Penpot pour alimenter le SnapshotCollector.
- *
+ * Aspect for capturing and managing shape modifications in Penpot AI tools.
  * 
+ * This aspect intercepts method calls on PenpotTools classes that modify shapes
+ * (move, resize, rotate, changeColor, changeOpacity, updateText, applyStyle)
+ * and captures their state changes for snapshot tracking.
+ * 
+ * Uses InheritableThreadLocal to propagate conversationId from HTTP threads
+ * to Spring AI boundedElastic threads, enabling proper snapshot association
+ * across thread boundaries.
+ * 
+ * <p><strong>Thread Safety:</strong> InheritableThreadLocal ensures conversationId
+ * is available in child threads spawned by Spring AI's reactive operations.</p>
+ * 
+ * @see ShapeModification
+ * @see SnapshotCollector
+ * @see ExecuteCodeUseCase
+ */
+
+
+
+
+
+
+
+/**
+ * Around advice that intercepts shape modification methods in PenpotTools.
+ * 
+ * Captures the shape state before method execution, proceeds with the modification,
+ * then registers the change with SnapshotCollector if state was successfully read.
+ * 
+ * Requires both conversationId and shapeId to be present; otherwise proceeds
+ * without capturing the modification.
+ * 
+ * @param pjp the proceeding join point containing method information
+ * @return the result of the intercepted method
+ * @throws Throwable if the intercepted method throws an exception
+ */
+
+/**
+ * Reads the current state of a shape from Penpot via ExecuteCodeUseCase.
+ * 
+ * Executes JavaScript code to fetch shape properties (position, size, rotation,
+ * opacity, fills, content, font properties) and deserializes the JSON response
+ * into a ShapeState object.
+ * 
+ * @param shapeId the unique identifier of the shape whose state should be read
+ * @return a ShapeState object containing all shape properties, or null if
+ *         the shape cannot be read or an error occurs
+ */
+
+/**
+ * Extracts a UUID from various response formats returned by Penpot.
+ * 
+ * Supports three formats:
+ * <ul>
+ *   <li>Format 1: "SHAPE_ID: {uuid}" - legacy format</li>
+ *   <li>Format 2: JSON with "result" field - current production format</li>
+ *   <li>Format 3: Raw UUID string - fallback format</li>
+ * </ul>
+ * 
+ * @param response the response string to parse
+ * @return a valid UUID string, or null if no valid UUID can be extracted
+ */
+
+/**
+ * Validates that a string conforms to the standard UUID v4 format.
+ * 
+ * @param value the string to validate
+ * @return true if the value matches the UUID pattern, false otherwise
+ */
+
+/**
+ * Converts an object to a Double value with null-safe handling.
+ * 
+ * Handles Number types directly and attempts string parsing for other types.
+ * 
+ * @param val the object to convert
+ * @return the Double value, or null if conversion fails or input is null
+ */
+
+/**
+ * Converts an object to an Integer value with null-safe handling.
+ * 
+ * Handles Number types directly and attempts string parsing for other types.
+ * 
+ * @param val the object to convert
+ * @return the Integer value, or null if conversion fails or input is null
  */
 @Slf4j
 @Aspect
@@ -40,50 +150,43 @@ public class SnapshotAspect {
    private static final InheritableThreadLocal<String> CURRENT_CONVERSATION_ID = new InheritableThreadLocal<>();
 
     /** Appelé par ConversationChatUseCaseImpl avant chaque génération */
+    /**
+    * Sets the current conversation ID for the calling thread and all child threads.
+    * 
+    * Must be called by ConversationChatUseCaseImpl before each code generation
+    * to ensure snapshot modifications are associated with the correct conversation.
+    * 
+    * @param conversationId the unique identifier for the current conversation
+    * @throws IllegalArgumentException if conversationId is null or empty
+    */
     public static void setConversationId(String conversationId) {
         CURRENT_CONVERSATION_ID.set(conversationId);
         
     }
 
     /** Appelé par ConversationChatUseCaseImpl après saveSnapshot */
+    /**
+    * Clears the conversation ID from the current thread's InheritableThreadLocal.
+    * 
+    * Must be called by ConversationChatUseCaseImpl after snapshot is saved
+    * to prevent memory leaks and conversation ID pollution in thread pool scenarios.
+    */
     public static void clearConversationId() {
         CURRENT_CONVERSATION_ID.remove();
     }
-
+    /**
+    * Retrieves the conversation ID from the current thread's InheritableThreadLocal.
+    * 
+    * @return the current conversation ID, or null if not set
+    */
     public static String getConversationId() {
         return CURRENT_CONVERSATION_ID.get();
     }
 
-    
-    // Interception CREATE
-   
-
-    // @AfterReturning(
-    //     pointcut = "execution(* com.penpot.ai.application.tools.Penpot*Tools.create*(..))",
-    //     returning = "result"
-    // )
-    // public void captureCreatedShapeId(JoinPoint jp, Object result) {
-    //     if (result == null) return;
-
-    //     String conversationId = CURRENT_CONVERSATION_ID.get();
-    //     if (conversationId == null) {
-    //         log.warn("[Snapshot] No conversationId in ThreadLocal — shape not captured for {}",
-    //                 jp.getSignature().getName());
-    //         return;
-    //     }
-
-    //     String uuid = extractUuidFromResponse(result.toString());
-    //     if (uuid != null) {
-    //         snapshotCollector.registerCreatedShape(conversationId, uuid);
-    //         log.debug("[Snapshot] Created shape captured: {} from {}",
-    //                 uuid, jp.getSignature().getName());
-    //     }
-    // }
-
-   
-    // Interception MODIFY
-    
-
+    /**
+     * Intercepte les méthodes de modification de shape dans les PenpotTools.
+     * Capture l'état avant modification et enregistre la modification dans le SnapshotCollector.
+     */
     @Around(
         "execution(* com.penpot.ai.application.tools.Penpot*Tools.move*(..))"       +
         " || execution(* com.penpot.ai.application.tools.Penpot*Tools.resize*(..))" +

@@ -1,4 +1,4 @@
-package com.penpot.ai.infrastructure.persistence;
+package com.penpot.ai.application.persistance;
 import java.util.List;
 import java.util.Optional;
 
