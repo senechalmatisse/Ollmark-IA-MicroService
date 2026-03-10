@@ -1,6 +1,7 @@
 package com.penpot.ai.adapters.in.web;
 
 import com.penpot.ai.core.ports.in.*;
+
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
@@ -29,7 +30,7 @@ import java.util.*;
 @RequestMapping("/ai")
 @RequiredArgsConstructor
 public class AiController {
-
+    
     private static final String SUCCESS_KEY = "success";
     private static final String ERROR_KEY = "error";
     private static final String CONVERSATION_ID_KEY = "conversationId";
