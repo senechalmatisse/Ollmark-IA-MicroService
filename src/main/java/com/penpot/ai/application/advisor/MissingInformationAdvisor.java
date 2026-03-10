@@ -1,4 +1,4 @@
-﻿package com.penpot.ai.application.advisor;
+package com.penpot.ai.application.advisor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClientRequest;
