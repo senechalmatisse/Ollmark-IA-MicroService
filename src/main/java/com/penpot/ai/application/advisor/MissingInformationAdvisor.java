@@ -1,4 +1,4 @@
-package com.penpot.ai.application.advisor;
+﻿package com.penpot.ai.application.advisor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClientRequest;
@@ -10,42 +10,34 @@ import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 /**
- * Advisor de garde-fou pour les requêtes incomplètes.
+ * Composant qui détecte les paramètres manquants lors de l''appel d''une fonction.
  *
- * <p>Ajoute une consigne système explicite : si les informations sont insuffisantes
- * ou ambiguës, l'assistant doit répondre de manière générique et ne jamais exposer
- * de code (ni snippets, ni pseudo-code, ni commandes).</p>
+ * <p><strong>Rôle</strong> : Après qu''une fonction soit exécutée, ce composant vérifie
+ * si ses paramètres requis sont présents. Si des paramètres manquent, il génère un message
+ * utilisateur structuré listant ce qui fait défaut.</p>
+ *
+ * <p><strong>Exemple</strong> : Une fonction changeColor(uuid, colorHex) est appelée
+ * avec uuid="ABC123" mais sans colorHex. Le composant génère :
+ * "Manque : La teinte HEX de la couleur. Exemple : #FF5733"</p>
+ *
+ * <p><strong>Sécurité</strong> : Le message ne révèle jamais le nom de la fonction,
+ * seulement les paramètres requis qui manquent.</p>
  */
 @Slf4j
 @Component
 public class MissingInformationAdvisor implements CallAdvisor {
 
     private static final String MISSING_INFO_POLICY = """
-        # RÈGLE DE GARDE-FOU : INFORMATIONS INSUFFISANTES
-        Si la demande manque d'informations essentielles, est ambiguë,
-        ou ne permet pas d'identifier précisément la cible/action :
-        - Ne fournis AUCUN code (JavaScript, JSON, pseudo-code, commandes shell, etc.).
-        - Ne propose pas de snippet partiel.
-                - Explique précisément quelles informations sont manquantes côté utilisateur.
-                - Donne une réponse structurée sous forme de liste à puces.
-                - Pour chaque information manquante, indique :
-                    1) le nom du champ attendu,
-                    2) pourquoi il est nécessaire,
-                    3) un exemple de valeur valide.
-
-                Format attendu de réponse dans ce cas :
-                "Informations manquantes :
-                - [champ 1] : [raison]. Exemple : [valeur exemple]
-                - [champ 2] : [raison]. Exemple : [valeur exemple]
-                - [champ N] : [raison]. Exemple : [valeur exemple]
-
-                Merci de fournir ces éléments pour que je puisse répondre précisément."
+        # INFORMATIONS MANQUANTES
+        Si des paramètres requis n''ont pas été fournis :
+        - Énumère chaque paramètre manquant
+        - Indique pourquoi il est nécessaire
+        - Donne un exemple de valeur valide
         """;
 
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain chain) {
         log.debug("[MissingInformationAdvisor] Injecting missing-information guardrail policy");
-
         Prompt augmented = request.prompt().augmentSystemMessage(MISSING_INFO_POLICY);
         return chain.nextCall(new ChatClientRequest(augmented, request.context()));
     }
