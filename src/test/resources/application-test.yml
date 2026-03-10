@@ -39,6 +39,8 @@ penpot:
 # Configuration Spring AI - pointe vers WireMock
 # ============================================
 spring:
+  flyway:
+    enabled: false
   ai:
     ollama:
       base-url: http://localhost:${wiremock.server.port:8080}
@@ -60,12 +62,13 @@ spring:
         repository:
           jdbc:
             initialize-schema: always
+   
 
   # ============================================
   # Base de données H2 en mémoire pour les tests
   # ============================================
   datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
     username: sa
     password: ""
