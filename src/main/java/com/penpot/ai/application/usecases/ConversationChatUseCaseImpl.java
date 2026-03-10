@@ -3,8 +3,6 @@ package com.penpot.ai.application.usecases;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
-import com.penpot.ai.application.service.SnapshotCollector;
-import com.penpot.ai.application.tools.support.SnapshotAspect;
 import com.penpot.ai.core.ports.in.ConversationChatUseCase;
 import com.penpot.ai.core.ports.out.AiServicePort;
 import com.penpot.ai.shared.exception.ToolExecutionException;
@@ -60,55 +58,15 @@ public class ConversationChatUseCaseImpl implements ConversationChatUseCase {
 
     /** Port vers le service d'IA. */
     private final AiServicePort aiService;
-    private final SnapShotService snapshotService;
-    private final SnapshotCollector snapshotCollector;
 
     @Override
     public Flux<String> chat(String conversationId, String message, String userToken) {
         validateChatInput(conversationId, message);
-
-        log.info("Processing chat request for conversation: {} (message length: {} chars)",
+        log.info("Processing chat request for conversation: {} (message length: {} chars)", 
             conversationId, message.length());
-
-        // Réinitialise le collecteur avant la génération
-        snapshotCollector.clear(conversationId);
-
-        return aiService.chat(conversationId, message, userToken)
-
-            // Propage le conversationId dans le Reactor Context
-            // Hooks.enableAutomaticContextPropagation() restaure le ThreadLocal
-            // automatiquement avant chaque opérateur — même sur boundedElastic
-            .contextWrite(ctx -> ctx.put("snapshotConversationId", conversationId))
-
-            // Sauvegarde le snapshot APRÈS que tous les chunks du Flux ont été émis
-            // À ce moment, tous les tools ont été exécutés et le collecteur est rempli
-            .doOnComplete(() -> {
-                log.info("Chat stream completed — saving snapshot for conversation: {}", conversationId);
-                snapshotService.saveSnapshot(
-                    conversationId,
-                    message,
-                    snapshotCollector.getCreatedShapeIds(conversationId),
-                    snapshotCollector.getModifications(conversationId)
-                );
-            })
-
-            // Nettoyage dans tous les cas (complet ou erreur)
-            .doFinally(signal -> {
-                SnapshotAspect.clearConversationId();
-                snapshotCollector.clear(conversationId);
-                log.debug("Chat stream finished with signal: {} for conversation: {}",
-                    signal, conversationId);
-            })
-
-            // Wrap les erreurs en ToolExecutionException
-            .onErrorMap(e -> {
-                if (e instanceof ToolExecutionException) return e;
-                log.error("Chat failed for conversation: {}", conversationId, e);
-                return new ToolExecutionException(
-                    "Failed to process chat for conversation " + conversationId + ": " + e.getMessage(), e
-                );
-            });
+        return aiService.chat(conversationId, message, userToken);
     }
+
 
     @Override
     public String startNewConversation(String userId) {

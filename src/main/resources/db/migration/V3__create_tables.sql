@@ -1,5 +1,5 @@
 -- ─────────────────────────────────────────────
--- Table Spring AI Chat Memory (gérée par JdbcChatMemoryRepository)
+-- Table Spring AI Chat Memory 
 -- ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS spring_ai_chat_memory (
     conversation_id VARCHAR(256)            NOT NULL,
@@ -43,10 +43,10 @@ CREATE INDEX IF NOT EXISTS idx_conversations_project_id
 -- ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS messages (
     id                   UUID        NOT NULL DEFAULT gen_random_uuid(),
+    project_id            UUID,      NOT NULL,
     conversation_id      UUID        NOT NULL,
     content_user         TEXT,
     content_assistant    TEXT,
-    penpot_snapshot_id   VARCHAR(255),
     created_at           TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT pk_messages PRIMARY KEY (id),
     CONSTRAINT fk_messages_conversation
