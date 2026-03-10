@@ -62,6 +62,7 @@ spring:
         repository:
           jdbc:
             initialize-schema: always
+   
 
   # ============================================
   # Base de données H2 en mémoire pour les tests
