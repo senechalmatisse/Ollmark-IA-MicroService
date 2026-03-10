@@ -11,15 +11,17 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 
 @Repository
-public interface MessageRepository extends JpaRepository<Message, Long> {
-    // Récupérer les N derniers messages d'une conversation ascendant : Pageable conAscvPageable = PageRequest.of(0, 20, Sort.by("createdAt").ascending());
-    @Query(value = "SELECT * FROM message WHERE conversation_id = :conversationId ORDER BY created_at DESC LIMIT :nMessages", nativeQuery = true)
-    List<Message> findLastNMessages(@Param("conversationId") UUID conversationId, @Param("nMessages") int nMessages);
+public interface MessageRepository extends JpaRepository<Message, UUID> {
+    // Récupérer les N derniers messages d'une conversation ascendant : 
+    @Query(value = """
+        SELECT * FROM message
+        WHERE conversation_id = :conversationId
+        ORDER BY created_at DESC
+        LIMIT :nMessages
+        """, nativeQuery = true)
+    List<Message> findLastNMessages(UUID conversationId, int nMessages);
 
     // Récupérer le dernier message d'une conversation
     Optional<Message> findFirstByConversationOrderByCreatedAtDesc(Conversation conversation);

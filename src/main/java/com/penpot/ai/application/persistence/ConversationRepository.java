@@ -17,7 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 @Repository
-public interface ConversationRepository extends JpaRepository<Conversation, Long> {
+public interface ConversationRepository extends JpaRepository<Conversation, UUID> {
 
     // Récupérer toutes conversations d'une proejt donné
     //TODO ajouter cela dans l'appel a ce repository: Pageable conAscvPageable = PageRequest.of(0, 20);
