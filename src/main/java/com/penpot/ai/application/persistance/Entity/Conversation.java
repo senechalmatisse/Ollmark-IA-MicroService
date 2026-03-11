@@ -5,6 +5,7 @@ package com.penpot.ai.application.persistance.Entity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -47,17 +48,17 @@ public class Conversation {
     private Project project;
 
     @Column(name = "conversation_id", nullable = false, length = 255)
-    private String conversationId;
+    private UUID conversationId;
 
     @Column(name = "user_id", length = 255)
-    private String userId;
+    private UUID userId;
 
     @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Message> messages = new ArrayList<>();
 
     public Conversation() {}
 
-    public Conversation(Project project, String conversationId, String userId) {
+    public Conversation(Project project, UUID conversationId, UUID userId) {
         this.project = project;
         this.conversationId = conversationId;
         this.userId = userId;
@@ -68,11 +69,11 @@ public class Conversation {
     public Project getProject() { return project; }
     public void setProject(Project project) { this.project = project; }
 
-    public String getConversationId() { return conversationId; }
-    public void setConversationId(String conversationId) { this.conversationId = conversationId; }
+    public UUID getConversationId() { return conversationId; }
+    public void setConversationId(UUID conversationId) { this.conversationId = conversationId; }
 
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
+    public UUID getUserId() { return userId; }
+    public void setUserId(UUID userId) { this.userId = userId; }
 
     public List<Message> getMessages() { return messages; }
 }
