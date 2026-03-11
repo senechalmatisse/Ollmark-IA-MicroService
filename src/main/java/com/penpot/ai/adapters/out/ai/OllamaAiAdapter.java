@@ -107,6 +107,12 @@ public class OllamaAiAdapter implements AiServicePort {
      */
     private final ToolCategoryResolver toolCategoryResolver;
 
+    private final ToolErrorAdvisor toolErrorAdvisor;
+    private final ToolFailureRecoveryAdvisor toolFailureRecoveryAdvisor;
+    private final ToolRetryLimiterAdvisor toolRetryLimiterAdvisor;
+
+    private final ToolResultValidatorAdvisor toolResultValidatorAdvisor;
+
     public OllamaAiAdapter(
         ChatClientFactory chatClientFactory,
         RequestComplexityAnalyzer complexityAnalyzer,
@@ -115,7 +121,11 @@ public class OllamaAiAdapter implements AiServicePort {
         RetrievalAugmentationAdvisor retrievalAugmentationAdvisor,
         ToolRouterPort toolRouter,
         ToolCategoryResolver toolCategoryResolver,
-        InspectionFirstAdvisor inspectionFirstAdvisor
+        InspectionFirstAdvisor inspectionFirstAdvisor,
+        ToolErrorAdvisor toolErrorAdvisor,
+        ToolFailureRecoveryAdvisor toolFailureRecoveryAdvisor,
+        ToolRetryLimiterAdvisor toolRetryLimiterAdvisor,
+        ToolResultValidatorAdvisor toolResultValidatorAdvisor
     ) {
         this.chatClientFactory = chatClientFactory;
         this.complexityAnalyzer = complexityAnalyzer;
@@ -125,6 +135,10 @@ public class OllamaAiAdapter implements AiServicePort {
         this.toolRouter = toolRouter;
         this.toolCategoryResolver = toolCategoryResolver;
         this.inspectionFirstAdvisor = inspectionFirstAdvisor;
+        this.toolErrorAdvisor = toolErrorAdvisor;
+        this.toolFailureRecoveryAdvisor = toolFailureRecoveryAdvisor;
+        this.toolRetryLimiterAdvisor = toolRetryLimiterAdvisor;
+        this.toolResultValidatorAdvisor = toolResultValidatorAdvisor;
     }
 
     /**
@@ -159,26 +173,29 @@ public class OllamaAiAdapter implements AiServicePort {
 
             // Étape 4 : Exécution
             ChatClient adaptedClient = chatClientFactory.buildForComplexity(complexity);
-            return adaptedClient.prompt()
-                .system(promptsConfigService.getInitialInstructions())
-                .user(userMessage)
-                .advisors(buildAdvisors(categories))
-                .advisors(advisor -> advisor
-                    .param(CONVERSATION_ID, conversationId)
-                    .param(
-                        InspectionFirstAdvisor.CTX_TOOL_CATEGORIES, 
-                        categories.stream().map(Enum::name).toList())
-                )
-                .tools(tools)
-                .toolContext(Map.of(
-                    "activeCategories", categories.stream().map(Enum::name).toList(),
-                    "conversationId", conversationId,
-                    "userToken", userToken != null ? userToken : ""
-                ))
-                .stream()
-                .content()
-                .doOnError(e -> log.error(
-                    "Stream error for conversation: {}", conversationId, e));
+
+            String response = adaptedClient.prompt()
+                    .system(promptsConfigService.getInitialInstructions())
+                    .user(userMessage)
+                    .advisors(buildAdvisors(categories))
+                    .advisors(advisor -> advisor
+                            .param(CONVERSATION_ID, conversationId)
+                            .param(
+                                    InspectionFirstAdvisor.CTX_TOOL_CATEGORIES,
+                                    categories.stream().map(Enum::name).toList())
+                    )
+                    .tools(tools)
+                    .toolContext(Map.of(
+                            "activeCategories", categories.stream().map(Enum::name).toList(),
+                            "conversationId", conversationId,
+                            "userToken", userToken != null ? userToken : ""
+                    ))
+                    .call()
+                    .content();
+
+            return Flux.just(response)
+                    .doOnError(e -> log.error(
+                            "Stream error for conversation: {}", conversationId, e));
         } catch (Exception e) {
             log.error("Failed to init stream for conversation: {}", conversationId, e);
             return Flux.error(new ToolExecutionException(
@@ -214,7 +231,16 @@ public class OllamaAiAdapter implements AiServicePort {
      */
     private List<Advisor> buildAdvisors(Set<ToolCategory> categories) {
         List<Advisor> advisors = new ArrayList<>();
+
         advisors.add(inspectionFirstAdvisor);
+
+        advisors.add(ToolCallAdvisor.builder().build());
+
+        advisors.add(toolRetryLimiterAdvisor);
+        advisors.add(toolErrorAdvisor);
+        advisors.add(toolFailureRecoveryAdvisor);
+
+        advisors.add(toolResultValidatorAdvisor);
 
         if (categories.contains(ToolCategory.TEMPLATE_SEARCH) 
             || categories.contains(ToolCategory.SHAPE_CREATION)) {
@@ -223,6 +249,7 @@ public class OllamaAiAdapter implements AiServicePort {
 
         advisors.add(new ReReadingAdvisor());
         advisors.add(new SimpleLoggerAdvisor());
+
         return advisors;
     }
 }
