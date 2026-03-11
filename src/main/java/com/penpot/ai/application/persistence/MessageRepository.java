@@ -21,8 +21,9 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
         ORDER BY created_at DESC
         LIMIT :nMessages
         """, nativeQuery = true)
-    List<Message> findLastNMessages(UUID conversationId, int nMessages);
+    List<Message> findLastNMessages(@Param("conversationId") UUID conversationId, @Param("nMessages") int nMessages);
 
-    // Récupérer le dernier message d'une conversation
-    Optional<Message> findFirstByConversationOrderByCreatedAtDesc(Conversation conversation);
+    // Récupérer le dernier message d'une conversation à partir de son id
+    
+    Optional<Message> findFirstByConversationIdOrderByCreatedAtDesc(UUID conversationId);
 }

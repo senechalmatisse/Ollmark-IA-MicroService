@@ -14,24 +14,28 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+
 @Repository
 public interface ConversationRepository extends JpaRepository<Conversation, UUID> {
 
     // Récupérer toutes conversations d'une proejt donné
-    //TODO ajouter cela dans l'appel a ce repository: Pageable conAscvPageable = PageRequest.of(0, 20);
     Page<Conversation> findAllByProjectId(UUID projectId, Pageable convPageable);
 
-    //Récupérer toutes conversations d'une utilisateur donné dans un projet 
-    // Ajouter cela dans l'appel au repositiry: Pageable convUserPageable = PageRequest.of(0, 20);
+    //Récupérer toutes conversations d'un utilisateur donné dans un projet 
+    // Ajouter cela dans l'appel au repositiry: 
     Page<Conversation> findAllByUserIdAndProjectId(UUID userId, UUID projectId, Pageable pageable); 
-
-    // Récupérer une conversation par son id
-    Optional<Conversation> findById(UUID conversationId);
 
     // Récupérer les métadonnées d'une conversationsans sans les messages
     // TODO remplir les méta données du dto a récupérer 
-    @Query("SELECT ConversationMetaDataDTO " + "FROM Conversation c WHERE c.id = :conversationId")
-    Optional<ConversationMetaDataDTO> findByIdWithoutMessages(UUID conversationId);
+    @Query("""
+        SELECT new com.penpot.ai.application.DTO.ConversationMetaDataDTO(
+            c.id,
+            c.name,
+            c.project.id,
+            c.createdAt
+        )
+        FROM Conversation c
+        WHERE c.id = :conversationId
+    """)
+    Optional<ConversationMetaDataDTO> findMetaDataByConversationId(UUID conversationId);
 }
