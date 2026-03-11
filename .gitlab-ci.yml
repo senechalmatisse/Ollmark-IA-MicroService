@@ -273,7 +273,7 @@ deploy-develop:
 
                 # --- DEPLOIEMENT ---
                 ./deploy.sh
-              EOF
+        EOF
   rules:
     - if: $CI_COMMIT_BRANCH == "develop"
       when: on_success
