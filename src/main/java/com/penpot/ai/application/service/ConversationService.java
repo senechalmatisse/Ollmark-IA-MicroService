@@ -3,8 +3,12 @@ package com.penpot.ai.application.service;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import com.penpot.ai.application.DTO.ConversationDTO;
 import com.penpot.ai.application.DTO.ConversationMetaDataDTO;
-import com.penpot.ai.application.persistence.ConversationRepository;
+import com.penpot.ai.application.DTO.MessageDTO;
+import com.penpot.ai.application.persistance.Entity.Conversation;
+import com.penpot.ai.application.persistance.Entity.Message;
+import com.penpot.ai.application.persistance.Repositories.ConversationRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,18 +29,48 @@ public class ConversationService {
     private Pageable convUserPageable = PageRequest.of(0, 20);
     private Pageable convPageable = PageRequest.of(0, 20);
     
+
+    private ConversationDTO toDTO(Conversation c) {
+        return new ConversationDTO(
+            c.getId(),
+            c.getConversationId(),
+            c.getUserId(),
+            c.getProject().getId(),
+            c.getMessages().stream().map(this::messageToDTO).toList()
+        );
+    }
+
+    private MessageDTO messageToDTO(Message m) {
+        return new MessageDTO(
+            m.getId(),
+            m.getConversation().getId(),
+            m.getProject().getId(),
+            m.getContentUser(),
+            m.getContentAssistant(),
+            m.getCreatedAt()
+        );
+    }
+
+
     // Récupérer toutes conversations d'un projet donné
-    public Page<Conversation> getAllProjectConversations(UUID projectId){
-        return conversationRepository.findAllByProjectId(projectId, convPageable);
+    public Page<ConversationDTO> getAllProjectConversations(UUID projectId){
+        Page<Conversation> page = conversationRepository.findAllByProjectId(projectId, convPageable);
+    
+        // Convertir chaque Conversation en ConversationDTO
+        return page.map(this::toDTO);
     }
 
     // Récupérer toutes conversations d'un utilisateur donné dans un projet 
-    public Page<Conversation> getAllConversationsByUserIdAndProjectId(UUID userId, UUID projectId){
-        return conversationRepository.findAllByUserIdAndProjectId(userId, projectId, convUserPageable);
+    public Page<ConversationDTO> getAllConversationsByUserIdAndProjectId(UUID userId, UUID projectId){
+        Page<Conversation> page = conversationRepository.findAllByUserIdAndProjectId(userId, projectId, convUserPageable);
+
+        // Convertir chaque Conversation en ConversationDTO
+        return page.map(this::toDTO);
     }
 
     // Récupérer les métadonnées d'une conversationsans sans les messages
     public ConversationMetaDataDTO getConversationMetaData(UUID conversationId){
-        return conversationRepository.findMetaDataByConversationId(conversationId).orElseThrow(()-> throwException("Conversation Meta Data Not Found"));
+        ConversationMetaDataDTO conversation =  conversationRepository.findMetaDataByConversationId(conversationId).orElseThrow(()-> new RuntimeException("ConversationDTO Meta Data Not Found"));
+        return conversation;
     }
 }
