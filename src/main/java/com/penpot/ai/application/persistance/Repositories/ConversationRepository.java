@@ -1,4 +1,4 @@
-package com.penpot.ai.application.persistence;
+package com.penpot.ai.application.persistance.Repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -6,6 +6,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.penpot.ai.application.DTO.ConversationMetaDataDTO;
+import com.penpot.ai.application.persistance.Entity.Conversation;
 
 import java.util.Date;
 import java.util.List;
