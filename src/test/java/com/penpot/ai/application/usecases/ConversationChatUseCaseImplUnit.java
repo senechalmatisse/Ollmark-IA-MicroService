@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.penpot.ai.application.service.SnapshotCollector;
 import com.penpot.ai.core.ports.out.AiServicePort;
 import com.penpot.ai.shared.exception.ToolExecutionException;
 import com.penpot.ai.shared.exception.ValidationException;
@@ -24,12 +23,6 @@ class ConversationChatUseCaseImplUnit {
 
     @Mock
     private AiServicePort aiService;
-
-    @Mock
-    private SnapShotService snapShotService;
-
-    @Mock
-    private SnapshotCollector snapshotCollector;
 
     @InjectMocks
     private ConversationChatUseCaseImpl useCase;

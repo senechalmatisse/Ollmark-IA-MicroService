@@ -38,22 +38,24 @@ public class Message {
     @JoinColumn(name = "conversation_id", nullable = false)
     private Conversation conversation;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
+
     @Column(name = "content_user", columnDefinition = "text")
     private String contentUser;
 
     @Column(name = "content_assistant", columnDefinition = "text")
     private String contentAssistant;
 
-    @Column(name = "penpot_snapshot_id", length = 255)
-    private String penpotSnapshotId;
-
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
     public Message() {}
 
-    public Message(Conversation conversation, String contentUser, String contentAssistant) {
+    public Message(Conversation conversation, Project project, String contentUser, String contentAssistant) {
         this.conversation = conversation;
+        this.project = project;
         this.contentUser = contentUser;
         this.contentAssistant = contentAssistant;
     }
@@ -68,14 +70,15 @@ public class Message {
     public Conversation getConversation() { return conversation; }
     public void setConversation(Conversation conversation) { this.conversation = conversation; }
 
+    public Project getProject() { return project; }
+    public void setProject(Project project) { this.project = project; }
+
     public String getContentUser() { return contentUser; }
     public void setContentUser(String contentUser) { this.contentUser = contentUser; }
 
     public String getContentAssistant() { return contentAssistant; }
     public void setContentAssistant(String contentAssistant) { this.contentAssistant = contentAssistant; }
 
-    public String getPenpotSnapshotId() { return penpotSnapshotId; }
-    public void setPenpotSnapshotId(String penpotSnapshotId) { this.penpotSnapshotId = penpotSnapshotId; }
 
     public Instant getCreatedAt() { return createdAt; }
 }
