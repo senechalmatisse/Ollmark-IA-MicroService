@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.penpot.ai.application.DTO.MessageDTO;
+import com.penpot.ai.application.persistance.Entity.Message;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,7 +13,7 @@ import java.util.UUID;
 
 
 @Repository
-public interface MessageRepository extends JpaRepository<MessageDTO, UUID> {
+public interface MessageRepository extends JpaRepository<Message, UUID> {
     // Récupérer les N derniers messages d'une conversation ascendant : 
     @Query(value = """
         SELECT * FROM message
@@ -21,9 +21,9 @@ public interface MessageRepository extends JpaRepository<MessageDTO, UUID> {
         ORDER BY created_at DESC
         LIMIT :nMessages
         """, nativeQuery = true)
-    List<MessageDTO> findLastNMessages(@Param("conversationId") UUID conversationId, @Param("nMessages") int nMessages);
+    List<Message> findLastNMessages(@Param("conversationId") UUID conversationId, @Param("nMessages") int nMessages);
 
     // Récupérer le dernier message d'une conversation à partir de son id
     
-    Optional<MessageDTO> findFirstByConversationIdOrderByCreatedAtDesc(UUID conversationId);
+    Optional<Message> findFirstByConversationIdOrderByCreatedAtDesc(UUID conversationId);
 }

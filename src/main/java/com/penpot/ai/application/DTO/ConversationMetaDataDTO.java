@@ -1,18 +1,19 @@
 package com.penpot.ai.application.DTO;
 
 import java.time.Instant;
+import java.util.UUID;
 
 public class ConversationMetaDataDTO {
 
-    private String id;
-    private String conversationId;
-    private String projectId;
-    private String userId;
+    private UUID id;
+    private UUID conversationId;
+    private UUID projectId;
+    private UUID userId;
     private Instant createdAt;
 
     public ConversationMetaDataDTO() {}
 
-    public ConversationMetaDataDTO(String id, String conversationId, String projectId, String userId, Instant createdAt) {
+    public ConversationMetaDataDTO(UUID id, UUID conversationId, UUID projectId, UUID userId, Instant createdAt) {
         this.id = id;
         this.conversationId = conversationId;
         this.projectId = projectId;
@@ -20,17 +21,17 @@ public class ConversationMetaDataDTO {
         this.createdAt = createdAt;
     }
 
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
 
-    public String getConversationId() { return conversationId; }
-    public void setConversationId(String conversationId) { this.conversationId = conversationId; }
+    public UUID getConversationId() { return conversationId; }
+    public void setConversationId(UUID conversationId) { this.conversationId = conversationId; }
 
-    public String getProjectId() { return projectId; }
-    public void setProjectId(String projectId) { this.projectId = projectId; }
+    public UUID getProjectId() { return projectId; }
+    public void setProjectId(UUID projectId) { this.projectId = projectId; }
 
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
+    public UUID getUserId() { return userId; }
+    public void setUserId(UUID userId) { this.userId = userId; }
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }

@@ -2,6 +2,7 @@ package com.penpot.ai.application.persistance.Entity;
 
 
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -17,6 +18,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
@@ -56,6 +58,16 @@ public class Conversation {
     @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Message> messages = new ArrayList<>();
 
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
+    }
+
     public Conversation() {}
 
     public Conversation(Project project, UUID conversationId, UUID userId) {
@@ -76,4 +88,8 @@ public class Conversation {
     public void setUserId(UUID userId) { this.userId = userId; }
 
     public List<Message> getMessages() { return messages; }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
 }

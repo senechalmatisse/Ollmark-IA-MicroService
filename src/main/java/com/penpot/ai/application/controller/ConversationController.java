@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.penpot.ai.application.DTO.ConversationDTO;
 import com.penpot.ai.application.DTO.ConversationMetaDataDTO;
 import com.penpot.ai.application.service.ConversationService;
-import com.penpot.ai.application.service.ProjectService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

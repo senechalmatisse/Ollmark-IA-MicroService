@@ -8,18 +8,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.penpot.ai.application.DTO.ConversationMetaDataDTO;
 import com.penpot.ai.application.DTO.MessageDTO;
-import com.penpot.ai.application.service.ConversationService;
-import com.penpot.ai.application.service.ProjectService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.UUID;
-
-import org.springframework.data.domain.Page;
 
 @Slf4j
 @RestController

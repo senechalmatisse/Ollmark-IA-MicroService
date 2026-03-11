@@ -2,14 +2,11 @@ package com.penpot.ai.application.persistance.Repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.penpot.ai.application.DTO.ConversationMetaDataDTO;
 import com.penpot.ai.application.persistance.Entity.Conversation;
 
-import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,10 +26,11 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
     // Récupérer les métadonnées d'une conversationsans sans les messages
     // TODO remplir les méta données du dto a récupérer 
     @Query("""
-        SELECT new com.penpot.ai.application.DTO.ConversationMetaDataDTO(
+    SELECT new com.penpot.ai.application.DTO.ConversationMetaDataDTO(
             c.id,
-            c.name,
+            c.conversationId,
             c.project.id,
+            c.userId,
             c.createdAt
         )
         FROM Conversation c
