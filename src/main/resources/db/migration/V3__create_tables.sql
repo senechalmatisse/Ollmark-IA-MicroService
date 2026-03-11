@@ -43,7 +43,7 @@ CREATE INDEX IF NOT EXISTS idx_conversations_project_id
 -- ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS messages (
     id                   UUID        NOT NULL DEFAULT gen_random_uuid(),
-    project_id            UUID,      NOT NULL,
+    project_id            UUID      NOT NULL,
     conversation_id      UUID        NOT NULL,
     content_user         TEXT,
     content_assistant    TEXT,
