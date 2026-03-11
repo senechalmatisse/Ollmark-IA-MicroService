@@ -4,7 +4,7 @@ package com.penpot.ai.application.persistance.Entity;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.UUID;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -40,7 +40,7 @@ public class Conversation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
@@ -63,7 +63,7 @@ public class Conversation {
         this.userId = userId;
     }
 
-    public String getId() { return id; }
+    public UUID getId() { return id; }
 
     public Project getProject() { return project; }
     public void setProject(Project project) { this.project = project; }

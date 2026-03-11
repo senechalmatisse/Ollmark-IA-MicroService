@@ -6,7 +6,7 @@ import java.util.Map;
 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
-
+import java.util.UUID;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -30,7 +30,7 @@ public class AiModelConfig {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
@@ -73,7 +73,7 @@ public class AiModelConfig {
         updatedAt = Instant.now();
     }
 
-    public String getId() { return id; }
+    public UUID getId() { return id; }
 
     public Project getProject() { return project; }
     public void setProject(Project project) { this.project = project; }

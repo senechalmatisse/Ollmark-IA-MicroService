@@ -3,7 +3,7 @@ package com.penpot.ai.application.persistance.Entity;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.UUID;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,7 +24,7 @@ public class Project {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    private UUID id;
 
     @Column(name = "name", nullable = false, length = 255)
     private String name;
@@ -41,7 +41,7 @@ public class Project {
         this.name = name;
     }
 
-    public String getId() { return id; }
+    public UUID getId() { return id; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
