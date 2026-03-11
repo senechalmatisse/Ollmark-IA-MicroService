@@ -3,7 +3,6 @@ package com.penpot.ai.application.usecases;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
-
 import com.penpot.ai.core.ports.in.ConversationChatUseCase;
 import com.penpot.ai.core.ports.out.AiServicePort;
 import com.penpot.ai.shared.exception.ToolExecutionException;
@@ -67,6 +66,7 @@ public class ConversationChatUseCaseImpl implements ConversationChatUseCase {
             conversationId, message.length());
         return aiService.chat(conversationId, message, userToken);
     }
+
 
     @Override
     public String startNewConversation(String userId) {
