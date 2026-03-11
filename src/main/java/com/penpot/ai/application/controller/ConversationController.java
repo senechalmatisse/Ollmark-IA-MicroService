@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.penpot.ai.application.DTO.ConversationDTO;
 import com.penpot.ai.application.DTO.ConversationMetaDataDTO;
 import com.penpot.ai.application.service.ConversationService;
 import com.penpot.ai.application.service.ProjectService;
@@ -26,13 +27,13 @@ public class ConversationController {
 
     // Récupérer toutes les conversations d'un projet
     @GetMapping("/project/{projectId}")
-    public Page<Conversation> getProjectConversations(@PathVariable UUID projectId) {
+    public Page<ConversationDTO> getProjectConversations(@PathVariable UUID projectId) {
         return conversationService.getAllProjectConversations(projectId);
     }
 
     // Récupérer toutes les conversations d'un utilisateur dans un projet
     @GetMapping("/project/{projectId}/user/{userId}")
-    public Page<Conversation> getUserProjectConversations(
+    public Page<ConversationDTO> getUserProjectConversations(
             @PathVariable UUID projectId,
             @PathVariable UUID userId) {
 

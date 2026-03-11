@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.penpot.ai.application.DTO.ProjectDTO;
 import com.penpot.ai.application.service.ProjectService;
 
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ public class ProjectController {
 
     // Récupérer un projet par son id
     @GetMapping("/{projectId}")
-    public Project getProject(@PathVariable UUID projectId) {
+    public ProjectDTO getProject(@PathVariable UUID projectId) {
         return projectService.getProjectById(projectId);
     }
 }

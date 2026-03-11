@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.penpot.ai.application.DTO.ConversationMetaDataDTO;
+import com.penpot.ai.application.DTO.MessageDTO;
 import com.penpot.ai.application.service.ConversationService;
 import com.penpot.ai.application.service.ProjectService;
 
@@ -30,7 +31,7 @@ public class MessageController {
 
     // Récupérer les N derniers messages d'une conversation
     @GetMapping("/conversation/{conversationId}")
-    public List<Message> getLastMessages(
+    public List<MessageDTO> getLastMessages(
             @PathVariable UUID conversationId,
             @RequestParam(defaultValue = "20") int nMessages) {
 
@@ -39,7 +40,7 @@ public class MessageController {
 
     // Récupérer le dernier message
     @GetMapping("/conversation/{conversationId}/last")
-    public Message getLastMessage(@PathVariable UUID conversationId) {
+    public MessageDTO getLastMessage(@PathVariable UUID conversationId) {
         return messageService.getLastMessage(conversationId);
     }
 }
