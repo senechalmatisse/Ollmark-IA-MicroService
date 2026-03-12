@@ -2,6 +2,7 @@ package com.penpot.ai.application.persistance.Entity;
 
 
 import java.time.Instant;
+import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,7 +15,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import java.util.UUID;
 /**
  * Historique des échanges d'une conversation.
  * Chaque Message stocke le tour complet : message utilisateur + réponse IA.
