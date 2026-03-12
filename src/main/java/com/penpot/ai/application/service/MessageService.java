@@ -1,5 +1,6 @@
 package com.penpot.ai.application.service;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.penpot.ai.application.DTO.MessageDTO;
 import com.penpot.ai.application.persistance.Entity.Message;
@@ -55,4 +56,24 @@ public class MessageService {
                 m.getCreatedAt()
         );
     }
+
+    // Supprimer tous les messages d'une conversation sans toucher à la conversation
+    @Transactional
+        public void deleteAllByConversationId(UUID conversationId) {
+        log.debug("Suppression de tous les messages de la conversation {}", conversationId);
+        int deleted = messageRepository.deleteAllByConversationId(conversationId);
+        log.debug("{} message(s) supprimé(s) pour la conversation {}", deleted, conversationId);
+    }
+ 
+    // Supprimer un message individuel par son id
+    @Transactional
+    public void deleteById(UUID messageId) {
+        log.debug("Suppression du message {}", messageId);
+        if (!messageRepository.existsById(messageId)) {
+                throw new NoSuchElementException("Message not found: " + messageId);
+        }
+        messageRepository.deleteById(messageId);
+    }
+
+    
 }

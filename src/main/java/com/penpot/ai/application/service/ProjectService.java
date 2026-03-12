@@ -1,8 +1,10 @@
 package com.penpot.ai.application.service;
 
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.penpot.ai.application.DTO.ProjectDTO;
 import com.penpot.ai.application.persistance.Entity.Project;
@@ -27,5 +29,15 @@ public class ProjectService {
                 p.getName(),
                 null
         );
+    }
+
+    // Supprimer un projet et toutes ses données (CascadeType.ALL sur conversations et aiModelConfigs)
+    @Transactional
+    public void deleteProject(UUID projectId) {
+        log.debug("Suppression du projet {}", projectId);
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new NoSuchElementException("Project not found: " + projectId));
+        projectRepository.delete(project);
+        log.debug("Projet {} supprimé avec toutes ses données en cascade", projectId);
     }
 }
