@@ -12,6 +12,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.penpot.ai.core.domain.ExecuteCodeCommand;
+import org.mockito.ArgumentCaptor;
+
 /**
  * Tests d'intégration pour {@link PenpotInspectorTools}.
  *
@@ -205,6 +208,315 @@ class PenpotInspectorToolsTest {
             // THEN
             assertThat(result).contains("\"parentIndex\":2").contains("\"parentId\":\"g-001\"");
             verify(executeCodeUseCase, times(1)).execute(any());
+        }
+    }
+// =========================================================================
+// Geometry tools — JS output validation
+// =========================================================================
+
+    @Nested
+    @DisplayName("Geometry tools — JS output")
+    class GeometryToolsJsOutputTests {
+
+        @Test
+        @DisplayName("getCenterFromShape — generated JS contains shapeId")
+        void getCenterFromShape_generatedJsContainsShapeId() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                    .thenReturn(TaskResult.success("{\"cx\":0,\"cy\":0}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotInspectorTools.getCenterFromShape(SHAPE_ID);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getCode()).contains(SHAPE_ID);
+        }
+
+        @Test
+        @DisplayName("getCenterFromShape — generated JS uses default shapeId 'selection' when null")
+        void getCenterFromShape_generatedJsUsesDefaultShapeIdWhenNull() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                    .thenReturn(TaskResult.success("{\"cx\":0,\"cy\":0}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotInspectorTools.getCenterFromShape(null);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getCode()).contains("selection");
+        }
+
+        @Test
+        @DisplayName("getCenterFromShape — returns error JSON when execution fails")
+        void getCenterFromShape_returnsErrorJsonWhenFailure() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                    .thenReturn(TaskResult.failure("Script error"));
+
+            // WHEN
+            String result = penpotInspectorTools.getCenterFromShape(SHAPE_ID);
+
+            // THEN
+            assertThat(result).contains("\"success\": false").contains("Script error");
+        }
+    }
+
+    // =========================================================================
+    // getPageContext — JS output validation
+    // =========================================================================
+
+    @Nested
+    @DisplayName("getPageContext — JS output")
+    class GetPageContextJsOutputTests {
+
+        @Test
+        @DisplayName("getPageContext — generated JS contains verbosity 'full'")
+        void getPageContext_generatedJsContainsVerbosity() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                    .thenReturn(TaskResult.success("[]"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotInspectorTools.getPageContext("full");
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getCode()).contains("full");
+        }
+
+        @Test
+        @DisplayName("getPageContext — generated JS uses default verbosity 'compact' when null")
+        void getPageContext_generatedJsUsesDefaultVerbosityWhenNull() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                    .thenReturn(TaskResult.success("[]"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotInspectorTools.getPageContext(null);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getCode()).contains("compact");
+        }
+    }
+
+    // =========================================================================
+    // Hierarchy & style tools — JS output validation
+    // =========================================================================
+
+    @Nested
+    @DisplayName("Hierarchy & style tools — JS output")
+    class HierarchyAndStyleJsOutputTests {
+
+        @Test
+        @DisplayName("getPropertiesFromShape — generated JS contains shapeId and verbosity")
+        void getPropertiesFromShape_generatedJsContainsShapeIdAndVerbosity() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                    .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotInspectorTools.getPropertiesFromShape(SHAPE_ID, "full");
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            String code = captor.getValue().getCode();
+            assertThat(code).contains(SHAPE_ID);
+            assertThat(code).contains("full");
+        }
+
+        @Test
+        @DisplayName("getPropertiesFromShape — generated JS uses defaults when null params")
+        void getPropertiesFromShape_generatedJsUsesDefaultsWhenNullParams() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                    .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotInspectorTools.getPropertiesFromShape(null, null);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            String code = captor.getValue().getCode();
+            assertThat(code).contains("selection");
+            assertThat(code).contains("compact");
+        }
+
+        @Test
+        @DisplayName("getParentFromShape — generated JS contains shapeId")
+        void getParentFromShape_generatedJsContainsShapeId() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                    .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotInspectorTools.getParentFromShape(SHAPE_ID);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getCode()).contains(SHAPE_ID);
+        }
+
+        @Test
+        @DisplayName("getParentFromShape — generated JS uses default shapeId 'selection' when null")
+        void getParentFromShape_generatedJsUsesDefaultWhenNull() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                    .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotInspectorTools.getParentFromShape(null);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getCode()).contains("selection");
+        }
+
+        @Test
+        @DisplayName("getChildrenFromShape — generated JS contains shapeId")
+        void getChildrenFromShape_generatedJsContainsShapeId() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                    .thenReturn(TaskResult.success("[]"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotInspectorTools.getChildrenFromShape(SHAPE_ID);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getCode()).contains(SHAPE_ID);
+        }
+
+        @Test
+        @DisplayName("getChildrenFromShape — generated JS uses default shapeId 'selection' when null")
+        void getChildrenFromShape_generatedJsUsesDefaultWhenNull() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                    .thenReturn(TaskResult.success("[]"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotInspectorTools.getChildrenFromShape(null);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getCode()).contains("selection");
+        }
+
+        @Test
+        @DisplayName("getShapesColors — generated JS contains shapeId")
+        void getShapesColors_generatedJsContainsShapeId() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                    .thenReturn(TaskResult.success("[]"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotInspectorTools.getShapesColors(SHAPE_ID);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getCode()).contains(SHAPE_ID);
+        }
+
+        @Test
+        @DisplayName("getShapesColors — generated JS uses default shapeId 'selection' when null")
+        void getShapesColors_generatedJsUsesDefaultWhenNull() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                    .thenReturn(TaskResult.success("[]"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotInspectorTools.getShapesColors(null);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getCode()).contains("selection");
+        }
+    }
+
+    // =========================================================================
+    // New hierarchy tools — JS output validation
+    // =========================================================================
+
+    @Nested
+    @DisplayName("New hierarchy tools — JS output")
+    class NewHierarchyToolsJsOutputTests {
+
+        @Test
+        @DisplayName("getComponentRoot — generated JS contains shapeId")
+        void getComponentRoot_generatedJsContainsShapeId() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                    .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotInspectorTools.getComponentRoot(SHAPE_ID);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getCode()).contains(SHAPE_ID);
+        }
+
+        @Test
+        @DisplayName("getComponentRoot — generated JS uses default shapeId 'selection' when null")
+        void getComponentRoot_generatedJsUsesDefaultWhenNull() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                    .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotInspectorTools.getComponentRoot(null);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getCode()).contains("selection");
+        }
+
+        @Test
+        @DisplayName("getShapeParentIndex — generated JS contains shapeId")
+        void getShapeParentIndex_generatedJsContainsShapeId() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                    .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotInspectorTools.getShapeParentIndex(SHAPE_ID);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getCode()).contains(SHAPE_ID);
+        }
+
+        @Test
+        @DisplayName("getShapeParentIndex — generated JS uses default shapeId 'selection' when null")
+        void getShapeParentIndex_generatedJsUsesDefaultWhenNull() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                    .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotInspectorTools.getShapeParentIndex(null);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getCode()).contains("selection");
         }
     }
 }
