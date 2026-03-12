@@ -30,6 +30,10 @@ public class MessageController {
             @PathVariable UUID conversationId,
             @RequestParam(defaultValue = "20") int nMessages) {
 
+        if (nMessages > 20) {
+            throw new IllegalArgumentException("nMessages ne peut pas dépasser 20");
+        }
+
         return messageService.getLastMessages(conversationId, nMessages);
     }
 
