@@ -17,6 +17,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import com.penpot.ai.core.domain.ExecuteCodeCommand;
+
 /**
  * Tests d'intégration pour PenpotContentTools.
  * Vérifie que les outils génèrent le bon code JS et traitent correctement les retours du moteur d'exécution.
@@ -97,6 +99,98 @@ public class PenpotContentToolsTest {
                 cmd.getCode().contains("text.fontSize = 16") && 
                 cmd.getCode().contains("fontWeight = 'normal'")));
         }
+        @Test
+        @DisplayName("createTitle — generated JS contains coordinates, bold fontWeight, color and name")
+        void createTitle_generatedJsContainsCoordinatesBoldWeightColorAndName() {
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("text-123"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            penpotContentTools.createTitle("Hello Title", 100, 200, "#FF0000");
+
+            verify(executeCodeUseCase).execute(captor.capture());
+            String code = captor.getValue().getCode();
+            assertThat(code).contains("text.x = 100");
+            assertThat(code).contains("text.y = 200");
+            assertThat(code).contains("text.fontWeight = 'bold'");
+            assertThat(code).contains("text.fills = [{ fillColor: '#FF0000' }]");
+            assertThat(code).contains("text.name = 'Title'");
+        }
+
+        @Test
+        @DisplayName("createTitle — generated JS omits fills line when color is null")
+        void createTitle_generatedJsOmitsFillsWhenColorIsNull() {
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("text-123"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            penpotContentTools.createTitle("Hello Title", 0, 0, null);
+
+            verify(executeCodeUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getCode()).doesNotContain("text.fills");
+        }
+
+        @Test
+        @DisplayName("createSubtitle — generated JS contains coordinates, bold fontWeight, color and name")
+        void createSubtitle_generatedJsContainsCoordinatesBoldWeightColorAndName() {
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("sub-456"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            penpotContentTools.createSubtitle("My Subtitle", 50, 75, "#333333");
+
+            verify(executeCodeUseCase).execute(captor.capture());
+            String code = captor.getValue().getCode();
+            assertThat(code).contains("text.x = 50");
+            assertThat(code).contains("text.y = 75");
+            assertThat(code).contains("text.fontWeight = 'bold'");
+            assertThat(code).contains("text.fills = [{ fillColor: '#333333' }]");
+            assertThat(code).contains("text.name = 'Subtitle'");
+        }
+
+        @Test
+        @DisplayName("createSubtitle — generated JS omits fills line when color is null")
+        void createSubtitle_generatedJsOmitsFillsWhenColorIsNull() {
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("sub-456"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            penpotContentTools.createSubtitle("My Subtitle", 0, 0, null);
+
+            verify(executeCodeUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getCode()).doesNotContain("text.fills");
+        }
+
+        @Test
+        @DisplayName("createParagraph — generated JS contains coordinates, normal fontWeight, color and name")
+        void createParagraph_generatedJsContainsCoordinatesNormalWeightColorAndName() {
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("p-789"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            penpotContentTools.createParagraph("My text", 30, 60, "#666666");
+
+            verify(executeCodeUseCase).execute(captor.capture());
+            String code = captor.getValue().getCode();
+            assertThat(code).contains("text.x = 30");
+            assertThat(code).contains("text.y = 60");
+            assertThat(code).contains("text.fontWeight = 'normal'");
+            assertThat(code).contains("text.fills = [{ fillColor: '#666666' }]");
+            assertThat(code).contains("text.name = 'Paragraph'");
+        }
+
+        @Test
+        @DisplayName("createParagraph — generated JS omits fills line when color is null")
+        void createParagraph_generatedJsOmitsFillsWhenColorIsNull() {
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("p-789"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            penpotContentTools.createParagraph("My text", 0, 0, null);
+
+            verify(executeCodeUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getCode()).doesNotContain("text.fills");
+        }
     }
 
     // =========================================================================
@@ -130,6 +224,35 @@ public class PenpotContentToolsTest {
             String result = penpotContentTools.createImage("url", 0, 0, null, null);
 
             assertThat(result).contains("\"success\": false").contains("Network error");
+        }
+        @Test
+        @DisplayName("createImage — generated JS contains full URL, coordinates and fillImage assignment")
+        void createImage_generatedJsContainsUrlCoordinatesAndFillImage() {
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("img-id"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            penpotContentTools.createImage("http://image.url", 10, 20, 500, 300);
+
+            verify(executeCodeUseCase).execute(captor.capture());
+            String code = captor.getValue().getCode();
+            assertThat(code).contains("uploadMediaUrl('IA-Upload', 'http://image.url')");
+            assertThat(code).contains("rect.x = 10");
+            assertThat(code).contains("rect.y = 20");
+            assertThat(code).contains("fillImage: imageData");
+        }
+
+        @Test
+        @DisplayName("createImage — generated JS uses default dimensions 300x200 when width and height are null")
+        void createImage_generatedJsUsesDefaultDimensionsWhenWidthAndHeightAreNull() {
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("img-id"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            penpotContentTools.createImage("http://image.url", 0, 0, null, null);
+
+            verify(executeCodeUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getCode()).contains("rect.resize(300, 200)");
         }
     }
 
@@ -181,6 +304,51 @@ public class PenpotContentToolsTest {
 
             verify(executeCodeUseCase).execute(argThat(cmd -> 
                 cmd.getCode().contains("const label = 'L\\'action'")));
+        }
+        @Test
+        @DisplayName("createButton — generated JS contains posX and posY from parameters")
+        void createButton_generatedJsContainsCorrectCoordinates() {
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("btn-004"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            penpotContentTools.createButton("Click", 150, 250, null, null, null, null, null);
+
+            verify(executeCodeUseCase).execute(captor.capture());
+            String code = captor.getValue().getCode();
+            assertThat(code).contains("const posX = 150");
+            assertThat(code).contains("const posY = 250");
+        }
+
+        @Test
+        @DisplayName("createButton — generated JS uses default bg #4F46E5, textColor #FFFFFF and radius 12 when params are null")
+        void createButton_generatedJsUsesDefaultsWhenParamsAreNull() {
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("btn-005"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            penpotContentTools.createButton("Click", 0, 0, null, null, null, null, null);
+
+            verify(executeCodeUseCase).execute(captor.capture());
+            String code = captor.getValue().getCode();
+            assertThat(code).contains("const bg = '#4F46E5'");
+            assertThat(code).contains("const textColor = '#FFFFFF'");
+            assertThat(code).contains("const radius = 12");
+        }
+
+        @Test
+        @DisplayName("createButton — generated JS uses default minW 200 and minH 60 when width and height are null")
+        void createButton_generatedJsUsesDefaultDimensionsWhenWidthAndHeightAreNull() {
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("btn-006"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            penpotContentTools.createButton("Click", 0, 0, null, null, null, null, null);
+
+            verify(executeCodeUseCase).execute(captor.capture());
+            String code = captor.getValue().getCode();
+            assertThat(code).contains("const minW = 200");
+            assertThat(code).contains("const minH = 60");
         }
     }
 
