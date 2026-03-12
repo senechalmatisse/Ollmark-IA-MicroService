@@ -30,3 +30,4 @@
 .metals
 /data/
 .env
+.mvn
