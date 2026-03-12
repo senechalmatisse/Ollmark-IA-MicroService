@@ -64,7 +64,7 @@ class ProjectControllerTest {
         verify(projectService, times(1)).getProjectById(projectId);
     }
 
-        @Test
+    @Test
     @DisplayName("deleteProject - retourne 204 et supprime le projet")
     void deleteProject_returns204() throws Exception {
         doNothing().when(projectService).deleteProject(projectId);

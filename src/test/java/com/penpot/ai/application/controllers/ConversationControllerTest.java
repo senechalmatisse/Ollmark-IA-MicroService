@@ -21,6 +21,7 @@ import com.penpot.ai.application.service.ConversationService;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
