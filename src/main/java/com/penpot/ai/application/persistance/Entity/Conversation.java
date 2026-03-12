@@ -5,7 +5,7 @@ package com.penpot.ai.application.persistance.Entity;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+import java.util.List;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -43,17 +43,17 @@ public class Conversation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private java.util.UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
     private Project project;
 
     @Column(name = "conversation_id", nullable = false, length = 255)
-    private UUID conversationId;
+    private String conversationId;
 
     @Column(name = "user_id", length = 255)
-    private UUID userId;
+    private String userId;
 
     @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Message> messages = new ArrayList<>();
@@ -70,22 +70,22 @@ public class Conversation {
 
     public Conversation() {}
 
-    public Conversation(Project project, UUID conversationId, UUID userId) {
+    public Conversation(Project project, String conversationId, String userId) {
         this.project = project;
         this.conversationId = conversationId;
         this.userId = userId;
     }
 
-    public UUID getId() { return id; }
+    public java.util.UUID getId() { return id; }
 
     public Project getProject() { return project; }
     public void setProject(Project project) { this.project = project; }
 
-    public UUID getConversationId() { return conversationId; }
-    public void setConversationId(UUID conversationId) { this.conversationId = conversationId; }
+    public String getConversationId() { return conversationId; }
+    public void setConversationId(String conversationId) { this.conversationId = conversationId; }
 
-    public UUID getUserId() { return userId; }
-    public void setUserId(UUID userId) { this.userId = userId; }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
 
     public List<Message> getMessages() { return messages; }
 

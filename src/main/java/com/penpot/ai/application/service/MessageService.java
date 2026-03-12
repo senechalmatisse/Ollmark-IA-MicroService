@@ -22,8 +22,8 @@ public class MessageService {
     private final MessageRepository messageRepository;
 
     // Récupérer les N derniers messages d'une conversation, triés par createdAt asc
-    public List<MessageDTO> getLastMessages(UUID conversationId, int nMessages) {
-        List<Message> messages = messageRepository.findLastNMessages(conversationId, nMessages);
+    public List<MessageDTO> getLastMessages(String conversationId, int nMessages) {
+        List<Message> messages = messageRepository.findLastNMessages(UUID.fromString(conversationId), nMessages);
 
         // Tri par date
         messages.sort(Comparator.comparing(Message::getCreatedAt));
@@ -31,9 +31,9 @@ public class MessageService {
         // Conversion en DTO
         return messages.stream()
                 .map(m -> new MessageDTO(
-                        m.getId(),
-                        m.getConversation().getId(),
-                        m.getProject().getId(),
+                        m.getId().toString(),
+                        m.getConversation().getId().toString(),
+                        m.getProject().getId().toString(),
                         m.getContentUser(),
                         m.getContentAssistant(),
                         m.getCreatedAt()
@@ -42,14 +42,14 @@ public class MessageService {
     }
 
     // Récupérer le dernier message d'une conversation à partir de son id
-    public MessageDTO getLastMessage(UUID conversationId) {
-        Message m = messageRepository.findFirstByConversationIdOrderByCreatedAtDesc(conversationId)
+    public MessageDTO getLastMessage(String conversationId) {
+        Message m = messageRepository.findFirstByConversationIdOrderByCreatedAtDesc(UUID.fromString(conversationId))
                 .orElseThrow(() -> new NoSuchElementException("Message not found"));
 
         return new MessageDTO(
-                m.getId(),
-                m.getConversation().getId(),
-                m.getProject().getId(),
+                m.getId().toString(),
+                m.getConversation().getId().toString(),
+                m.getProject().getId().toString(),
                 m.getContentUser(),
                 m.getContentAssistant(),
                 m.getCreatedAt()

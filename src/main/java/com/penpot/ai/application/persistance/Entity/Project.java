@@ -23,7 +23,6 @@ import jakarta.persistence.Table;
 public class Project {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(name = "name", nullable = false, length = 255)
@@ -37,11 +36,17 @@ public class Project {
 
     public Project() {}
 
+    public Project(UUID id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
     public Project(String name) {
         this.name = name;
     }
 
     public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }

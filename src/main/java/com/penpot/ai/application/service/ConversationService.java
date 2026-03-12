@@ -31,19 +31,19 @@ public class ConversationService {
 
     private ConversationDTO toDTO(Conversation c) {
         return new ConversationDTO(
-            c.getId(),
-            c.getConversationId(),
-            c.getUserId(),
-            c.getProject().getId(),
+            c.getId().toString(),
+            c.getConversationId().toString(),
+            c.getUserId().toString(),
+            c.getProject().getId().toString(),
             c.getMessages().stream().map(this::messageToDTO).toList()
         );
     }
 
     private MessageDTO messageToDTO(Message m) {
         return new MessageDTO(
-            m.getId(),
-            m.getConversation().getId(),
-            m.getProject().getId(),
+            m.getId().toString(),
+            m.getConversation().getId().toString(),
+            m.getProject().getId().toString(),
             m.getContentUser(),
             m.getContentAssistant(),
             m.getCreatedAt()
@@ -52,24 +52,24 @@ public class ConversationService {
 
 
     // Récupérer toutes conversations d'un projet donné
-    public Page<ConversationDTO> getAllProjectConversations(UUID projectId){
-        Page<Conversation> page = conversationRepository.findAllByProjectId(projectId, convPageable);
+    public Page<ConversationDTO> getAllProjectConversations(String projectId){
+        Page<Conversation> page = conversationRepository.findAllByProject_Id(UUID.fromString(projectId), convPageable);
     
         // Convertir chaque Conversation en ConversationDTO
         return page.map(this::toDTO);
     }
 
     // Récupérer toutes conversations d'un utilisateur donné dans un projet 
-    public Page<ConversationDTO> getAllConversationsByUserIdAndProjectId(UUID userId, UUID projectId){
-        Page<Conversation> page = conversationRepository.findAllByUserIdAndProjectId(userId, projectId, convUserPageable);
+    public Page<ConversationDTO> getAllConversationsByUserIdAndProjectId(String userId, String projectId){
+        Page<Conversation> page = conversationRepository.findAllByUserIdAndProject_Id(userId, UUID.fromString(projectId), convUserPageable);
 
         // Convertir chaque Conversation en ConversationDTO
         return page.map(this::toDTO);
     }
 
     // Récupérer les métadonnées d'une conversationsans sans les messages
-    public ConversationMetaDataDTO getConversationMetaData(UUID conversationId){
-        ConversationMetaDataDTO conversation =  conversationRepository.findMetaDataByConversationId(conversationId).orElseThrow(()-> new RuntimeException("ConversationDTO Meta Data Not Found"));
+    public ConversationMetaDataDTO getConversationMetaData(String conversationId){
+        ConversationMetaDataDTO conversation =  conversationRepository.findMetaDataByConversationId(UUID.fromString(conversationId)).orElseThrow(()-> new RuntimeException("ConversationDTO Meta Data Not Found"));
         return conversation;
     }
 }

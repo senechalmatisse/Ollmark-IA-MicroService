@@ -110,7 +110,7 @@ class OllamaAiAdapterTest {
             mockFluentChainForStream(Flux.just("Template found"));
 
             // WHEN chat() is called
-            Flux<String> result = adapter.chat(conversationId, userMessage, userToken);
+            Flux<String> result = adapter.chat(conversationId, userMessage);
 
             // THEN the stream should complete and the client was built with CREATIVE complexity
             StepVerifier.create(result)
@@ -126,7 +126,6 @@ class OllamaAiAdapterTest {
             // GIVEN a message that routes to SHAPE_CREATION category
             String conversationId = "conv-003";
             String userMessage = "Create a rectangle";
-            String userToken = "token-123";
 
             when(complexityAnalyzer.analyze(userMessage)).thenReturn(TaskComplexity.COMPLEX);
             when(toolRouter.route(userMessage)).thenReturn(Set.of(ToolCategory.SHAPE_CREATION));
@@ -136,7 +135,7 @@ class OllamaAiAdapterTest {
             mockFluentChainForStream(Flux.just("Rectangle created"));
 
             // WHEN chat() is called
-            Flux<String> result = adapter.chat(conversationId, userMessage, userToken);
+            Flux<String> result = adapter.chat(conversationId, userMessage);
 
             // THEN a COMPLEX client is built and the stream emits the response
             StepVerifier.create(result)
@@ -152,7 +151,6 @@ class OllamaAiAdapterTest {
             // GIVEN the stream emits an error mid-flight
             String conversationId = "conv-004";
             String userMessage = "Move element";
-            String userToken = "token-err";
             RuntimeException streamError = new RuntimeException("Ollama connection lost");
 
             when(complexityAnalyzer.analyze(userMessage)).thenReturn(TaskComplexity.SIMPLE);
@@ -163,7 +161,7 @@ class OllamaAiAdapterTest {
             mockFluentChainForStream(Flux.error(streamError));
 
             // WHEN chat() is called
-            Flux<String> result = adapter.chat(conversationId, userMessage, userToken);
+            Flux<String> result = adapter.chat(conversationId, userMessage);
 
             // THEN the stream should propagate the error
             StepVerifier.create(result)
@@ -182,7 +180,7 @@ class OllamaAiAdapterTest {
                 .thenThrow(new RuntimeException("analyzer failure"));
 
             // WHEN chat() is called
-            Flux<String> result = adapter.chat(conversationId, userMessage, "token");
+            Flux<String> result = adapter.chat(conversationId, userMessage);
 
             // THEN a ToolExecutionException should be emitted
             StepVerifier.create(result)
@@ -208,9 +206,9 @@ class OllamaAiAdapterTest {
             mockFluentChainForStream(Flux.just("Deleted"));
 
             // WHEN chat() is called with null token
-            Flux<String> result = adapter.chat(conversationId, userMessage, null);
+            Flux<String> result = adapter.chat(conversationId, userMessage);
 
-            // THEN it should complete without error (null token replaced by empty string)
+            // THEN it should complete without error
             StepVerifier.create(result)
                 .expectNext("Deleted")
                 .verifyComplete();
@@ -231,7 +229,7 @@ class OllamaAiAdapterTest {
             mockFluentChainForStream(Flux.just("Renamed"));
 
             // WHEN chat() is called
-            adapter.chat(conversationId, userMessage, "token").blockLast();
+            adapter.chat(conversationId, userMessage).blockLast();
 
             // THEN the router should have been called exactly once
             verify(toolRouter, times(1)).route(userMessage);

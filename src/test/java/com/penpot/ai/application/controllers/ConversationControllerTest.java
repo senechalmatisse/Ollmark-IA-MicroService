@@ -41,16 +41,16 @@ class ConversationControllerTest {
 
     private MockMvc mockMvc;
 
-    private UUID projectId;
-    private UUID userId;
-    private UUID conversationId;
+    private String projectId;
+    private String userId;
+    private String conversationId;
 
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(conversationController).build();
-        projectId = UUID.randomUUID();
-        userId = UUID.randomUUID();
-        conversationId = UUID.randomUUID();
+        projectId = UUID.randomUUID().toString();
+        userId = "user-" + UUID.randomUUID().toString().substring(0, 8);
+        conversationId = UUID.randomUUID().toString();
     }
 
     // =========================================================
@@ -189,20 +189,20 @@ class ConversationControllerTest {
     // Helpers
     // =========================================================
 
-    private ConversationDTO buildConversationDTO(UUID id, UUID projectId, UUID userId) {
+    private ConversationDTO buildConversationDTO(String id, String projectId, String userId) {
         ConversationDTO dto = new ConversationDTO();
         dto.setId(id);
-        dto.setConversationId(id); // souvent tu utilises ça dans le JSON
+        dto.setConversationId(id); 
         dto.setProjectId(projectId);
         dto.setUserId(userId);
         return dto;
     }
 
-    private ConversationMetaDataDTO buildMetaDataDTO(UUID conversationId, UUID projectId, UUID userId) {
+    private ConversationMetaDataDTO buildMetaDataDTO(String conversationId, String projectId, String userId) {
         ConversationMetaDataDTO dto = new ConversationMetaDataDTO();
-        dto.setId(conversationId);
+        dto.setId(UUID.fromString(conversationId));
         dto.setConversationId(conversationId);
-        dto.setProjectId(projectId);
+        dto.setProjectId(UUID.fromString(projectId));
         dto.setUserId(userId);
         dto.setCreatedAt(Instant.now());
         return dto;

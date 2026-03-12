@@ -33,12 +33,12 @@ class ProjectControllerTest {
     private ProjectController projectController;
 
     private MockMvc mockMvc;
-    private UUID projectId;
+    private String projectId;
 
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(projectController).build();
-        projectId = UUID.randomUUID();
+        projectId = "proj-" + UUID.randomUUID().toString().substring(0, 8);
     }
 
     @Test
@@ -55,7 +55,7 @@ class ProjectControllerTest {
         mockMvc.perform(get("/api/projects/{projectId}", projectId)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(projectId.toString()))
+                .andExpect(jsonPath("$.id").value(projectId))
                 .andExpect(jsonPath("$.name").value("Mon projet"));
 
         // Vérifier l'appel du service

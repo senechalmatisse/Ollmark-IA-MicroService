@@ -17,11 +17,11 @@ import org.springframework.data.domain.Pageable;
 public interface ConversationRepository extends JpaRepository<Conversation, UUID> {
 
     // Récupérer toutes conversations d'une proejt donné
-    Page<Conversation> findAllByProjectId(UUID projectId, Pageable convPageable);
+    Page<Conversation> findAllByProject_Id(UUID projectId, Pageable convPageable);
 
     //Récupérer toutes conversations d'un utilisateur donné dans un projet 
     // Ajouter cela dans l'appel au repositiry: 
-    Page<Conversation> findAllByUserIdAndProjectId(UUID userId, UUID projectId, Pageable pageable); 
+    Page<Conversation> findAllByUserIdAndProject_Id(String userId, UUID projectId, Pageable pageable); 
 
     // Récupérer les métadonnées d'une conversationsans sans les messages
     // TODO remplir les méta données du dto a récupérer 

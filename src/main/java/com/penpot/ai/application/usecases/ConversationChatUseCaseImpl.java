@@ -60,38 +60,38 @@ public class ConversationChatUseCaseImpl implements ConversationChatUseCase {
     private final AiServicePort aiService;
 
     @Override
-    public Flux<String> chat(String conversationId, String message, String userToken) {
-        validateChatInput(conversationId, message);
-        log.info("Processing chat request for conversation: {} (message length: {} chars)", 
-            conversationId, message.length());
-        return aiService.chat(conversationId, message, userToken);
+    public reactor.core.publisher.Mono<String> chat(String projectId, String message) {
+        validateChatInput(projectId, message);
+        log.info("Processing chat request for project: {} (message length: {} chars)", 
+            projectId, message.length());
+        return aiService.chat(projectId, message)
+                .collectList()
+                .map(list -> String.join("", list));
     }
 
 
     @Override
-    public String startNewConversation(String userId) {
-        String conversationId = generateConversationId(userId);
-        log.info("Started new conversation: {} (userId: {})", 
-            conversationId, 
-            userId != null ? userId : "anonymous");
-        return conversationId;
+    public String startNewConversation(String projectId) {
+        ValidationUtils.requireNonBlank(projectId, "Project ID");
+        log.info("Started new conversation for project: {}", projectId);
+        return projectId;
     }
 
     @Override
-    public void clearConversation(String conversationId) {
-        ValidationUtils.requireNonBlank(conversationId, "Conversation ID");
-        log.info("Clearing conversation history: {}", conversationId);
+    public void clearConversation(String projectId) {
+        ValidationUtils.requireNonBlank(projectId, "Project ID");
+        log.info("Clearing conversation history for project: {}", projectId);
 
         try {
-            aiService.clearConversation(conversationId);
-            log.info("Conversation {} cleared successfully", conversationId);
+            aiService.clearConversation(projectId);
+            log.info("Conversation for project {} cleared successfully", projectId);
         } catch (IllegalArgumentException e) {
-            log.warn("Invalid conversation ID: {}", conversationId, e);
+            log.warn("Invalid project ID: {}", projectId, e);
             throw e;
         } catch (Exception e) {
-            log.error("Failed to clear conversation: {}", conversationId, e);
+            log.error("Failed to clear conversation for project: {}", projectId, e);
             throw new ToolExecutionException(
-                "Failed to clear conversation " + conversationId + ": " + e.getMessage(), 
+                "Failed to clear conversation for project " + projectId + ": " + e.getMessage(), 
                 e
             );
         }

@@ -1,6 +1,7 @@
 package com.penpot.ai.application.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
+ 
 
 import com.penpot.ai.application.service.MessageService;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -27,7 +27,7 @@ public class MessageController {
     // Récupérer les N derniers messages d'une conversation
     @GetMapping("/conversation/{conversationId}")
     public List<MessageDTO> getLastMessages(
-            @PathVariable UUID conversationId,
+            @PathVariable String conversationId,
             @RequestParam(defaultValue = "20") int nMessages) {
 
         if (nMessages > 20) {
@@ -39,7 +39,7 @@ public class MessageController {
 
     // Récupérer le dernier message
     @GetMapping("/conversation/{conversationId}/last")
-    public MessageDTO getLastMessage(@PathVariable UUID conversationId) {
+    public MessageDTO getLastMessage(@PathVariable String conversationId) {
         return messageService.getLastMessage(conversationId);
     }
 }

@@ -1,6 +1,5 @@
 package com.penpot.ai.application.controller;
-
-import java.util.UUID;
+ 
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,7 +22,7 @@ public class ProjectController {
 
     // Récupérer un projet par son id
     @GetMapping("/{projectId}")
-    public ProjectDTO getProject(@PathVariable UUID projectId) {
+    public ProjectDTO getProject(@PathVariable String projectId) {
         return projectService.getProjectById(projectId);
     }
 }
