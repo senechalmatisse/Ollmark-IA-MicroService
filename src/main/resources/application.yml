@@ -31,7 +31,7 @@ penpot:
     # Adresse du serveur pour les clients externes
     server-address: ${PENPOT_SERVER_ADDRESS:localhost}
     # Port WebSocket pour la communication avec le plugin
-    websocket-port: ${PENPOT_WEBSOCKET_PORT:4401}
+    websocket-port: ${PENPOT_WEBSOCKET_PORT:8080}
     # Port REPL (si activé)
     repl-port: ${PENPOT_REPL_PORT:4403}
     # Mode distant : true si le plugin est hébergé ailleurs
@@ -111,9 +111,9 @@ spring:
             initialize-schema: never
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}}
-    username: ${SPRING_DATASOURCE_USERNAME:${DB_USER}}
-    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD}}
+    url: jdbc:postgresql://localhost:5433/penpot_ai
+    username: penpot_ai
+    password: penpot_ai_secret
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

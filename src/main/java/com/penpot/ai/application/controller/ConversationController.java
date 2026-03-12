@@ -1,6 +1,5 @@
 package com.penpot.ai.application.controller;
 
-import java.util.UUID;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,22 +25,22 @@ public class ConversationController {
 
     // Récupérer toutes les conversations d'un projet
     @GetMapping("/project/{projectId}")
-    public Page<ConversationDTO> getProjectConversations(@PathVariable UUID projectId) {
+    public Page<ConversationDTO> getProjectConversations(@PathVariable String projectId) {
         return conversationService.getAllProjectConversations(projectId);
     }
 
     // Récupérer toutes les conversations d'un utilisateur dans un projet
     @GetMapping("/project/{projectId}/user/{userId}")
     public Page<ConversationDTO> getUserProjectConversations(
-            @PathVariable UUID projectId,
-            @PathVariable UUID userId) {
+            @PathVariable String projectId,
+            @PathVariable String userId) {
 
         return conversationService.getAllConversationsByUserIdAndProjectId(userId, projectId);
     }
 
     // Récupérer les métadonnées d'une conversation
     @GetMapping("/{conversationId}/metadata")
-    public ConversationMetaDataDTO getConversationMetaData(@PathVariable UUID conversationId) {
+    public ConversationMetaDataDTO getConversationMetaData(@PathVariable String conversationId) {
         return conversationService.getConversationMetaData(conversationId);
     }
 }

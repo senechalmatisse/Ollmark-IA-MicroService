@@ -1,0 +1,34 @@
+﻿
+[ERROR] Failed to 
+execute goal org.sprin
+gframework.boot:spring
+-boot-maven-plugin:3.5
+.8:run (default-cli) 
+on project 
+penpot-ai-server: 
+Process terminated 
+with exit code: 1 -> 
+[Help 1]
+[ERROR] 
+[ERROR] To see the 
+full stack trace of 
+the errors, re-run 
+Maven with the -e 
+switch.
+[ERROR] Re-run Maven 
+using the -X switch 
+to enable full debug 
+logging.
+[ERROR] 
+[ERROR] For more 
+information about the 
+errors and possible 
+solutions, please 
+read the following 
+articles:
+[ERROR] [Help 1] http:
+//cwiki.apache.org/con
+fluence/display/MAVEN/
+MojoExecutionException
+
+

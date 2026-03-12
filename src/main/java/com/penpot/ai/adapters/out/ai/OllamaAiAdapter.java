@@ -164,7 +164,7 @@ public class OllamaAiAdapter implements AiServicePort {
      * @return               Un flux réactif ({@link Flux}) émettant les fragments de texte générés par le modèle au fil de l'eau.
      */
     @Override
-    public Flux<String> chat(String conversationId, String userMessage, String userToken) {
+    public Flux<String> chat(String conversationId, String userMessage) {
         try {
             // Étape 1 : Évaluation de la complexité
             TaskComplexity complexity = complexityAnalyzer.analyze(userMessage);
@@ -195,8 +195,7 @@ public class OllamaAiAdapter implements AiServicePort {
                     .tools(tools)
                     .toolContext(Map.of(
                             "activeCategories", categories.stream().map(Enum::name).toList(),
-                            "conversationId", conversationId,
-                            "userToken", userToken != null ? userToken : ""
+                            "conversationId", conversationId
                     ))
                     .call()
                     .content();

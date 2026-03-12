@@ -1,0 +1,155 @@
+﻿[INFO] Scanning for projects...
+[INFO] 
+[INFO] --------------------< com.penpot:penpot-ai-server >---------------------
+[INFO] Building Penpot AI Server 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.5.8:run (default-cli) > test-compile @ penpot-ai-server >>>
+[INFO] 
+[INFO] --- jacoco:0.8.12:prepare-agent (prepare-agent) @ penpot-ai-server ---
+[INFO] argLine set to "-javaagent:C:\\Users\\Tarek Moussaoui\\.m2\\repository\\org\\jacoco\\org.jacoco.agent\\0.8.12\\org.jacoco.agent-0.8.12-runtime.jar=destfile=C:\\Users\\Tarek Moussaoui\\Ollmark-plugin-ia\\dd\\ms-ollmark-ia\\target\\jacoco.exec"
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ penpot-ai-server ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 104 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ penpot-ai-server ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ penpot-ai-server ---
+[INFO] Copying 1 resource from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ penpot-ai-server ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 80 source files with javac [debug parameters release 21] to target\test-classes
+[WARNING] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/in/web/AiControllerTest.java:[38,6] org.springframework.boot.test.mock.mockito.MockBean in org.springframework.boot.test.mock.mockito has been deprecated and marked for removal
+[WARNING] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/in/web/AiControllerTest.java:[38,6] org.springframework.boot.test.mock.mockito.MockBean in org.springframework.boot.test.mock.mockito has been deprecated and marked for removal
+[WARNING] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/in/web/AiControllerTest.java:[38,6] org.springframework.boot.test.mock.mockito.MockBean in org.springframework.boot.test.mock.mockito has been deprecated and marked for removal
+[WARNING] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/in/web/AiControllerTest.java:[38,6] org.springframework.boot.test.mock.mockito.MockBean in org.springframework.boot.test.mock.mockito has been deprecated and marked for removal
+[WARNING] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/in/web/AiControllerTest.java:[38,6] org.springframework.boot.test.mock.mockito.MockBean in org.springframework.boot.test.mock.mockito has been deprecated and marked for removal
+[WARNING] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/in/web/AiControllerTest.java:[41,6] org.springframework.boot.test.mock.mockito.MockBean in org.springframework.boot.test.mock.mockito has been deprecated and marked for removal
+[WARNING] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/in/web/AiControllerTest.java:[41,6] org.springframework.boot.test.mock.mockito.MockBean in org.springframework.boot.test.mock.mockito has been deprecated and marked for removal
+[WARNING] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/in/web/AiControllerTest.java:[41,6] org.springframework.boot.test.mock.mockito.MockBean in org.springframework.boot.test.mock.mockito has been deprecated and marked for removal
+[WARNING] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/in/web/AiControllerTest.java:[41,6] org.springframework.boot.test.mock.mockito.MockBean in org.springframework.boot.test.mock.mockito has been deprecated and marked for removal
+[WARNING] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/in/web/AiControllerTest.java:[41,6] org.springframework.boot.test.mock.mockito.MockBean in org.springframework.boot.test.mock.mockito has been deprecated and marked for removal
+[INFO] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/out/ai/OllamaAiAdapterTest.java: Some input files use unchecked or unsafe operations.
+[INFO] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/out/ai/OllamaAiAdapterTest.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] <<< spring-boot:3.5.8:run (default-cli) < test-compile @ penpot-ai-server <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.5.8:run (default-cli) @ penpot-ai-server ---
+[INFO] Attaching agents: []
+13:04:26.937 [main] INFO com.penpot.ai.PenpotAiApplication -- ========================================
+13:04:26.941 [main] INFO com.penpot.ai.PenpotAiApplication --   D├®marrage du serveur Penpot Serveur
+13:04:26.941 [main] INFO com.penpot.ai.PenpotAiApplication -- ========================================
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.5.8)
+
+2026-03-12 13:04:27.513 [main] INFO  com.penpot.ai.PenpotAiApplication - Starting PenpotAiApplication using Java 21.0.10 with PID 40520 (C:\Users\Tarek Moussaoui\Ollmark-plugin-ia\dd\ms-ollmark-ia\target\classes started by Tarek Moussaoui in C:\Users\Tarek Moussaoui\Ollmark-plugin-ia\dd\ms-ollmark-ia)
+2026-03-12 13:04:27.514 [main] DEBUG com.penpot.ai.PenpotAiApplication - Running with Spring Boot v3.5.8, Spring v6.2.14
+2026-03-12 13:04:27.515 [main] INFO  com.penpot.ai.PenpotAiApplication - No active profile set, falling back to 1 default profile: "default"
+2026-03-12 13:04:28.801 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-03-12 13:04:28.955 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 143 ms. Found 4 JPA repository interfaces.
+2026-03-12 13:04:29.056 [main] INFO  o.s.cloud.context.scope.GenericScope - BeanFactory id=ca7076cd-7e8b-38e1-b93a-95bb176fccc6
+2026-03-12 13:04:29.414 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8080 (http)
+2026-03-12 13:04:29.427 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2026-03-12 13:04:29.427 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.49]
+2026-03-12 13:04:29.504 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2026-03-12 13:04:29.505 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1935 ms
+2026-03-12 13:04:29.854 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-03-12 13:04:30.983 [main] WARN  o.s.b.w.s.c.AnnotationConfigServletWebServerApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/autoconfigure/orm/jpa/HibernateJpaConfiguration.class]: Failed to initialize dependency 'flywayInitializer' of LoadTimeWeaverAware bean 'entityManagerFactory': Error creating bean with name 'flywayInitializer' defined in class path resource [org/springframework/boot/autoconfigure/flyway/FlywayAutoConfiguration$FlywayConfiguration.class]: Unable to obtain connection from database: FATAL: authentification par mot de passe ´┐¢chou´┐¢e pour l'utilisateur  ´┐¢ penpot_ai ´┐¢
+-----------------------------------------------------------------------------------------------------------------------------
+SQL State  : 28P01
+Error Code : 0
+Message    : FATAL: authentification par mot de passe ´┐¢chou´┐¢e pour l'utilisateur  ´┐¢ penpot_ai ´┐¢
+
+2026-03-12 13:04:30.988 [main] INFO  o.a.catalina.core.StandardService - Stopping service [Tomcat]
+2026-03-12 13:04:31.003 [main] INFO  o.s.b.a.l.ConditionEvaluationReportLogger - 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-03-12 13:04:31.020 [main] ERROR o.s.boot.SpringApplication - Application run failed
+org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/autoconfigure/orm/jpa/HibernateJpaConfiguration.class]: Failed to initialize dependency 'flywayInitializer' of LoadTimeWeaverAware bean 'entityManagerFactory': Error creating bean with name 'flywayInitializer' defined in class path resource [org/springframework/boot/autoconfigure/flyway/FlywayAutoConfiguration$FlywayConfiguration.class]: Unable to obtain connection from database: FATAL: authentification par mot de passe ´┐¢chou´┐¢e pour l'utilisateur  ´┐¢ penpot_ai ´┐¢
+-----------------------------------------------------------------------------------------------------------------------------
+SQL State  : 28P01
+Error Code : 0
+Message    : FATAL: authentification par mot de passe ´┐¢chou´┐¢e pour l'utilisateur  ´┐¢ penpot_ai ´┐¢
+
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:328)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:207)
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:973)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:627)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146)
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:752)
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:439)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:318)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1361)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1350)
+	at com.penpot.ai.PenpotAiApplication.main(PenpotAiApplication.java:23)
+Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'flywayInitializer' defined in class path resource [org/springframework/boot/autoconfigure/flyway/FlywayAutoConfiguration$FlywayConfiguration.class]: Unable to obtain connection from database: FATAL: authentification par mot de passe ´┐¢chou´┐¢e pour l'utilisateur  ´┐¢ penpot_ai ´┐¢
+-----------------------------------------------------------------------------------------------------------------------------
+SQL State  : 28P01
+Error Code : 0
+Message    : FATAL: authentification par mot de passe ´┐¢chou´┐¢e pour l'utilisateur  ´┐¢ penpot_ai ´┐¢
+
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1826)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:607)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:529)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:373)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:315)
+	... 10 common frames omitted
+Caused by: org.flywaydb.core.internal.exception.FlywaySqlException: Unable to obtain connection from database: FATAL: authentification par mot de passe ´┐¢chou´┐¢e pour l'utilisateur  ´┐¢ penpot_ai ´┐¢
+-----------------------------------------------------------------------------------------------------------------------------
+SQL State  : 28P01
+Error Code : 0
+Message    : FATAL: authentification par mot de passe ´┐¢chou´┐¢e pour l'utilisateur  ´┐¢ penpot_ai ´┐¢
+
+	at org.flywaydb.core.internal.jdbc.JdbcUtils.openConnection(JdbcUtils.java:71)
+	at org.flywaydb.core.internal.jdbc.JdbcConnectionFactory.<init>(JdbcConnectionFactory.java:76)
+	at org.flywaydb.core.FlywayExecutor.execute(FlywayExecutor.java:136)
+	at org.flywaydb.core.Flyway.migrate(Flyway.java:188)
+	at org.springframework.boot.autoconfigure.flyway.FlywayMigrationInitializer.afterPropertiesSet(FlywayMigrationInitializer.java:66)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1873)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1822)
+	... 17 common frames omitted
+Caused by: org.postgresql.util.PSQLException: FATAL: authentification par mot de passe ´┐¢chou´┐¢e pour l'utilisateur  ´┐¢ penpot_ai ´┐¢
+	at org.postgresql.core.v3.ConnectionFactoryImpl.doAuthentication(ConnectionFactoryImpl.java:778)
+	at org.postgresql.core.v3.ConnectionFactoryImpl.tryConnect(ConnectionFactoryImpl.java:234)
+	at org.postgresql.core.v3.ConnectionFactoryImpl.openConnectionImpl(ConnectionFactoryImpl.java:289)
+	at org.postgresql.core.ConnectionFactory.openConnection(ConnectionFactory.java:57)
+	at org.postgresql.jdbc.PgConnection.<init>(PgConnection.java:279)
+	at org.postgresql.Driver.makeConnection(Driver.java:448)
+	at org.postgresql.Driver.connect(Driver.java:298)
+	at com.zaxxer.hikari.util.DriverDataSource.getConnection(DriverDataSource.java:144)
+	at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:370)
+	at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:207)
+	at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:488)
+	at com.zaxxer.hikari.pool.HikariPool.checkFailFast(HikariPool.java:576)
+	at com.zaxxer.hikari.pool.HikariPool.<init>(HikariPool.java:97)
+	at com.zaxxer.hikari.HikariDataSource.getConnection(HikariDataSource.java:111)
+	at org.flywaydb.core.internal.jdbc.JdbcUtils.openConnection(JdbcUtils.java:59)
+	... 23 common frames omitted
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  16.523 s
+[INFO] Finished at: 2026-03-12T13:04:31+01:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.5.8:run (default-cli) on project penpot-ai-server: Process terminated with exit code: 1 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

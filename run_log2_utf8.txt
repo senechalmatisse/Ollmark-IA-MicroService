@@ -1,0 +1,69 @@
+﻿[INFO] Scanning for projects...
+[INFO] 
+[INFO] --------------------< com.penpot:penpot-ai-server >---------------------
+[INFO] Building Penpot AI Server 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.5.8:run (default-cli) > test-compile @ penpot-ai-server >>>
+[INFO] 
+[INFO] --- jacoco:0.8.12:prepare-agent (prepare-agent) @ penpot-ai-server ---
+[INFO] argLine set to "-javaagent:C:\\Users\\Tarek Moussaoui\\.m2\\repository\\org\\jacoco\\org.jacoco.agent\\0.8.12\\org.jacoco.agent-0.8.12-runtime.jar=destfile=C:\\Users\\Tarek Moussaoui\\Ollmark-plugin-ia\\dd\\ms-ollmark-ia\\target\\jacoco.exec"
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ penpot-ai-server ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 105 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ penpot-ai-server ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 140 source files with javac [debug parameters release 21] to target\classes
+[INFO] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/main/java/com/penpot/ai/adapters/in/websocket/PluginWebSocketHandler.java: Some input files use unchecked or unsafe operations.
+[INFO] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/main/java/com/penpot/ai/adapters/in/websocket/PluginWebSocketHandler.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ penpot-ai-server ---
+[INFO] Copying 1 resource from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ penpot-ai-server ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 80 source files with javac [debug parameters release 21] to target\test-classes
+[INFO] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/out/ai/OllamaAiAdapterTest.java: Some input files use unchecked or unsafe operations.
+[INFO] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/out/ai/OllamaAiAdapterTest.java: Recompile with -Xlint:unchecked for details.
+[INFO] Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+[INFO] -------------------------------------------------------------
+[WARNING] COMPILATION WARNING : 
+[INFO] -------------------------------------------------------------
+[WARNING] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/in/web/AiControllerTest.java:[38,6] org.springframework.boot.test.mock.mockito.MockBean in org.springframework.boot.test.mock.mockito has been deprecated and marked for removal
+[WARNING] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/in/web/AiControllerTest.java:[38,6] org.springframework.boot.test.mock.mockito.MockBean in org.springframework.boot.test.mock.mockito has been deprecated and marked for removal
+[WARNING] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/in/web/AiControllerTest.java:[38,6] org.springframework.boot.test.mock.mockito.MockBean in org.springframework.boot.test.mock.mockito has been deprecated and marked for removal
+[WARNING] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/in/web/AiControllerTest.java:[38,6] org.springframework.boot.test.mock.mockito.MockBean in org.springframework.boot.test.mock.mockito has been deprecated and marked for removal
+[WARNING] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/in/web/AiControllerTest.java:[38,6] org.springframework.boot.test.mock.mockito.MockBean in org.springframework.boot.test.mock.mockito has been deprecated and marked for removal
+[WARNING] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/in/web/AiControllerTest.java:[41,6] org.springframework.boot.test.mock.mockito.MockBean in org.springframework.boot.test.mock.mockito has been deprecated and marked for removal
+[WARNING] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/in/web/AiControllerTest.java:[41,6] org.springframework.boot.test.mock.mockito.MockBean in org.springframework.boot.test.mock.mockito has been deprecated and marked for removal
+[WARNING] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/in/web/AiControllerTest.java:[41,6] org.springframework.boot.test.mock.mockito.MockBean in org.springframework.boot.test.mock.mockito has been deprecated and marked for removal
+[WARNING] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/in/web/AiControllerTest.java:[41,6] org.springframework.boot.test.mock.mockito.MockBean in org.springframework.boot.test.mock.mockito has been deprecated and marked for removal
+[WARNING] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/adapters/in/web/AiControllerTest.java:[41,6] org.springframework.boot.test.mock.mockito.MockBean in org.springframework.boot.test.mock.mockito has been deprecated and marked for removal
+[INFO] 10 warnings 
+[INFO] -------------------------------------------------------------
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/application/controllers/ConversationControllerTest.java:[203,19] incompatible types: java.lang.String cannot be converted to java.util.UUID
+[ERROR] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/application/controllers/ConversationControllerTest.java:[205,26] incompatible types: java.lang.String cannot be converted to java.util.UUID
+[INFO] 2 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  13.121 s
+[INFO] Finished at: 2026-03-12T15:19:55+01:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.1:testCompile (default-testCompile) on project penpot-ai-server: Compilation failure: Compilation failure: 
+[ERROR] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/application/controllers/ConversationControllerTest.java:[203,19] incompatible types: java.lang.String cannot be converted to java.util.UUID
+[ERROR] /C:/Users/Tarek Moussaoui/Ollmark-plugin-ia/dd/ms-ollmark-ia/src/test/java/com/penpot/ai/application/controllers/ConversationControllerTest.java:[205,26] incompatible types: java.lang.String cannot be converted to java.util.UUID
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

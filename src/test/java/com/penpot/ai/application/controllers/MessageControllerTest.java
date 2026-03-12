@@ -43,12 +43,12 @@ class MessageControllerTest {
     private MessageController messageController;
 
     private MockMvc mockMvc;
-    private UUID conversationId;
+    private String conversationId;
 
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(messageController).build();
-        conversationId = UUID.randomUUID();
+        conversationId = "conv-" + UUID.randomUUID().toString().substring(0, 8);
     }
 
     // =========================================================
@@ -111,7 +111,7 @@ class MessageControllerTest {
     @Test
     @DisplayName("getLastMessages - appelle le service avec le bon conversationId et nMessages")
     void getLastMessages_callsServiceWithCorrectParams() throws Exception {
-        when(messageService.getLastMessages(any(UUID.class), anyInt())).thenReturn(List.of());
+        when(messageService.getLastMessages(any(String.class), anyInt())).thenReturn(List.of());
 
         mockMvc.perform(get("/api/messages/conversation/{conversationId}", conversationId)
                 .param("nMessages", "10"));
@@ -154,7 +154,7 @@ class MessageControllerTest {
     @Test
     @DisplayName("getLastMessage - appelle le service avec le bon conversationId")
     void getLastMessage_callsServiceWithCorrectId() throws Exception {
-        when(messageService.getLastMessage(any(UUID.class)))
+        when(messageService.getLastMessage(any(String.class)))
                 .thenReturn(buildMessage(conversationId, "msg"));
 
         mockMvc.perform(get("/api/messages/conversation/{conversationId}/last", conversationId));
@@ -190,15 +190,15 @@ class MessageControllerTest {
     // Helpers
     // =========================================================
 
-    private List<MessageDTO> buildMessages(UUID conversationId, int count) {
+    private List<MessageDTO> buildMessages(String conversationId, int count) {
         return java.util.stream.IntStream.range(0, count)
                 .mapToObj(i -> buildMessage(conversationId, "Message " + i))
                 .toList();
     }
 
-    private MessageDTO buildMessage(UUID conversationId, String content) {
+    private MessageDTO buildMessage(String conversationId, String content) {
         MessageDTO dto = new MessageDTO();
-        dto.setId(UUID.randomUUID());
+        dto.setId("msg-" + UUID.randomUUID().toString().substring(0, 8));
         dto.setConversationId(conversationId);
         dto.setContentUser(content);
         return dto;

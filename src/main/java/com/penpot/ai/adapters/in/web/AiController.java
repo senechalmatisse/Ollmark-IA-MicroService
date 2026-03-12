@@ -5,9 +5,11 @@ import com.penpot.ai.core.ports.in.*;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import java.util.*;
 import java.util.*;
 
 /**
@@ -31,75 +33,49 @@ import java.util.*;
 @RequiredArgsConstructor
 public class AiController {
     
-    private static final String SUCCESS_KEY = "success";
-    private static final String ERROR_KEY = "error";
-    private static final String CONVERSATION_ID_KEY = "conversationId";
-    private static final String ANONYMOUS_USER = "anonymous";
-
     /** Use case gérant les conversations IA et la mémoire de chat. */
     private final ConversationChatUseCase conversationChatUseCase;
 
-    /**
-     * Envoie un message à l’assistant IA dans le cadre d’une conversation existante.
-     * <p>
-     * La mémoire conversationnelle est entièrement gérée par ChatMemory :
-     * <ul>
-     *     <li>chargement automatique de l’historique</li>
-     *     <li>persistance des messages</li>
-     *     <li>gestion de la fenêtre de contexte</li>
-     * </ul>
-     *
-     * <h3>Outils IA</h3>
-     * <p>
-     * L’IA peut invoquer automatiquement des outils de recherche de templates
-     * (function calling) lorsqu’une intention marketing est détectée.
-     *
-     * @param request requête contenant l’identifiant de conversation et le message utilisateur
-     * @return réponse HTTP contenant la réponse générée par l’IA
-     */
-    @PostMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> chat(@RequestBody ChatRequest request) {
-        log.info("POST /ai/chat (conversationId: {}, message length: {} chars)",
-            request.getConversationId(),
+    /** Use case gérant la configuration de l'IA. */
+    private final AiConfigUseCase aiConfigUseCase;
+
+    @PostMapping("/chat")
+    public reactor.core.publisher.Mono<ResponseEntity<Map<String, Object>>> chat(@RequestBody(required = false) ChatRequest request) {
+        if (request == null) {
+            return reactor.core.publisher.Mono.just(ResponseEntity.badRequest().body(buildErrorResponse("Request body is missing")));
+        }
+        log.info("POST /ai/chat (projectId: {}, message length: {} chars)",
+            request.getProjectId(),
             request.getMessage() != null ? request.getMessage().length() : 0);
 
         return conversationChatUseCase
             .chat(
-                request.getConversationId(),
-                request.getMessage(),
-                request.getUserToken()
+                request.getProjectId(),
+                request.getMessage()
             )
+            .map(response -> ResponseEntity.ok(buildResponse(true, request.getProjectId(), response)))
             .onErrorResume(e -> {
-                log.error("Stream failed for conversation: {}",
-                    request.getConversationId(), e);
-                return Flux.just("[ERROR] " + e.getMessage());
+                log.error("Chat failed for project: {}", request.getProjectId(), e);
+                return reactor.core.publisher.Mono.just(
+                    ResponseEntity.status(500).body(buildErrorResponse(e.getMessage()))
+                );
             });
     }
 
     /**
-     * Démarre une nouvelle conversation IA.
-     * <p>
-     * Une conversation peut être associée à un utilisateur identifié
-     * ou rester anonyme.
-     *
-     * @param request requête optionnelle contenant l’identifiant utilisateur
-     * @return un nouvel identifiant de conversation
+     * Démarre une nouvelle conversation IA pour un projet.
      */
     @PostMapping("/chat/new")
     public ResponseEntity<Map<String, Object>> startNewConversation(
         @RequestBody(required = false) NewConversationRequest request
     ) {
+        if (request == null) {
+            return ResponseEntity.badRequest().body(buildErrorResponse("Request body is missing"));
+        }
         try {
-            String userId = request != null ? request.getUserId() : null;
-            log.info("POST /ai/chat/new (userId: {})", userId != null ? userId : ANONYMOUS_USER);
-
-            String conversationId = conversationChatUseCase.startNewConversation(userId);
-            return ResponseEntity.ok(Map.of(
-                SUCCESS_KEY, true,
-                CONVERSATION_ID_KEY, conversationId,
-                "userId", userId != null ? userId : ANONYMOUS_USER,
-                "info", "New conversation started. Use this conversationId for subsequent messages."
-            ));
+            log.info("POST /ai/chat/new (projectId: {})", request.getProjectId());
+            String projectId = conversationChatUseCase.startNewConversation(request.getProjectId());
+            return ResponseEntity.ok(buildResponse(true, projectId, null));
         } catch (Exception e) {
             log.error("Failed to start new conversation", e);
             return ResponseEntity.status(500).body(buildErrorResponse(e.getMessage()));
@@ -107,73 +83,92 @@ public class AiController {
     }
 
     /**
-     * Supprime l’intégralité de l’historique d’une conversation.
-     *
-     * @param conversationId identifiant de la conversation à supprimer
-     * @return confirmation de la suppression
+     * Supprime l’historique d’une conversation pour un projet.
      */
-    @DeleteMapping("/chat/{conversationId}")
+    @DeleteMapping("/chat/{projectId}")
     public ResponseEntity<Map<String, Object>> clearConversation(
-        @PathVariable String conversationId
+        @PathVariable String projectId
     ) {
         try {
-            log.info("DELETE /ai/chat/{}", conversationId);
-            conversationChatUseCase.clearConversation(conversationId);
+            log.info("DELETE /ai/chat/{} (projectId: {})", projectId, projectId);
+            conversationChatUseCase.clearConversation(projectId);
             return ResponseEntity.ok(Map.of(
-                SUCCESS_KEY, true,
-                CONVERSATION_ID_KEY, conversationId,
-                "info", "Conversation history cleared successfully"
+                "success", true,
+                "projectId", projectId
             ));
-        } catch (IllegalArgumentException e) {
-            log.warn("Invalid conversation ID: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(buildErrorResponse(e.getMessage()));
         } catch (Exception e) {
             log.error("Failed to clear conversation", e);
             return ResponseEntity.status(500).body(buildErrorResponse(e.getMessage()));
         }
     }
 
-    /**
-     * Construit une réponse d’erreur standardisée.
-     *
-     * @param errorMessage message d’erreur
-     * @return map d’erreur sérialisable en JSON
-     */
+    @GetMapping("/config")
+    public ResponseEntity<Map<String, Object>> getConfig(@RequestParam String projectId) {
+        return ResponseEntity.ok(aiConfigUseCase.getConfig(projectId));
+    }
+
+    @PostMapping("/config")
+    public ResponseEntity<Map<String, Object>> updateConfig(
+        @RequestParam String projectId,
+        @RequestBody Map<String, Object> config
+    ) {
+        aiConfigUseCase.updateConfig(projectId, config);
+        return ResponseEntity.ok(Map.of("success", true));
+    }
+
+    @GetMapping("/config/prompt")
+    public ResponseEntity<Map<String, Object>> getPrompt(@RequestParam String projectId) {
+        return ResponseEntity.ok(Map.of("prompt", aiConfigUseCase.getPrompt(projectId)));
+    }
+
+    @PostMapping("/config/prompt")
+    public ResponseEntity<Map<String, Object>> updatePrompt(
+        @RequestParam String projectId,
+        @RequestBody Map<String, String> body
+    ) {
+        String prompt = body.get("prompt");
+        aiConfigUseCase.updatePrompt(projectId, prompt);
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "prompt", prompt
+        ));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleException(Exception e) {
+        log.error("Unhandled exception in AiController: {}", e.getMessage(), e);
+        return ResponseEntity.status(500).body(buildErrorResponse(e.getMessage()));
+    }
+
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleJsonError(org.springframework.http.converter.HttpMessageNotReadableException e) {
+        log.error("JSON parsing error: {}", e.getMessage(), e);
+        return ResponseEntity.badRequest().body(buildErrorResponse("Invalid JSON or encoding: " + e.getMessage()));
+    }
+
+    private Map<String, Object> buildResponse(boolean success, String projectId, String response) {
+        Map<String, Object> res = new HashMap<>();
+        res.put("success", success);
+        res.put("projectId", projectId);
+        res.put("response", response);
+        return res;
+    }
+
     private Map<String, Object> buildErrorResponse(String errorMessage) {
-        return Map.of(
-            SUCCESS_KEY, false,
-            ERROR_KEY, errorMessage != null ? errorMessage : "Unknown error"
-        );
+        Map<String, Object> res = new HashMap<>();
+        res.put("success", false);
+        res.put("error", errorMessage != null ? errorMessage : "Unknown error");
+        return res;
     }
 }
 
-/**
- * DTO représentant une requête de chat conversationnel.
- */
 @Data
 class ChatRequest {
-
-    /**
-     * Identifiant unique de la conversation.
-     * Permet de récupérer et persister l’historique.
-     */
-    private String conversationId;
-
-    /** Message envoyé par l’utilisateur. */
+    private String projectId;
     private String message;
-
-    private String userToken;
 }
 
-/**
- * DTO utilisé pour démarrer une nouvelle conversation.
- */
 @Data
 class NewConversationRequest {
-
-    /**
-     * Identifiant utilisateur optionnel.
-     * Peut être {@code null} pour une conversation anonyme.
-     */
-    private String userId;
+    private String projectId;
 }
