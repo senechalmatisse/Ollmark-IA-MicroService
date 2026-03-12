@@ -1,5 +1,6 @@
 package com.penpot.ai.application.service;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.penpot.ai.application.DTO.MessageDTO;
 import com.penpot.ai.application.persistance.Entity.Message;
@@ -22,37 +23,52 @@ public class MessageService {
     private final MessageRepository messageRepository;
 
     // Récupérer les N derniers messages d'une conversation, triés par createdAt asc
-    public List<MessageDTO> getLastMessages(String conversationId, int nMessages) {
-        List<Message> messages = messageRepository.findLastNMessages(UUID.fromString(conversationId), nMessages);
-
-        // Tri par date
+    public List<MessageDTO> getLastMessages(UUID conversationId, int nMessages) {
+        List<Message> messages = messageRepository.findLastNMessages(conversationId, nMessages);
         messages.sort(Comparator.comparing(Message::getCreatedAt));
 
-        // Conversion en DTO
         return messages.stream()
-                .map(m -> new MessageDTO(
-                        m.getId().toString(),
-                        m.getConversation().getId().toString(),
-                        m.getProject().getId().toString(),
-                        m.getContentUser(),
-                        m.getContentAssistant(),
-                        m.getCreatedAt()
-                ))
-                .collect(Collectors.toList());
-    }
-
-    // Récupérer le dernier message d'une conversation à partir de son id
-    public MessageDTO getLastMessage(String conversationId) {
-        Message m = messageRepository.findFirstByConversationIdOrderByCreatedAtDesc(UUID.fromString(conversationId))
-                .orElseThrow(() -> new NoSuchElementException("Message not found"));
-
-        return new MessageDTO(
-                m.getId().toString(),
-                m.getConversation().getId().toString(),
-                m.getProject().getId().toString(),
+            .map(m -> new MessageDTO(
+                m.getId(),
+                m.getConversation().getId(),
+                m.getProject().getId(),
                 m.getContentUser(),
                 m.getContentAssistant(),
                 m.getCreatedAt()
+            ))
+            .collect(Collectors.toList());
+    }
+
+    // Récupérer le dernier message d'une conversation à partir de son id
+    public MessageDTO getLastMessage(UUID conversationId) {
+        Message m = messageRepository.findFirstByConversationIdOrderByCreatedAtDesc(conversationId)
+                .orElseThrow(() -> new NoSuchElementException("Message not found"));
+
+        return new MessageDTO(
+            m.getId(),
+            m.getConversation().getId(),
+            m.getProject().getId(),
+            m.getContentUser(),
+            m.getContentAssistant(),
+            m.getCreatedAt()
         );
+    }
+
+    // Supprimer tous les messages d'une conversation sans toucher à la conversation
+    @Transactional
+        public void deleteAllByConversationId(UUID conversationId) {
+        log.debug("Suppression de tous les messages de la conversation {}", conversationId);
+        int deleted = messageRepository.deleteAllByConversationId(conversationId);
+        log.debug("{} message(s) supprimé(s) pour la conversation {}", deleted, conversationId);
+    }
+
+    // Supprimer un message individuel par son id
+    @Transactional
+    public void deleteById(UUID messageId) {
+        log.debug("Suppression du message {}", messageId);
+        if (!messageRepository.existsById(messageId)) {
+            throw new NoSuchElementException("Message not found: " + messageId);
+        }
+        messageRepository.deleteById(messageId);
     }
 }

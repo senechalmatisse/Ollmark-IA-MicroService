@@ -1,18 +1,19 @@
 package com.penpot.ai.application.DTO;
 
 import java.util.List;
+import java.util.UUID;
 
 public class ConversationDTO {
 
-    private String id;
-    private String conversationId;
-    private String userId;
-    private String projectId;
+    private UUID id;
+    private UUID conversationId;
+    private UUID userId;
+    private UUID projectId;
     private List<MessageDTO> messages;
 
     public ConversationDTO() {}
 
-    public ConversationDTO(String id, String conversationId, String userId, String projectId, List<MessageDTO> messages) {
+    public ConversationDTO(UUID id, UUID conversationId, UUID userId, UUID projectId, List<MessageDTO> messages) {
         this.id = id;
         this.conversationId = conversationId;
         this.userId = userId;
@@ -20,17 +21,17 @@ public class ConversationDTO {
         this.messages = messages;
     }
 
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
 
-    public String getConversationId() { return conversationId; }
-    public void setConversationId(String conversationId) { this.conversationId = conversationId; }
+    public UUID getConversationId() { return conversationId; }
+    public void setConversationId(UUID conversationId) { this.conversationId = conversationId; }
 
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
+    public UUID getUserId() { return userId; }
+    public void setUserId(UUID userId) { this.userId = userId; }
 
-    public String getProjectId() { return projectId; }
-    public void setProjectId(String projectId) { this.projectId = projectId; }
+    public UUID getProjectId() { return projectId; }
+    public void setProjectId(UUID projectId) { this.projectId = projectId; }
 
     public List<MessageDTO> getMessages() { return messages; }
     public void setMessages(List<MessageDTO> messages) { this.messages = messages; }

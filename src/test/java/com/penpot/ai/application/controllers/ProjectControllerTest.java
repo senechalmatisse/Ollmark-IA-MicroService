@@ -17,7 +17,9 @@ import com.penpot.ai.application.service.ProjectService;
 
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -33,12 +35,12 @@ class ProjectControllerTest {
     private ProjectController projectController;
 
     private MockMvc mockMvc;
-    private String projectId;
+    private UUID projectId;
 
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(projectController).build();
-        projectId = "proj-" + UUID.randomUUID().toString().substring(0, 8);
+        projectId = UUID.randomUUID();
     }
 
     @Test
@@ -52,13 +54,45 @@ class ProjectControllerTest {
         when(projectService.getProjectById(projectId)).thenReturn(dto);
 
         // Appel MockMvc
-        mockMvc.perform(get("/api/projects/{projectId}", projectId)
+        mockMvc.perform(get("/api/ai/projects/{projectId}", projectId)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(projectId))
+                .andExpect(jsonPath("$.id").value(projectId.toString()))
                 .andExpect(jsonPath("$.name").value("Mon projet"));
 
         // Vérifier l'appel du service
         verify(projectService, times(1)).getProjectById(projectId);
+    }
+
+    @Test
+    @DisplayName("deleteProject - retourne 204 et supprime le projet")
+    void deleteProject_returns204() throws Exception {
+        doNothing().when(projectService).deleteProject(projectId);
+
+        mockMvc.perform(delete("/api/ai/projects/{projectId}", projectId))
+                .andExpect(status().isNoContent());
+
+        verify(projectService, times(1)).deleteProject(projectId);
+    }
+
+    @Test
+    @DisplayName("deleteProject - appelle le service avec le bon projectId")
+    void deleteProject_callsServiceWithCorrectId() throws Exception {
+        doNothing().when(projectService).deleteProject(any(UUID.class));
+
+        mockMvc.perform(delete("/api/ai/projects/{projectId}", projectId));
+
+        verify(projectService).deleteProject(projectId);
+        verifyNoMoreInteractions(projectService);
+    }
+
+    @Test
+    @DisplayName("deleteProject - n'appelle le service qu'une seule fois")
+    void deleteProject_callsServiceOnlyOnce() throws Exception {
+        doNothing().when(projectService).deleteProject(any());
+
+        mockMvc.perform(delete("/api/ai/projects/{projectId}", projectId));
+
+        verify(projectService, times(1)).deleteProject(projectId);
     }
 }

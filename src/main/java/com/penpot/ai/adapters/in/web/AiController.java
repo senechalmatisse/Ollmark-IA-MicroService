@@ -4,12 +4,9 @@ import com.penpot.ai.core.ports.in.*;
 
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-import java.util.*;
 import java.util.*;
 
 /**
@@ -29,7 +26,7 @@ import java.util.*;
  */
 @Slf4j
 @RestController
-@RequestMapping("/ai")
+@RequestMapping("/api/ai")
 @RequiredArgsConstructor
 public class AiController {
     
@@ -44,7 +41,7 @@ public class AiController {
         if (request == null) {
             return reactor.core.publisher.Mono.just(ResponseEntity.badRequest().body(buildErrorResponse("Request body is missing")));
         }
-        log.info("POST /ai/chat (projectId: {}, message length: {} chars)",
+        log.info("POST /api/ai/chat (projectId: {}, message length: {} chars)",
             request.getProjectId(),
             request.getMessage() != null ? request.getMessage().length() : 0);
 
@@ -73,7 +70,7 @@ public class AiController {
             return ResponseEntity.badRequest().body(buildErrorResponse("Request body is missing"));
         }
         try {
-            log.info("POST /ai/chat/new (projectId: {})", request.getProjectId());
+            log.info("POST /api/ai/chat/new (projectId: {})", request.getProjectId());
             String projectId = conversationChatUseCase.startNewConversation(request.getProjectId());
             return ResponseEntity.ok(buildResponse(true, projectId, null));
         } catch (Exception e) {
@@ -90,7 +87,7 @@ public class AiController {
         @PathVariable String projectId
     ) {
         try {
-            log.info("DELETE /ai/chat/{} (projectId: {})", projectId, projectId);
+            log.info("DELETE /api/ai/chat/{} (projectId: {})", projectId, projectId);
             conversationChatUseCase.clearConversation(projectId);
             return ResponseEntity.ok(Map.of(
                 "success", true,

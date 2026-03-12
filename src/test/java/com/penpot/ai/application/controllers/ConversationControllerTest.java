@@ -21,9 +21,12 @@ import com.penpot.ai.application.service.ConversationService;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -31,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("ConversationController - Tests")
 class ConversationControllerTest {
 
-    private static final String BASE_URL = "/api/conversations";
+    private static final String BASE_URL = "/api/ai/conversations";
 
     @Mock
     private ConversationService conversationService;
@@ -41,20 +44,20 @@ class ConversationControllerTest {
 
     private MockMvc mockMvc;
 
-    private String projectId;
-    private String userId;
-    private String conversationId;
+    private UUID projectId;
+    private UUID userId;
+    private UUID conversationId;
 
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(conversationController).build();
-        projectId = UUID.randomUUID().toString();
-        userId = "user-" + UUID.randomUUID().toString().substring(0, 8);
-        conversationId = UUID.randomUUID().toString();
+        projectId = UUID.randomUUID();
+        userId = UUID.randomUUID();
+        conversationId = UUID.randomUUID();
     }
 
     // =========================================================
-    // GET /api/conversations/project/{projectId}
+    // GET /api/ai/conversations/project/{projectId}
     // =========================================================
 
     @Test
@@ -104,7 +107,7 @@ class ConversationControllerTest {
     }
 
     // =========================================================
-    // GET /api/conversations/project/{projectId}/user/{userId}
+    // GET /ai/conversations/project/{projectId}/user/{userId}
     // =========================================================
 
     @Test
@@ -155,7 +158,7 @@ class ConversationControllerTest {
     }
 
     // =========================================================
-    // GET /api/conversations/{conversationId}/metadata
+    // GET /api/ai/conversations/{conversationId}/metadata
     // =========================================================
 
     @Test
@@ -189,22 +192,90 @@ class ConversationControllerTest {
     // Helpers
     // =========================================================
 
-    private ConversationDTO buildConversationDTO(String id, String projectId, String userId) {
+    private ConversationDTO buildConversationDTO(UUID id, UUID projectId, UUID userId) {
         ConversationDTO dto = new ConversationDTO();
         dto.setId(id);
-        dto.setConversationId(id); 
+        dto.setConversationId(id);
         dto.setProjectId(projectId);
         dto.setUserId(userId);
         return dto;
     }
 
-    private ConversationMetaDataDTO buildMetaDataDTO(String conversationId, String projectId, String userId) {
+    private ConversationMetaDataDTO buildMetaDataDTO(UUID conversationId, UUID projectId, UUID userId) {
         ConversationMetaDataDTO dto = new ConversationMetaDataDTO();
-        dto.setId(UUID.fromString(conversationId));
+        dto.setId(conversationId);
         dto.setConversationId(conversationId);
-        dto.setProjectId(UUID.fromString(projectId));
+        dto.setProjectId(projectId);
         dto.setUserId(userId);
         dto.setCreatedAt(Instant.now());
         return dto;
+    }
+
+    @Test
+    @DisplayName("deleteConversation - retourne 204 et supprime la conversation")
+    void deleteConversation_returns204() throws Exception {
+        doNothing().when(conversationService).deleteConversation(conversationId);
+
+        mockMvc.perform(delete("/api/ai/conversations/{conversationId}", conversationId))
+                .andExpect(status().isNoContent());
+
+        verify(conversationService, times(1)).deleteConversation(conversationId);
+    }
+
+    @Test
+    @DisplayName("deleteConversation - appelle le service avec le bon conversationId")
+    void deleteConversation_callsServiceWithCorrectId() throws Exception {
+        doNothing().when(conversationService).deleteConversation(any(UUID.class));
+
+        mockMvc.perform(delete("/api/ai/conversations/{conversationId}", conversationId));
+
+        verify(conversationService).deleteConversation(conversationId);
+        verifyNoMoreInteractions(conversationService);
+    }
+
+    @Test
+    @DisplayName("deleteConversation - n'appelle le service qu'une seule fois")
+    void deleteConversation_callsServiceOnlyOnce() throws Exception {
+        doNothing().when(conversationService).deleteConversation(any());
+
+        mockMvc.perform(delete("/api/ai/conversations/{conversationId}", conversationId));
+
+        verify(conversationService, times(1)).deleteConversation(conversationId);
+    }
+
+    // =========================================================
+    // DELETE /api/ai/conversations/project/{projectId}
+    // =========================================================
+
+    @Test
+    @DisplayName("deleteAllProjectConversations - retourne 204 et supprime toutes les conversations")
+    void deleteAllProjectConversations_returns204() throws Exception {
+        doNothing().when(conversationService).deleteAllByProjectId(projectId);
+
+        mockMvc.perform(delete("/api/ai/conversations/project/{projectId}", projectId))
+                .andExpect(status().isNoContent());
+
+        verify(conversationService, times(1)).deleteAllByProjectId(projectId);
+    }
+
+    @Test
+    @DisplayName("deleteAllProjectConversations - appelle le service avec le bon projectId")
+    void deleteAllProjectConversations_callsServiceWithCorrectId() throws Exception {
+        doNothing().when(conversationService).deleteAllByProjectId(any(UUID.class));
+
+        mockMvc.perform(delete("/api/ai/conversations/project/{projectId}", projectId));
+
+        verify(conversationService).deleteAllByProjectId(projectId);
+        verifyNoMoreInteractions(conversationService);
+    }
+
+    @Test
+    @DisplayName("deleteAllProjectConversations - n'appelle le service qu'une seule fois")
+    void deleteAllProjectConversations_callsServiceOnlyOnce() throws Exception {
+        doNothing().when(conversationService).deleteAllByProjectId(any());
+
+        mockMvc.perform(delete("/api/ai/conversations/project/{projectId}", projectId));
+
+        verify(conversationService, times(1)).deleteAllByProjectId(projectId);
     }
 }

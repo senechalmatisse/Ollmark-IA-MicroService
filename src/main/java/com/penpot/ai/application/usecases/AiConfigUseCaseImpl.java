@@ -95,7 +95,12 @@ public class AiConfigUseCaseImpl implements AiConfigUseCase {
     public void updatePrompt(String projectId, String prompt) {
         UUID projectUuid = UUID.fromString(projectId);
         Project project = projectRepository.findById(projectUuid)
-                .orElseGet(() -> projectRepository.save(new Project(projectUuid, "Project " + projectId)));
+            .orElseGet(() -> {
+                Project newProject = new Project();
+                newProject.setId(projectUuid); 
+                newProject.setName("Project " + projectId);
+                return projectRepository.save(newProject);
+            });
 
         AiModelConfig config = aiModelConfigRepository.findByProjectId(projectUuid)
                 .orElseGet(() -> {
