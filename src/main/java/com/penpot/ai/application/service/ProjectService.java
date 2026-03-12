@@ -20,14 +20,14 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
 
-    public ProjectDTO getProjectById(String projectId) {
-        Project p = projectRepository.findById(UUID.fromString(projectId))
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+    public ProjectDTO getProjectById(UUID projectId) {
+        Project p = projectRepository.findById(projectId).get();
+
         // TODO ajouter convesation
         return new ProjectDTO(
-                p.getId().toString(),
-                p.getName(),
-                null
+            p.getId(),
+            p.getName(),
+            null
         );
     }
 

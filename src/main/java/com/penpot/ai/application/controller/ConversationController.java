@@ -1,5 +1,6 @@
 package com.penpot.ai.application.controller;
 
+import java.util.UUID;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,12 +16,11 @@ import org.springframework.http.HttpStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-
 import org.springframework.data.domain.Page;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/conversations")
+@RequestMapping("/api/ai/conversations")
 @RequiredArgsConstructor
 public class ConversationController {
 
@@ -28,22 +28,22 @@ public class ConversationController {
 
     // Récupérer toutes les conversations d'un projet
     @GetMapping("/project/{projectId}")
-    public Page<ConversationDTO> getProjectConversations(@PathVariable String projectId) {
+    public Page<ConversationDTO> getProjectConversations(@PathVariable UUID projectId) {
         return conversationService.getAllProjectConversations(projectId);
     }
 
     // Récupérer toutes les conversations d'un utilisateur dans un projet
     @GetMapping("/project/{projectId}/user/{userId}")
     public Page<ConversationDTO> getUserProjectConversations(
-            @PathVariable String projectId,
-            @PathVariable String userId) {
+            @PathVariable UUID projectId,
+            @PathVariable UUID userId) {
 
         return conversationService.getAllConversationsByUserIdAndProjectId(userId, projectId);
     }
 
     // Récupérer les métadonnées d'une conversation
     @GetMapping("/{conversationId}/metadata")
-    public ConversationMetaDataDTO getConversationMetaData(@PathVariable String conversationId) {
+    public ConversationMetaDataDTO getConversationMetaData(@PathVariable UUID conversationId) {
         return conversationService.getConversationMetaData(conversationId);
     }
 
@@ -53,7 +53,7 @@ public class ConversationController {
     public void deleteConversation(@PathVariable UUID conversationId) {
         conversationService.deleteConversation(conversationId);
     }
-    
+
     // Supprimer toutes les conversations d'un projet (et leurs messages en cascade)
     @DeleteMapping("/project/{projectId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)

@@ -14,7 +14,6 @@ import com.penpot.ai.application.persistance.Repositories.ConversationRepository
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
@@ -34,45 +33,40 @@ public class ConversationService {
 
     private ConversationDTO toDTO(Conversation c) {
         return new ConversationDTO(
-            c.getId().toString(),
-            c.getConversationId().toString(),
-            c.getUserId().toString(),
-            c.getProject().getId().toString(),
+            c.getId(),
+            c.getConversationId(),
+            c.getUserId(),
+            c.getProject().getId(),
             c.getMessages().stream().map(this::messageToDTO).toList()
         );
     }
 
     private MessageDTO messageToDTO(Message m) {
         return new MessageDTO(
-            m.getId().toString(),
-            m.getConversation().getId().toString(),
-            m.getProject().getId().toString(),
+            m.getId(),
+            m.getConversation().getId(),
+            m.getProject().getId(),
             m.getContentUser(),
             m.getContentAssistant(),
             m.getCreatedAt()
         );
     }
 
-
     // Récupérer toutes conversations d'un projet donné
-    public Page<ConversationDTO> getAllProjectConversations(String projectId){
-        Page<Conversation> page = conversationRepository.findAllByProject_Id(UUID.fromString(projectId), convPageable);
-    
-        // Convertir chaque Conversation en ConversationDTO
+    public Page<ConversationDTO> getAllProjectConversations(UUID projectId){
+        Page<Conversation> page = conversationRepository.findAllByProjectId(projectId, convPageable);
         return page.map(this::toDTO);
     }
 
     // Récupérer toutes conversations d'un utilisateur donné dans un projet 
-    public Page<ConversationDTO> getAllConversationsByUserIdAndProjectId(String userId, String projectId){
-        Page<Conversation> page = conversationRepository.findAllByUserIdAndProject_Id(userId, UUID.fromString(projectId), convUserPageable);
-
-        // Convertir chaque Conversation en ConversationDTO
+    public Page<ConversationDTO> getAllConversationsByUserIdAndProjectId(UUID userId, UUID projectId){
+        Page<Conversation> page = conversationRepository.findAllByUserIdAndProjectId(userId, projectId, convUserPageable);
         return page.map(this::toDTO);
     }
 
     // Récupérer les métadonnées d'une conversationsans sans les messages
-    public ConversationMetaDataDTO getConversationMetaData(String conversationId){
-        ConversationMetaDataDTO conversation =  conversationRepository.findMetaDataByConversationId(UUID.fromString(conversationId)).orElseThrow(()-> new RuntimeException("ConversationDTO Meta Data Not Found"));
+    public ConversationMetaDataDTO getConversationMetaData(UUID conversationId){
+        ConversationMetaDataDTO conversation =  conversationRepository.findMetaDataByConversationId(conversationId).orElseThrow(()-> new RuntimeException("ConversationDTO Meta Data Not Found"));
         return conversation;
     }
 
@@ -85,7 +79,7 @@ public class ConversationService {
         conversationRepository.delete(conversation);
         log.debug("Conversation {} supprimée avec ses messages en cascade", conversationId);
     }
-    
+
     // Supprimer toutes les conversations d'un projet (et leurs messages en cascade)
     @Transactional
     public void deleteAllByProjectId(UUID projectId) {

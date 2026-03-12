@@ -2,7 +2,7 @@
 -- Table Spring AI Chat Memory 
 -- ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS spring_ai_chat_memory (
-    conversation_id VARCHAR(256)            NOT NULL,
+    conversation_id UUID            NOT NULL,
     content         TEXT                    NOT NULL,
     type            VARCHAR(100)            NOT NULL,
     "timestamp"     TIMESTAMP WITH TIME ZONE NOT NULL
@@ -26,8 +26,8 @@ CREATE TABLE IF NOT EXISTS projects (
 CREATE TABLE IF NOT EXISTS conversations (
     id              UUID         NOT NULL DEFAULT gen_random_uuid(),
     project_id      UUID,
-    conversation_id VARCHAR(255) NOT NULL,
-    user_id         VARCHAR(255),
+    conversation_id UUID NOT NULL,
+    user_id         UUID,
     CONSTRAINT pk_conversations     PRIMARY KEY (id),
     CONSTRAINT uk_conversations_cid UNIQUE (conversation_id),
     CONSTRAINT fk_conversations_project

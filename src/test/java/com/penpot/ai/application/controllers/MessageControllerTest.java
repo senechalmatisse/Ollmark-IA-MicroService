@@ -11,12 +11,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import com.penpot.ai.application.DTO.ConversationDTO;
-import com.penpot.ai.application.DTO.ConversationMetaDataDTO;
 import com.penpot.ai.application.DTO.MessageDTO;
-import com.penpot.ai.application.controller.ConversationController;
 import com.penpot.ai.application.controller.MessageController;
-import com.penpot.ai.application.service.ConversationService;
 import com.penpot.ai.application.service.MessageService;
 
 import java.util.List;
@@ -25,12 +21,9 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("MessageController - Tests")
@@ -43,16 +36,18 @@ class MessageControllerTest {
     private MessageController messageController;
 
     private MockMvc mockMvc;
-    private String conversationId;
+    private UUID conversationId;
+    private UUID messageId;
 
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(messageController).build();
-        conversationId = "conv-" + UUID.randomUUID().toString().substring(0, 8);
+        conversationId = UUID.randomUUID();
+        messageId = UUID.randomUUID();
     }
 
     // =========================================================
-    // GET /api/messages/conversation/{conversationId}
+    // GET /api/ai/messages/conversation/{conversationId}
     // =========================================================
 
     @Test
@@ -61,7 +56,7 @@ class MessageControllerTest {
         List<MessageDTO> messages = buildMessages(conversationId, 20);
         when(messageService.getLastMessages(conversationId, 20)).thenReturn(messages);
 
-        mockMvc.perform(get("/api/messages/conversation/{conversationId}", conversationId)
+        mockMvc.perform(get("/api/ai/messages/conversation/{conversationId}", conversationId)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(20));
@@ -75,7 +70,7 @@ class MessageControllerTest {
         List<MessageDTO> messages = buildMessages(conversationId, 5);
         when(messageService.getLastMessages(conversationId, 5)).thenReturn(messages);
 
-        mockMvc.perform(get("/api/messages/conversation/{conversationId}", conversationId)
+        mockMvc.perform(get("/api/ai/messages/conversation/{conversationId}", conversationId)
                         .param("nMessages", "5")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -89,7 +84,7 @@ class MessageControllerTest {
     void getLastMessages_noMessages_returnsEmptyList() throws Exception {
         when(messageService.getLastMessages(conversationId, 20)).thenReturn(List.of());
 
-        mockMvc.perform(get("/api/messages/conversation/{conversationId}", conversationId)
+        mockMvc.perform(get("/api/ai/messages/conversation/{conversationId}", conversationId)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -102,7 +97,7 @@ class MessageControllerTest {
         MessageDTO msg = buildMessage(conversationId, "Hello world");
         when(messageService.getLastMessages(conversationId, 20)).thenReturn(List.of(msg));
 
-        mockMvc.perform(get("/api/messages/conversation/{conversationId}", conversationId)
+        mockMvc.perform(get("/api/ai/messages/conversation/{conversationId}", conversationId)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].conversationId").value(conversationId.toString()));
@@ -111,9 +106,9 @@ class MessageControllerTest {
     @Test
     @DisplayName("getLastMessages - appelle le service avec le bon conversationId et nMessages")
     void getLastMessages_callsServiceWithCorrectParams() throws Exception {
-        when(messageService.getLastMessages(any(String.class), anyInt())).thenReturn(List.of());
+        when(messageService.getLastMessages(any(UUID.class), anyInt())).thenReturn(List.of());
 
-        mockMvc.perform(get("/api/messages/conversation/{conversationId}", conversationId)
+        mockMvc.perform(get("/api/ai/messages/conversation/{conversationId}", conversationId)
                 .param("nMessages", "10"));
 
         verify(messageService, times(1)).getLastMessages(conversationId, 10);
@@ -126,7 +121,7 @@ class MessageControllerTest {
         MessageDTO msg = buildMessage(conversationId, "Dernier message");
         when(messageService.getLastMessages(conversationId, 1)).thenReturn(List.of(msg));
 
-        mockMvc.perform(get("/api/messages/conversation/{conversationId}", conversationId)
+        mockMvc.perform(get("/api/ai/messages/conversation/{conversationId}", conversationId)
                         .param("nMessages", "1")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -134,7 +129,7 @@ class MessageControllerTest {
     }
 
     // =========================================================
-    // GET /api/messages/conversation/{conversationId}/last
+    // GET /api/ai/messages/conversation/{conversationId}/last
     // =========================================================
 
     @Test
@@ -143,7 +138,7 @@ class MessageControllerTest {
         MessageDTO msg = buildMessage(conversationId, "Dernier message");
         when(messageService.getLastMessage(conversationId)).thenReturn(msg);
 
-        mockMvc.perform(get("/api/messages/conversation/{conversationId}/last", conversationId)
+        mockMvc.perform(get("/api/ai/messages/conversation/{conversationId}/last", conversationId)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.conversationId").value(conversationId.toString()));
@@ -154,10 +149,10 @@ class MessageControllerTest {
     @Test
     @DisplayName("getLastMessage - appelle le service avec le bon conversationId")
     void getLastMessage_callsServiceWithCorrectId() throws Exception {
-        when(messageService.getLastMessage(any(String.class)))
+        when(messageService.getLastMessage(any(UUID.class)))
                 .thenReturn(buildMessage(conversationId, "msg"));
 
-        mockMvc.perform(get("/api/messages/conversation/{conversationId}/last", conversationId));
+        mockMvc.perform(get("/api/ai/messages/conversation/{conversationId}/last", conversationId));
 
         verify(messageService).getLastMessage(conversationId);
         verifyNoMoreInteractions(messageService);
@@ -168,7 +163,7 @@ class MessageControllerTest {
     void getLastMessage_noMessage_returnsNull() throws Exception {
         when(messageService.getLastMessage(conversationId)).thenReturn(null);
 
-        mockMvc.perform(get("/api/messages/conversation/{conversationId}/last", conversationId)
+        mockMvc.perform(get("/api/ai/messages/conversation/{conversationId}/last", conversationId)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
@@ -181,7 +176,7 @@ class MessageControllerTest {
         when(messageService.getLastMessage(conversationId))
                 .thenReturn(buildMessage(conversationId, "msg"));
 
-        mockMvc.perform(get("/api/messages/conversation/{conversationId}/last", conversationId));
+        mockMvc.perform(get("/api/ai/messages/conversation/{conversationId}/last", conversationId));
 
         verify(messageService, times(1)).getLastMessage(conversationId);
     }
@@ -190,17 +185,65 @@ class MessageControllerTest {
     // Helpers
     // =========================================================
 
-    private List<MessageDTO> buildMessages(String conversationId, int count) {
+    private List<MessageDTO> buildMessages(UUID conversationId, int count) {
         return java.util.stream.IntStream.range(0, count)
                 .mapToObj(i -> buildMessage(conversationId, "Message " + i))
                 .toList();
     }
 
-    private MessageDTO buildMessage(String conversationId, String content) {
+    private MessageDTO buildMessage(UUID conversationId, String content) {
         MessageDTO dto = new MessageDTO();
-        dto.setId("msg-" + UUID.randomUUID().toString().substring(0, 8));
+        dto.setId(UUID.randomUUID());
         dto.setConversationId(conversationId);
         dto.setContentUser(content);
         return dto;
+    }
+
+    @Test
+    @DisplayName("clearConversationMessages - retourne 204 et vide les messages")
+    void clearConversationMessages_returns204() throws Exception {
+        doNothing().when(messageService).deleteAllByConversationId(conversationId);
+
+        mockMvc.perform(delete("/api/ai/messages/conversation/{conversationId}", conversationId))
+                .andExpect(status().isNoContent());
+
+        verify(messageService, times(1)).deleteAllByConversationId(conversationId);
+    }
+
+    @Test
+    @DisplayName("clearConversationMessages - appelle le service avec le bon conversationId")
+    void clearConversationMessages_callsServiceWithCorrectId() throws Exception {
+        doNothing().when(messageService).deleteAllByConversationId(any(UUID.class));
+
+        mockMvc.perform(delete("/api/ai/messages/conversation/{conversationId}", conversationId));
+
+        verify(messageService).deleteAllByConversationId(conversationId);
+        verifyNoMoreInteractions(messageService);
+    }
+
+    // =========================================================
+    // DELETE /api/ai/messages/{messageId}
+    // =========================================================
+
+    @Test
+    @DisplayName("deleteMessage - retourne 204 et supprime le message")
+    void deleteMessage_returns204() throws Exception {
+        doNothing().when(messageService).deleteById(messageId);
+
+        mockMvc.perform(delete("/api/ai/messages/{messageId}", messageId))
+                .andExpect(status().isNoContent());
+
+        verify(messageService, times(1)).deleteById(messageId);
+    }
+
+    @Test
+    @DisplayName("deleteMessage - appelle le service avec le bon messageId")
+    void deleteMessage_callsServiceWithCorrectId() throws Exception {
+        doNothing().when(messageService).deleteById(any(UUID.class));
+
+        mockMvc.perform(delete("/api/ai/messages/{messageId}", messageId));
+
+        verify(messageService).deleteById(messageId);
+        verifyNoMoreInteractions(messageService);
     }
 }

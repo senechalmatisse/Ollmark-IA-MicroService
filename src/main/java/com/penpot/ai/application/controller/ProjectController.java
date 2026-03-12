@@ -1,5 +1,6 @@
 package com.penpot.ai.application.controller;
- 
+
+import java.util.UUID;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/projects")
+@RequestMapping("/api/ai/projects")
 @RequiredArgsConstructor
 public class ProjectController {
 
@@ -25,7 +26,7 @@ public class ProjectController {
 
     // Récupérer un projet par son id
     @GetMapping("/{projectId}")
-    public ProjectDTO getProject(@PathVariable String projectId) {
+    public ProjectDTO getProject(@PathVariable UUID projectId) {
         return projectService.getProjectById(projectId);
     }
 
