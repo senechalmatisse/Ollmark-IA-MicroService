@@ -29,21 +29,19 @@ public class AiConfigUseCaseImpl implements AiConfigUseCase {
     @Override
     public Map<String, Object> getConfig(String projectId) {
         return aiModelConfigRepository.findByProjectId(UUID.fromString(projectId))
-                .map(config -> {
-                    Map<String, Object> result = new HashMap<>();
-                    result.put("engine", config.getProvider());
-                    result.put("version", config.getModelName());
-                    if (config.getParameters() != null) {
-                        result.putAll(config.getParameters());
-                    }
-                    return result;
-                })
-                .orElseGet(() -> Map.of(
-                        "engine", "gemini",
-                        "version", "3.1-Pro",
-                        "temp", 1.5,
-                        "topK", 3
-                ));
+            .map(config -> {
+                Map<String, Object> result = new HashMap<>();
+                result.put("engine", config.getProvider());
+                result.put("version", config.getModelName());
+                if (config.getParameters() != null) result.putAll(config.getParameters());
+                return result;
+            })
+            .orElseGet(() -> Map.of(
+                "engine", "gemini",
+                "version", "3.1-Pro",
+                "temp", 1.5,
+                "topK", 3
+            ));
     }
 
     @Override
@@ -72,13 +70,13 @@ public class AiConfigUseCaseImpl implements AiConfigUseCase {
 
         final Map<String, Object> params = config.getParameters() != null ? 
                 new HashMap<>(config.getParameters()) : new HashMap<>();
-        
+
         configUpdates.forEach((key, value) -> {
             if (!key.equals("apiKey") && !key.equals("engine") && !key.equals("version")) {
                 params.put(key, value);
             }
         });
-        
+
         config.setParameters(params);
         aiModelConfigRepository.save(config);
     }
@@ -103,11 +101,11 @@ public class AiConfigUseCaseImpl implements AiConfigUseCase {
             });
 
         AiModelConfig config = aiModelConfigRepository.findByProjectId(projectUuid)
-                .orElseGet(() -> {
-                    AiModelConfig newConfig = new AiModelConfig();
-                    newConfig.setProject(project);
-                    return newConfig;
-                });
+            .orElseGet(() -> {
+                AiModelConfig newConfig = new AiModelConfig();
+                newConfig.setProject(project);
+                return newConfig;
+            });
 
         config.setPromptContent(prompt);
         aiModelConfigRepository.save(config);

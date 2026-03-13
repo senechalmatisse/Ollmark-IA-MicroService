@@ -16,6 +16,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 /**
@@ -40,8 +41,9 @@ class AiControllerUnit {
         ChatRequest request = new ChatRequest();
         request.setProjectId("proj-123");
         request.setMessage("Hello AI");
-        
-        when(conversationChatUseCase.chat("proj-123", "Hello AI"))
+        request.setSessionId("ses-123");
+
+        when(conversationChatUseCase.chat("proj-123", "Hello AI", "ses-123"))
                 .thenReturn(Mono.just("AI response message"));
 
         // When
@@ -54,6 +56,7 @@ class AiControllerUnit {
                     Map<String, Object> body = response.getBody();
                     assertThat(body).containsEntry("success", true);
                     assertThat(body).containsEntry("projectId", "proj-123");
+                    assertThat(body).containsEntry("sessionId", "ses-123");
                     assertThat(body).containsEntry("response", "AI response message");
                 })
                 .verifyComplete();
@@ -65,7 +68,7 @@ class AiControllerUnit {
         // Given
         ChatRequest request = new ChatRequest();
         request.setProjectId("proj-123");
-        when(conversationChatUseCase.chat(any(), any()))
+        when(conversationChatUseCase.chat(any(), any(), any()))
                 .thenReturn(Mono.error(new RuntimeException("AI unreachable")));
 
         // When

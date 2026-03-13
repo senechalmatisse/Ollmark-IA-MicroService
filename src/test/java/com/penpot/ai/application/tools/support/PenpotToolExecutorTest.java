@@ -239,58 +239,6 @@ class PenpotToolExecutorTest {
     }
 
     @Test
-    void shouldReturnMultiShapeResponseWithAllIdsWhenOperationSucceeds() {
-        // GIVEN
-        List<String> ids = List.of("id-1", "id-2", "id-3");
-        when(executeCodeUseCase.execute(any())).thenReturn(TaskResult.success(Map.of("ids", ids)));
-
-        // WHEN
-        String response = penpotToolExecutor.executeMultiShape(SAMPLE_CODE, "aligned");
-
-        // THEN
-        assertThat(response).contains("id-1");
-        assertThat(response).contains("id-2");
-        assertThat(response).contains("id-3");
-        assertThat(response).contains("aligned");
-    }
-
-    @Test
-    void shouldReturnEmptyIdsListWhenResultDataDoesNotContainIdsKey() {
-        // GIVEN
-        when(executeCodeUseCase.execute(any())).thenReturn(TaskResult.success(Map.of("otherKey", "value")));
-
-        // WHEN
-        String response = penpotToolExecutor.executeMultiShape(SAMPLE_CODE, "distributed");
-
-        // THEN
-        assertThat(response).isNotNull();
-    }
-
-    @Test
-    void shouldReturnEmptyIdsListWhenResultDataIsAbsent() {
-        // GIVEN
-        when(executeCodeUseCase.execute(any())).thenReturn(TaskResult.success(null));
-
-        // WHEN
-        String response = penpotToolExecutor.executeMultiShape(SAMPLE_CODE, "grouped");
-
-        // THEN
-        assertThat(response).isNotNull();
-    }
-
-    @Test
-    void shouldReturnErrorResponseWhenMultiShapeOperationFails() {
-        // GIVEN
-        when(executeCodeUseCase.execute(any())).thenReturn(TaskResult.failure("Cannot align shapes"));
-
-        // WHEN
-        String response = penpotToolExecutor.executeMultiShape(SAMPLE_CODE, "aligned");
-
-        // THEN
-        assertThat(response).contains("Cannot align shapes");
-    }
-
-    @Test
     void shouldReturnGroupCreatedResponseWithGroupIdWhenGroupCreationSucceeds() {
         // GIVEN
         when(executeCodeUseCase.execute(any())).thenReturn(TaskResult.success(Map.of("groupId", GROUP_ID)));

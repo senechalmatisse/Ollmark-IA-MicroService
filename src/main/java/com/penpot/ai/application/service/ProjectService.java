@@ -23,7 +23,7 @@ public class ProjectService {
     public ProjectDTO getProjectById(UUID projectId) {
         Project p = projectRepository.findById(projectId).get();
         // TODO ajouter convesation
-        
+
         return new ProjectDTO(
             p.getId(),
             p.getName(),

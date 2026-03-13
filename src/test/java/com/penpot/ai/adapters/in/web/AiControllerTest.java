@@ -54,7 +54,7 @@ class AiControllerTest {
         request.setProjectId(projectId);
         request.setMessage("hello");
 
-        when(conversationChatUseCase.chat(any(), any()))
+        when(conversationChatUseCase.chat(any(), any(), any()))
                 .thenReturn(Mono.just("ai-response"));
 
         // When & Then

@@ -30,6 +30,7 @@ class ConversationChatUseCaseImplUnit {
 
     private static final String PROJECT_ID = "proj-123";
     private static final String MESSAGE = "Crée un post Instagram pour ma boulangerie";
+    private static final String SESSION_ID = "ses-123";
 
     // ─────────────────────────────────────────────────────────────
     // chat
@@ -47,7 +48,7 @@ class ConversationChatUseCaseImplUnit {
             when(aiService.chat(PROJECT_ID, MESSAGE)).thenReturn(aiResponse);
 
             // WHEN
-            Mono<String> result = useCase.chat(PROJECT_ID, MESSAGE);
+            Mono<String> result = useCase.chat(PROJECT_ID, MESSAGE, SESSION_ID);
 
             // THEN
             StepVerifier.create(result)
@@ -61,7 +62,7 @@ class ConversationChatUseCaseImplUnit {
         @DisplayName("chat — throws when projectId is null")
         void chat_throwsWhenProjectIdIsNull() {
             // WHEN / THEN
-            assertThatThrownBy(() -> useCase.chat(null, MESSAGE))
+            assertThatThrownBy(() -> useCase.chat(null, MESSAGE, SESSION_ID))
                     .isInstanceOf(ValidationException.class);
 
             verify(aiService, never()).chat(any(), any());
@@ -71,7 +72,7 @@ class ConversationChatUseCaseImplUnit {
         @DisplayName("chat — throws when projectId is blank")
         void chat_throwsWhenProjectIdIsBlank() {
             // WHEN / THEN
-            assertThatThrownBy(() -> useCase.chat("  ", MESSAGE))
+            assertThatThrownBy(() -> useCase.chat("  ", MESSAGE, SESSION_ID))
                     .isInstanceOf(ValidationException.class);
 
             verify(aiService, never()).chat(any(), any());
@@ -81,7 +82,7 @@ class ConversationChatUseCaseImplUnit {
         @DisplayName("chat — throws when message is null")
         void chat_throwsWhenMessageIsNull() {
             // WHEN / THEN
-            assertThatThrownBy(() -> useCase.chat(PROJECT_ID, null))
+            assertThatThrownBy(() -> useCase.chat(PROJECT_ID, null, SESSION_ID))
                     .isInstanceOf(ValidationException.class);
 
             verify(aiService, never()).chat(any(), any());
@@ -91,7 +92,27 @@ class ConversationChatUseCaseImplUnit {
         @DisplayName("chat — throws when message is blank")
         void chat_throwsWhenMessageIsBlank() {
             // WHEN / THEN
-            assertThatThrownBy(() -> useCase.chat(PROJECT_ID, "   "))
+            assertThatThrownBy(() -> useCase.chat(PROJECT_ID, "   ", SESSION_ID))
+                    .isInstanceOf(ValidationException.class);
+
+            verify(aiService, never()).chat(any(), any());
+        }
+
+        @Test
+        @DisplayName("chat — throws when sessionId is null")
+        void chat_throwsWhenSessionIdIsNull() {
+            // WHEN / THEN
+            assertThatThrownBy(() -> useCase.chat(PROJECT_ID, MESSAGE, null))
+                    .isInstanceOf(ValidationException.class);
+
+            verify(aiService, never()).chat(any(), any());
+        }
+
+        @Test
+        @DisplayName("chat — throws when sessionId is blank")
+        void chat_throwsWhenSessionIdIsBlank() {
+            // WHEN / THEN
+            assertThatThrownBy(() -> useCase.chat(PROJECT_ID, MESSAGE, "   "))
                     .isInstanceOf(ValidationException.class);
 
             verify(aiService, never()).chat(any(), any());
@@ -104,7 +125,7 @@ class ConversationChatUseCaseImplUnit {
             String tooLongMessage = "a".repeat(10001);
 
             // WHEN / THEN
-            assertThatThrownBy(() -> useCase.chat(PROJECT_ID, tooLongMessage))
+            assertThatThrownBy(() -> useCase.chat(PROJECT_ID, tooLongMessage, SESSION_ID))
                     .isInstanceOf(ValidationException.class);
 
             verify(aiService, never()).chat(any(), any());
@@ -119,7 +140,7 @@ class ConversationChatUseCaseImplUnit {
             when(aiService.chat(PROJECT_ID, maxLengthMessage)).thenReturn(aiResponse);
 
             // WHEN
-            Mono<String> result = useCase.chat(PROJECT_ID, maxLengthMessage);
+            Mono<String> result = useCase.chat(PROJECT_ID, maxLengthMessage, SESSION_ID);
 
             // THEN
             StepVerifier.create(result)

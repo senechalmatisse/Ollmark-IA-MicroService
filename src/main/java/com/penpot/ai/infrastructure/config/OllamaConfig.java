@@ -40,13 +40,13 @@ import java.util.Map;
 @RefreshScope
 public class OllamaConfig {
 
-    @Value("${spring.ai.ollama.chat.options.model}")
+    @Value("${penpot.ai.executor.model}")
     private String modelName;
     
-    @Value("${spring.ai.ollama.chat.options.temperature:0.7}")
+    @Value("${penpot.ai.executor.temperature}")
     private Double defaultTemperature;
 
-    @Value("${spring.ai.ollama.chat.options.max-tokens:32000}")
+    @Value("${penpot.ai.executor.max-tokens}")
     private Integer maxTokens;
 
     /**
@@ -60,7 +60,7 @@ public class OllamaConfig {
         return OllamaChatOptions.builder()
             .model(modelName)
             .temperature(0.1)
-            .topK(10)
+            .topK(3)
             .build();
     }
 
@@ -75,7 +75,7 @@ public class OllamaConfig {
         return OllamaChatOptions.builder()
             .model(modelName)
             .temperature(0.8)
-            .topK(40)
+            .topK(5)
             .topP(0.9)
             .build();
     }
@@ -101,7 +101,9 @@ public class OllamaConfig {
         return OllamaChatOptions.builder()
             .model(modelName)
             .enableThinking()
-            .temperature(0.6)
+            .temperature(defaultTemperature)
+            .numPredict(maxTokens)
+            .topK(3)
             .build();
     }
 
@@ -111,7 +113,7 @@ public class OllamaConfig {
      * <p>Qualifié {@code "executorChatClientBuilder"} pour ne pas entrer en conflit
      * lors de l'injection. Configuré avec :</p>
      * <ul>
-     *   <li>Options SIMPLE par défaut (surchargées par la factory selon la complexité)</li>
+     *   <li>Options COMPLEX par défaut (surchargées par la factory selon la complexité)</li>
      *   <li>{@link MessageChatMemoryAdvisor} pour la mémoire conversationnelle</li>
      * </ul>
      *
@@ -126,9 +128,8 @@ public class OllamaConfig {
         MessageChatMemoryAdvisor memoryAdvisor
     ) {
         log.info("Configuring executor ChatClient.Builder with model: {}", modelName);
-        log.info("Configuring executor ChatClient.Builder with model: {}", modelName);
         return ChatClient.builder(chatModel)
-            .defaultOptions(simpleOptions())
+            .defaultOptions(complexOptions())
             .defaultAdvisors(memoryAdvisor);
     }
 

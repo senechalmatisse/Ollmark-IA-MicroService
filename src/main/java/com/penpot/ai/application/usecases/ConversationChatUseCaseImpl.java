@@ -1,8 +1,13 @@
 package com.penpot.ai.application.usecases;
 
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
+import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.messages.Message;
 import org.springframework.stereotype.Service;
+
+import com.penpot.ai.application.service.MessagePersistenceService;
 import com.penpot.ai.core.ports.in.ConversationChatUseCase;
 import com.penpot.ai.core.ports.out.AiServicePort;
 import com.penpot.ai.shared.exception.ToolExecutionException;
@@ -10,8 +15,7 @@ import com.penpot.ai.shared.util.ValidationUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Implémentation du use case de chat conversationnel.
@@ -59,16 +63,31 @@ public class ConversationChatUseCaseImpl implements ConversationChatUseCase {
     /** Port vers le service d'IA. */
     private final AiServicePort aiService;
 
-    @Override
-    public reactor.core.publisher.Mono<String> chat(String projectId, String message) {
-        validateChatInput(projectId, message);
-        log.info("Processing chat request for project: {} (message length: {} chars)", 
-            projectId, message.length());
-        return aiService.chat(projectId, message)
-                .collectList()
-                .map(list -> String.join("", list));
-    }
+    private final ChatMemory chatMemory;
 
+    private final MessagePersistenceService messagePersistenceService;
+
+    @Override
+    public Mono<String> chat(String projectId, String message, String sessionId) {
+        validateChatInput(projectId, message);
+        String conversationKey = (sessionId != null && !sessionId.isBlank())
+            ? projectId + ":" + sessionId
+            : projectId;
+
+        log.info(
+            "Processing chat for project: {} (conversationKey: {}, sessionId: {})", 
+            projectId, conversationKey, sessionId
+        );
+
+        return aiService.chat(conversationKey, message)
+            .collectList()
+            .map(list -> String.join("", list))
+            .doOnSuccess(aiResponse -> {
+                log.info("[Persistence] Triggering persist for project={} sessionId={} responseLength={}",
+                    projectId, sessionId, aiResponse != null ? aiResponse.length() : 0);
+                messagePersistenceService.persist(projectId, sessionId, message, aiResponse);
+            });
+    }
 
     @Override
     public String startNewConversation(String projectId) {
@@ -97,31 +116,25 @@ public class ConversationChatUseCaseImpl implements ConversationChatUseCase {
         }
     }
 
-    /**
-     * Génère un ID de conversation unique.
-     * 
-     * <h3>Format</h3>
-     * <ul>
-     *     <li>Avec userId : {@code user-{userId}-{uuid8}}</li>
-     *     <li>Sans userId : {@code anonymous-{uuid8}}</li>
-     * </ul>
-     * 
-     * <h3>Exemples</h3>
-     * <ul>
-     *     <li>{@code user-alice-a1b2c3d4}</li>
-     *     <li>{@code user-bob-e5f6g7h8}</li>
-     *     <li>{@code anonymous-i9j0k1l2}</li>
-     * </ul>
-     * 
-     * @param userId ID de l'utilisateur (peut être null)
-     * @return ID de conversation généré
-     */
-    private String generateConversationId(String userId) {
-        String uuid8 = UUID.randomUUID().toString().substring(0, 8);
-        if (userId != null && !userId.isBlank()) {
-            return String.format("user-%s-%s", userId, uuid8);
+    @Override
+    public List<Map<String, Object>> getHistory(String projectId, int limit) {
+        ValidationUtils.requireNonBlank(projectId, "Project ID");
+        try {
+            List<Message> messages = chatMemory.get(projectId);
+            if (messages == null || messages.isEmpty()) return List.of();
+
+            return messages.stream()
+                .map(m -> {
+                    Map<String, Object> msg = new HashMap<>();
+                    msg.put("role", m.getMessageType().getValue());
+                    msg.put("content", m.getText());
+                    return msg;
+                })
+                .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.warn("Could not retrieve history for project {}: {}", projectId, e.getMessage());
+            return List.of();
         }
-        return String.format("anonymous-%s", uuid8);
     }
 
     /**

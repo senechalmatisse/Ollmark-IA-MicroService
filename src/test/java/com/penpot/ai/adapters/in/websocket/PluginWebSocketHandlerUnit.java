@@ -52,7 +52,7 @@ public class PluginWebSocketHandlerUnit {
             handler.afterConnectionEstablished(session);
 
             // THEN
-            verify(sessionManager).registerSession(session, "abc123");
+            verify(sessionManager).registerSession(session);
         }
 
         @Test
@@ -67,7 +67,7 @@ public class PluginWebSocketHandlerUnit {
             handler.afterConnectionEstablished(session);
 
             // THEN
-            verify(sessionManager).registerSession(session, null);
+            verify(sessionManager).registerSession(session);
         }
 
         @Test
@@ -82,7 +82,7 @@ public class PluginWebSocketHandlerUnit {
             handler.afterConnectionEstablished(session);
 
             // THEN
-            verify(sessionManager).registerSession(session, null);
+            verify(sessionManager).registerSession(session);
         }
 
         @Test
@@ -97,7 +97,7 @@ public class PluginWebSocketHandlerUnit {
             handler.afterConnectionEstablished(session);
 
             // THEN
-            verify(sessionManager).registerSession(session, "token42");
+            verify(sessionManager).registerSession(session);
         }
 
         @Test
@@ -112,7 +112,7 @@ public class PluginWebSocketHandlerUnit {
             handler.afterConnectionEstablished(session);
 
             // THEN
-            verify(sessionManager).registerSession(session, "mytoken");
+            verify(sessionManager).registerSession(session);
         }
 
         @Test
@@ -127,7 +127,7 @@ public class PluginWebSocketHandlerUnit {
             handler.afterConnectionEstablished(session);
 
             // THEN
-            verify(sessionManager).registerSession(session, null);
+            verify(sessionManager).registerSession(session);
         }
 
         @Test
@@ -142,7 +142,7 @@ public class PluginWebSocketHandlerUnit {
             handler.afterConnectionEstablished(session);
 
             // THEN
-            verify(sessionManager).registerSession(session, null);
+            verify(sessionManager).registerSession(session);
         }
     }
 
