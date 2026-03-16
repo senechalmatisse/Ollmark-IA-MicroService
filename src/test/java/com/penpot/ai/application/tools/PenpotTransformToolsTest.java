@@ -1,13 +1,14 @@
 package com.penpot.ai.application.tools;
 
+import com.penpot.ai.application.service.SessionContextHolder;
 import com.penpot.ai.application.tools.support.PenpotToolExecutor;
 import com.penpot.ai.core.domain.TaskResult;
 import com.penpot.ai.core.ports.in.ExecuteCodeUseCase;
 import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -18,18 +19,27 @@ import static org.mockito.Mockito.*;
  * Note: On utilise @SpringBootTest avec les classes spécifiques pour éviter de charger 
  * tout le contexte (IA, base de données) qui fait échouer le build.
  */
-@SpringBootTest(classes = {PenpotTransformTools.class, PenpotToolExecutor.class})
-@ActiveProfiles("test")
+@ExtendWith(MockitoExtension.class)
 @DisplayName("PenpotTransformTools — Integration")
 class PenpotTransformToolsIntegrationTest {
 
-    @MockitoBean
+    @Mock
     private ExecuteCodeUseCase executeCodeUseCase;
 
-    @Autowired
+    @Mock
+    private SessionContextHolder sessionContextHolder;
+
+    @InjectMocks
+    private PenpotToolExecutor penpotToolExecutor;
+
     private PenpotTransformTools penpotTransformTools;
 
     private static final String SHAPE_ID = "shape-integration-001";
+
+    @BeforeEach
+    void setUp() {
+        penpotTransformTools = new PenpotTransformTools(penpotToolExecutor);
+    }
 
     @BeforeEach
     void resetMocks() {

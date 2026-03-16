@@ -1,13 +1,16 @@
 package com.penpot.ai.adapters.in.web;
 
+import com.penpot.ai.application.DTO.MessageDTO;
+import com.penpot.ai.application.service.MessageService;
 import com.penpot.ai.core.ports.in.*;
 
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-
+import reactor.core.publisher.Mono;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Point d’entrée REST principal du module.
@@ -29,34 +32,67 @@ import java.util.*;
 @RequestMapping("/api/ai")
 @RequiredArgsConstructor
 public class AiController {
-    
+
     /** Use case gérant les conversations IA et la mémoire de chat. */
     private final ConversationChatUseCase conversationChatUseCase;
 
     /** Use case gérant la configuration de l'IA. */
     private final AiConfigUseCase aiConfigUseCase;
 
+    private final MessageService messageService;
+
     @PostMapping("/chat")
-    public reactor.core.publisher.Mono<ResponseEntity<Map<String, Object>>> chat(@RequestBody(required = false) ChatRequest request) {
+    public Mono<ResponseEntity<Map<String, Object>>> chat(@RequestBody ChatRequest request) {
         if (request == null) {
-            return reactor.core.publisher.Mono.just(ResponseEntity.badRequest().body(buildErrorResponse("Request body is missing")));
+            return Mono.just(ResponseEntity.badRequest().body(buildErrorResponse("Request body is missing")));
         }
         log.info("POST /api/ai/chat (projectId: {}, message length: {} chars)",
             request.getProjectId(),
             request.getMessage() != null ? request.getMessage().length() : 0);
 
         return conversationChatUseCase
-            .chat(
-                request.getProjectId(),
-                request.getMessage()
-            )
-            .map(response -> ResponseEntity.ok(buildResponse(true, request.getProjectId(), response)))
+            .chat(request.getProjectId(), request.getMessage(), request.getSessionId())
+            .map(response -> ResponseEntity.ok(
+                buildResponse(true, request.getProjectId(), request.getSessionId(), response)
+            ))
             .onErrorResume(e -> {
                 log.error("Chat failed for project: {}", request.getProjectId(), e);
-                return reactor.core.publisher.Mono.just(
+                return Mono.just(
                     ResponseEntity.status(500).body(buildErrorResponse(e.getMessage()))
                 );
             });
+    }
+
+    @GetMapping("/chat/{projectId}/history")
+    public ResponseEntity<List<Map<String, Object>>> getChatHistory(
+        @PathVariable String projectId,
+        @RequestParam(defaultValue = "20") int limit
+    ) {
+        try {
+            UUID projectUuid = UUID.fromString(projectId);
+            List<MessageDTO> messages = messageService.getLastMessagesByProjectId(projectUuid, limit);
+
+            List<Map<String, Object>> history = messages.stream()
+                .flatMap(dto -> {
+                    List<Map<String, Object>> pair = new ArrayList<>();
+                    if (dto.getContentUser() != null && !dto.getContentUser().isBlank()) {
+                        pair.add(Map.of("role", "user", "content", dto.getContentUser()));
+                    }
+                    if (dto.getContentAssistant() != null && !dto.getContentAssistant().isBlank()) {
+                        pair.add(Map.of("role", "assistant", "content", dto.getContentAssistant()));
+                    }
+                    return pair.stream();
+                })
+                .collect(Collectors.toList());
+
+            return ResponseEntity.ok(history);
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid projectId for history: {}", projectId);
+            return ResponseEntity.ok(List.of());
+        } catch (Exception e) {
+            log.error("Failed to get history for project: {}", projectId, e);
+            return ResponseEntity.status(500).body(List.of());
+        }
     }
 
     /**
@@ -72,7 +108,7 @@ public class AiController {
         try {
             log.info("POST /api/ai/chat/new (projectId: {})", request.getProjectId());
             String projectId = conversationChatUseCase.startNewConversation(request.getProjectId());
-            return ResponseEntity.ok(buildResponse(true, projectId, null));
+            return ResponseEntity.ok(buildResponse(true, projectId, null, null));
         } catch (Exception e) {
             log.error("Failed to start new conversation", e);
             return ResponseEntity.status(500).body(buildErrorResponse(e.getMessage()));
@@ -143,10 +179,11 @@ public class AiController {
         return ResponseEntity.badRequest().body(buildErrorResponse("Invalid JSON or encoding: " + e.getMessage()));
     }
 
-    private Map<String, Object> buildResponse(boolean success, String projectId, String response) {
+    private Map<String, Object> buildResponse(boolean success, String projectId, String sessionId, String response) {
         Map<String, Object> res = new HashMap<>();
         res.put("success", success);
         res.put("projectId", projectId);
+        res.put("sessionId", sessionId);
         res.put("response", response);
         return res;
     }
@@ -163,6 +200,7 @@ public class AiController {
 class ChatRequest {
     private String projectId;
     private String message;
+    private String sessionId;
 }
 
 @Data

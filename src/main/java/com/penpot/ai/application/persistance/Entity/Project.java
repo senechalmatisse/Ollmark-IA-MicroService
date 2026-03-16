@@ -2,17 +2,13 @@ package com.penpot.ai.application.persistance.Entity;
 
 import java.util.*;
 import jakarta.persistence.*;
+import org.springframework.data.domain.Persistable;
 
-/**
- * Référentiel des projets Penpot.
- * Un projet peut posséder plusieurs conversations et configurations LLM.
- */
 @Entity
 @Table(name = "projects")
-public class Project {
+public class Project implements Persistable<UUID> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(name = "name", nullable = false, length = 255)
@@ -24,6 +20,9 @@ public class Project {
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<AiModelConfig> aiModelConfigs = new ArrayList<>();
 
+    @Transient
+    private boolean isNew = false;
+
     public Project() {}
 
     public Project(UUID id, String name) {
@@ -32,15 +31,29 @@ public class Project {
     }
 
     public Project(String name) {
+        this.id = UUID.randomUUID();
         this.name = name;
+        this.isNew = true;
     }
 
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
+    /**
+     * Marque l'entité comme nouvelle pour forcer un INSERT plutôt qu'un merge.
+     * Appelé dans MessagePersistenceService avant save().
+     */
+    public Project markAsNew() {
+        this.isNew = true;
+        return this;
+    }
 
+    @Override
+    public UUID getId() { return id; }
+
+    @Override
+    public boolean isNew() { return isNew; }
+
+    public void setId(UUID id) { this.id = id; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
-
     public List<Conversation> getConversations() { return conversations; }
     public List<AiModelConfig> getAiModelConfigs() { return aiModelConfigs; }
 }

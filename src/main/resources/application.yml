@@ -19,14 +19,21 @@ penpot:
     router:
       model: ${PENPOT_ROUTER_MODEL:llama3.1}
       temperature: ${PENPOT_ROUTER_TEMPERATURE:0.0}
+      top-p: ${PENPOT_ROUTER_TOP_P:0.9}
+      top-k: ${PENPOT_ROUTER_TOP_K:10}
+      repeat-penalty: ${PENPOT_ROUTER_REPEAT_PENALTY:1.05}
       max-tokens: ${PENPOT_ROUTER_MAX_TOKENS:256}
-
+      num-ctx: ${PENPOT_ROUTER_NUM_CTX:8192}
     # Modèle exécuteur principal (tool calling + génération)
     executor:
-        model: ${PENPOT_EXECUTOR_MODEL:qwen3:8b}
-        temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
-        max-tokens: ${PENPOT_EXECUTOR_MAX_TOKENS:4096}
-        num-ctx: ${PENPOT_EXECUTOR_NUM_CTX:32000}
+      model: ${PENPOT_EXECUTOR_MODEL:qwen3:8b}
+      temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
+      top-p: ${PENPOT_EXECUTOR_TOP_P:0.95}
+      top-k: ${PENPOT_EXECUTOR_TOP_K:20}
+      repeat-penalty: ${PENPOT_EXECUTOR_REPEAT_PENALTY:1.15}
+      presence-penalty: ${PENPOT_EXECUTOR_PRESENCE_PENALTY:0.3}
+      max-tokens: ${PENPOT_EXECUTOR_MAX_TOKENS:4096}
+      num-ctx: ${PENPOT_EXECUTOR_NUM_CTX:32000}
 
     # Adresse du serveur pour les clients externes
     server-address: ${PENPOT_SERVER_ADDRESS:localhost}
@@ -49,7 +56,7 @@ penpot:
       memory:
         # Nombre maximum de messages à conserver en mémoire par conversation
         # Plus cette valeur est élevée, plus le contexte est maintenu, mais plus la consommation mémoire augmente
-        max-messages: ${PENPOT_CHAT_MEMORY_MAX_MESSAGES:50}
+        max-messages: ${PENPOT_CHAT_MEMORY_MAX_MESSAGES:20}
     # Configuration RAG (Retrieval-Augmented Generation) pour les templates marketing
     rag:
       # Chemin vers les fichiers de templates (supporte les wildcards)
@@ -58,9 +65,9 @@ penpot:
       # Plus élevé = correspondances plus strictes
       similarity-threshold: ${PENPOT_RAG_SIMILARITY_THRESHOLD:0.5}
       # Nombre de templates à retourner lors d'une recherche
-      top-k: ${PENPOT_RAG_TOP_K:5}
+      top-k: ${PENPOT_RAG_TOP_K:3}
       # Nombre de variantes générées
-      query-variants: ${PENPOT_RAG_QUERY_VARIANTS:3}
+      query-variants: ${PENPOT_RAG_QUERY_VARIANTS:2}
       eager-embedding: true
 
 # ============================================
@@ -70,19 +77,7 @@ spring:
   ai:
     ollama:
       base-url: ${OLLAMA_BASE_URL:http://localhost:11434/}
-
-      # Configuration du chat (génération de texte)
       chat:
-        options:
-          # Modèle à utiliser (configurable via Open WebUI)
-          model: ${OLLAMA_MODEL:qwen3:8b}
-          # Température (0.0 = déterministe, 1.0+ = créatif)
-          temperature: ${OLLAMA_TEMPERATURE:0.7}
-          # Nombre maximum de tokens dans la réponse
-          max-tokens: ${OLLAMA_MAX_TOKENS:32000}
-          function-calling: auto
-          num_ctx: 32000
-        # Loggue le prompt complet envoyé au modèle (dev uniquement)
         observations:
           log-prompt: ${SPRING_AI_LOG_PROMPT:false}
 
@@ -158,7 +153,6 @@ logging:
   # Désactiver certaines auto-configurations si nécessaire
   autoconfigure:
     exclude:
-      # Exclure si vous n'utilisez pas certaines fonctionnalités
       # - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
 
 # ============================================
@@ -168,7 +162,6 @@ management:
   endpoints:
     web:
       exposure:
-        # Exposer certains endpoints pour le monitoring
         include: health,info,metrics,loggers,refresh
   endpoint:
     health:

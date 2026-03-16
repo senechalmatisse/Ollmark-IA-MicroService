@@ -14,13 +14,13 @@ import java.util.*;
 public class TaskFactory {
 
     /**
-     * Crée une tâche d'exécution de code.
-     * 
-     * @param code le code JavaScript à exécuter
-     * @param userToken token utilisateur optionnel
+     * Crée une tâche d'exécution de code avec sessionId pour le routage.
+     *
+     * @param code      le code JavaScript à exécuter
+     * @param sessionId identifiant de session WebSocket (peut être null)
      * @return la tâche créée avec un ID unique
      */
-    public Task createExecuteCodeTask(String code, String userToken) {
+    public Task createExecuteCodeTask(String code, String sessionId) {
         validateCode(code);
 
         String taskId = generateTaskId();
@@ -30,7 +30,7 @@ public class TaskFactory {
             .id(taskId)
             .type(TaskType.EXECUTE_CODE)
             .parameters(Map.of("code", code))
-            .userToken(java.util.Optional.ofNullable(userToken))
+            .sessionId(Optional.ofNullable(sessionId))
             .build();
     }
 

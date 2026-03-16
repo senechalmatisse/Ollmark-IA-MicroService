@@ -32,7 +32,7 @@ public class RouterConfig {
      * Configurable via {@code penpot.ai.router.model} dans application.properties.
      * Défaut : {@code phi3:mini} (3.8B params, excellent classifieur).
      */
-    @Value("${penpot.ai.router.model:llama3.1}")
+    @Value("${penpot.ai.router.model}")
     private String routerModel;
 
     /**

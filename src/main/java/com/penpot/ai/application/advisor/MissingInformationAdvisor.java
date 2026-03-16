@@ -29,7 +29,7 @@ public class MissingInformationAdvisor implements CallAdvisor {
 
     private static final String MISSING_INFO_POLICY = """
         # INFORMATIONS MANQUANTES
-        Si des paramètres requis n''ont pas été fournis :
+        Si des paramètres requis n'ont pas été fournis :
         - Énumère chaque paramètre manquant
         - Indique pourquoi il est nécessaire
         - Donne un exemple de valeur valide
