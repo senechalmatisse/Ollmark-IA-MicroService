@@ -69,7 +69,7 @@ public class ConversationChatUseCaseImpl implements ConversationChatUseCase {
 
     @Override
     public Mono<String> chat(String projectId, String message, String sessionId) {
-        validateChatInput(projectId, message);
+        validateChatInput(projectId, message, sessionId);
         String conversationKey = (sessionId != null && !sessionId.isBlank())
             ? projectId + ":" + sessionId
             : projectId;
@@ -142,10 +142,12 @@ public class ConversationChatUseCaseImpl implements ConversationChatUseCase {
      * 
      * @param conversationId l'ID de conversation
      * @param message le message de l'utilisateur
+     * @param sessionID l'ID de la session
      * @throws ValidationException si les paramètres sont invalides
      */
-    private void validateChatInput(String conversationId, String message) {
+    private void validateChatInput(String conversationId, String message, String sessionId) {
         ValidationUtils.requireNonBlank(conversationId, "Conversation ID");
         ValidationUtils.validateString(message, "Message", 10000);
+        ValidationUtils.requireNonBlank(sessionId, "Session ID");
     }
 }

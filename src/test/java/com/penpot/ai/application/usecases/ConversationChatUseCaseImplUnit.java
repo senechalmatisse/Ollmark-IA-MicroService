@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.penpot.ai.application.service.MessagePersistenceService;
 import com.penpot.ai.core.ports.out.AiServicePort;
 import com.penpot.ai.shared.exception.ToolExecutionException;
 import com.penpot.ai.shared.exception.ValidationException;
@@ -25,6 +26,12 @@ class ConversationChatUseCaseImplUnit {
     @Mock
     private AiServicePort aiService;
 
+    @Mock
+    private MessagePersistenceService messagePersistenceService;
+
+    @Mock
+    private org.springframework.ai.chat.memory.ChatMemory chatMemory;
+
     @InjectMocks
     private ConversationChatUseCaseImpl useCase;
 
@@ -40,23 +47,24 @@ class ConversationChatUseCaseImplUnit {
     @DisplayName("chat — validation et délégation")
     class ChatTests {
 
-        @Test
-        @DisplayName("chat — delegates to aiService and returns mono")
-        void chat_delegatesToAiServiceAndReturnsMono() {
-            // GIVEN
-            Flux<String> aiResponse = Flux.just("réponse ", "IA");
-            when(aiService.chat(PROJECT_ID, MESSAGE)).thenReturn(aiResponse);
+    @Test
+    @DisplayName("chat — delegates to aiService and returns mono")
+    void chat_delegatesToAiServiceAndReturnsMono() {
+        // GIVEN
+        String conversationKey = PROJECT_ID + ":" + SESSION_ID;
+        Flux<String> aiResponse = Flux.just("réponse ", "IA");
+        when(aiService.chat(conversationKey, MESSAGE)).thenReturn(aiResponse);
 
-            // WHEN
-            Mono<String> result = useCase.chat(PROJECT_ID, MESSAGE, SESSION_ID);
+        // WHEN
+        Mono<String> result = useCase.chat(PROJECT_ID, MESSAGE, SESSION_ID);
 
-            // THEN
-            StepVerifier.create(result)
-                    .expectNext("réponse IA")
-                    .verifyComplete();
+        // THEN
+        StepVerifier.create(result)
+                .expectNext("réponse IA")
+                .verifyComplete();
 
-            verify(aiService).chat(PROJECT_ID, MESSAGE);
-        }
+        verify(aiService).chat(conversationKey, MESSAGE);
+    }
 
         @Test
         @DisplayName("chat — throws when projectId is null")
@@ -136,8 +144,9 @@ class ConversationChatUseCaseImplUnit {
         void chat_acceptsMessageWithExactlyMaxLength() {
             // GIVEN
             String maxLengthMessage = "a".repeat(10000);
+            String conversationKey = PROJECT_ID + ":" + SESSION_ID;
             Flux<String> aiResponse = Flux.just("réponse IA");
-            when(aiService.chat(PROJECT_ID, maxLengthMessage)).thenReturn(aiResponse);
+            when(aiService.chat(conversationKey, maxLengthMessage)).thenReturn(aiResponse);
 
             // WHEN
             Mono<String> result = useCase.chat(PROJECT_ID, maxLengthMessage, SESSION_ID);

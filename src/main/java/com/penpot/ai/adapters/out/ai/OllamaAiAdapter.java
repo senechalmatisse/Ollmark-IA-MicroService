@@ -125,6 +125,9 @@ public class OllamaAiAdapter implements AiServicePort {
     private final SessionContextHolder sessionContextHolder;
 
     private final MessageService messageService;
+    private final ToolCallAdvisor toolCallAdvisor;
+    private final ReReadingAdvisor reReadingAdvisor;
+    private final SimpleLoggerAdvisor simpleLoggerAdvisor;
 
     public OllamaAiAdapter(
         ChatClientFactory chatClientFactory,
@@ -141,7 +144,10 @@ public class OllamaAiAdapter implements AiServicePort {
         ToolRetryLimiterAdvisor toolRetryLimiterAdvisor,
         ToolResultValidatorAdvisor toolResultValidatorAdvisor,
         MissingInformationAdvisor missingInformationAdvisor,
-        MessageService messageService
+        MessageService messageService,
+        ToolCallAdvisor toolCallAdvisor,
+        ReReadingAdvisor reReadingAdvisor,
+        SimpleLoggerAdvisor simpleLoggerAdvisor
     ) {
         this.chatClientFactory = chatClientFactory;
         this.complexityAnalyzer = complexityAnalyzer;
@@ -158,6 +164,9 @@ public class OllamaAiAdapter implements AiServicePort {
         this.toolResultValidatorAdvisor = toolResultValidatorAdvisor;
         this.missingInformationAdvisor = missingInformationAdvisor;
         this.messageService = messageService;
+        this.toolCallAdvisor = toolCallAdvisor;
+        this.reReadingAdvisor = reReadingAdvisor;
+        this.simpleLoggerAdvisor = simpleLoggerAdvisor;
     }
 
     /**
@@ -260,7 +269,7 @@ public class OllamaAiAdapter implements AiServicePort {
 
         advisors.add(inspectionFirstAdvisor);
 
-        advisors.add(ToolCallAdvisor.builder().build());
+        advisors.add(toolCallAdvisor);
 
         //advisors.add(missingInformationAdvisor);
         advisors.add(toolRetryLimiterAdvisor);
@@ -274,14 +283,15 @@ public class OllamaAiAdapter implements AiServicePort {
             advisors.add(retrievalAugmentationAdvisor);
         }
 
-        advisors.add(new ReReadingAdvisor());
-        advisors.add(new SimpleLoggerAdvisor());
+        advisors.add(reReadingAdvisor);
+        advisors.add(simpleLoggerAdvisor);
 
         return advisors;
     }
 
     private String extractSessionId(String conversationKey) {
+        if (conversationKey == null) return "";
         int sep = conversationKey.indexOf(':');
-        return sep >= 0 ? conversationKey.substring(sep + 1) : null;
+        return sep >= 0 ? conversationKey.substring(sep + 1) : "";
     }
 }

@@ -51,12 +51,10 @@ public class AiController {
             request.getMessage() != null ? request.getMessage().length() : 0);
 
         return conversationChatUseCase
-            .chat(
-                request.getProjectId(),
-                request.getMessage(),
-                request.getSessionId()
-            )
-            .map(response -> ResponseEntity.ok(buildResponse(true, request.getProjectId(), response)))
+            .chat(request.getProjectId(), request.getMessage(), request.getSessionId())
+            .map(response -> ResponseEntity.ok(
+                buildResponse(true, request.getProjectId(), request.getSessionId(), response)
+            ))
             .onErrorResume(e -> {
                 log.error("Chat failed for project: {}", request.getProjectId(), e);
                 return Mono.just(
@@ -110,7 +108,7 @@ public class AiController {
         try {
             log.info("POST /api/ai/chat/new (projectId: {})", request.getProjectId());
             String projectId = conversationChatUseCase.startNewConversation(request.getProjectId());
-            return ResponseEntity.ok(buildResponse(true, projectId, null));
+            return ResponseEntity.ok(buildResponse(true, projectId, null, null));
         } catch (Exception e) {
             log.error("Failed to start new conversation", e);
             return ResponseEntity.status(500).body(buildErrorResponse(e.getMessage()));
@@ -181,10 +179,11 @@ public class AiController {
         return ResponseEntity.badRequest().body(buildErrorResponse("Invalid JSON or encoding: " + e.getMessage()));
     }
 
-    private Map<String, Object> buildResponse(boolean success, String projectId, String response) {
+    private Map<String, Object> buildResponse(boolean success, String projectId, String sessionId, String response) {
         Map<String, Object> res = new HashMap<>();
         res.put("success", success);
         res.put("projectId", projectId);
+        res.put("sessionId", sessionId);
         res.put("response", response);
         return res;
     }

@@ -1,5 +1,6 @@
 package com.penpot.ai.application.tools.support;
 
+import com.penpot.ai.application.service.SessionContextHolder;
 import com.penpot.ai.core.domain.*;
 import com.penpot.ai.core.ports.in.ExecuteCodeUseCase;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,9 @@ class PenpotToolExecutorTest {
 
     @Mock
     private ExecuteCodeUseCase executeCodeUseCase;
+
+    @Mock
+    private SessionContextHolder sessionContextHolder;
 
     @InjectMocks
     private PenpotToolExecutor penpotToolExecutor;

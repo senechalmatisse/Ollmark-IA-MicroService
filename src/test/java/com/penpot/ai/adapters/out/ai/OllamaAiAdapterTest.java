@@ -24,11 +24,14 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClient.CallResponseSpec;
 import org.springframework.ai.chat.client.ChatClient.ChatClientRequestSpec;
 import org.springframework.ai.chat.client.ChatClient.StreamResponseSpec;
+import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
+import org.springframework.ai.chat.client.advisor.ToolCallAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 
 import com.penpot.ai.application.advisor.InspectionFirstAdvisor;
 import com.penpot.ai.application.advisor.MissingInformationAdvisor;
+import com.penpot.ai.application.advisor.ReReadingAdvisor;
 import com.penpot.ai.application.advisor.ToolErrorAdvisor;
 import com.penpot.ai.application.advisor.ToolFailureRecoveryAdvisor;
 import com.penpot.ai.application.advisor.ToolResultValidatorAdvisor;
@@ -70,6 +73,9 @@ class OllamaAiAdapterTest {
     @Mock private InspectionFirstAdvisor inspectionFirstAdvisor;
     @Mock private MissingInformationAdvisor missingInformationAdvisor;
     @Mock private MessageService messageService;
+    @Mock private ToolCallAdvisor toolCallAdvisor;
+    @Mock private ReReadingAdvisor reReadingAdvisor;
+    @Mock private SimpleLoggerAdvisor simpleLoggerAdvisor;
 
     // ---- Spring AI fluent chain mocks ----
     @Mock private ChatClient chatClient;
@@ -101,8 +107,13 @@ class OllamaAiAdapterTest {
             toolRetryLimiterAdvisor,
             toolResultValidatorAdvisor,
             missingInformationAdvisor,
-            messageService
+            messageService,
+            toolCallAdvisor,
+            reReadingAdvisor,
+            simpleLoggerAdvisor
         );
+
+        lenient().when(sessionContextHolder.get()).thenReturn("");
     }
 
     // =========================================================================

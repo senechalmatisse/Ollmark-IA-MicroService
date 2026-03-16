@@ -1,10 +1,14 @@
 package com.penpot.ai.infrastructure.config;
 
+import com.penpot.ai.application.advisor.ReReadingAdvisor;
 import com.penpot.ai.core.domain.TaskComplexity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
+import org.springframework.ai.chat.client.advisor.ToolCallAdvisor;
+import org.springframework.ai.model.tool.ToolCallingManager;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.api.OllamaChatOptions;
 import org.springframework.beans.factory.annotation.*;
@@ -48,6 +52,23 @@ public class OllamaConfig {
 
     @Value("${penpot.ai.executor.max-tokens}")
     private Integer maxTokens;
+
+    @Bean
+    public ToolCallAdvisor toolCallAdvisor(ToolCallingManager toolCallingManager) {
+        return ToolCallAdvisor.builder()
+            .toolCallingManager(toolCallingManager)
+            .build();
+    }
+
+    @Bean
+    public ReReadingAdvisor reReadingAdvisor() {
+        return new ReReadingAdvisor();
+    }
+
+    @Bean
+    public SimpleLoggerAdvisor simpleLoggerAdvisor() {
+        return new SimpleLoggerAdvisor();
+    }
 
     /**
      * Options pour les tâches SIMPLES : déterministe, faible créativité.

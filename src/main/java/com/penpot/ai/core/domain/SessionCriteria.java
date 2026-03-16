@@ -41,7 +41,7 @@ public class SessionCriteria {
      */
     public static SessionCriteria forSession(String sessionId) {
         return SessionCriteria.builder()
-            .sessionId(Optional.of(sessionId))
+            .sessionId(Optional.ofNullable(sessionId))
             .requireActive(true)
             .build();
     }
