@@ -32,7 +32,7 @@ public class RouterConfig {
      * Configurable via {@code penpot.ai.router.model} dans application.properties.
      * Défaut : {@code phi3:mini} (3.8B params, excellent classifieur).
      */
-    @Value("${penpot.ai.router.model}")
+    @Value("${penpot.ai.router.model:llama3.1}")
     private String routerModel;
 
     /**
@@ -48,7 +48,11 @@ public class RouterConfig {
         OllamaChatOptions routerOptions = OllamaChatOptions.builder()
             .model(routerModel)
             .temperature(0.0)
-            .numPredict(150)
+            .topP(0.9)
+            .topK(10)
+            .repeatPenalty(1.05)
+            .numPredict(256)
+            .numCtx(8192)
             .build();
 
         OllamaChatModel routerModel = OllamaChatModel.builder()
