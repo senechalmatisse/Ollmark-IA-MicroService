@@ -268,7 +268,8 @@
                 <version>3.5.2</version>
                 <configuration>
                     <includes>
-                        <include>**/CoreDomainUnit.java</include>
+                        <include>**/*Test.java</include>
+                        <include>**/*Unit.java</include>
                     </includes>
                 </configuration>
             </plugin>
