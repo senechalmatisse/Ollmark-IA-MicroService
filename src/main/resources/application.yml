@@ -78,6 +78,14 @@ spring:
     ollama:
       base-url: ${OLLAMA_BASE_URL:http://localhost:11434/}
       chat:
+        options:
+          model: ${PENPOT_EXECUTOR_MODEL:qwen3:8b}
+          temperature: ${PENPOT_ROUTER_TEMPERATURE:0.0}
+          top-p: ${PENPOT_ROUTER_TOP_P:0.9}
+          top-k: ${PENPOT_ROUTER_TOP_K:10}
+          repeat-penalty: ${PENPOT_ROUTER_REPEAT_PENALTY:1.05}
+          max-tokens: ${PENPOT_ROUTER_MAX_TOKENS:256}
+          num-ctx: ${PENPOT_ROUTER_NUM_CTX:8192}
         observations:
           log-prompt: ${SPRING_AI_LOG_PROMPT:false}
 

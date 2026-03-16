@@ -9,6 +9,7 @@ import org.springframework.ai.rag.preretrieval.query.expansion.MultiQueryExpande
 import org.springframework.ai.rag.preretrieval.query.transformation.RewriteQueryTransformer;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.*;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.ai.embedding.EmbeddingModel;
@@ -91,7 +92,7 @@ public class RagConfig {
      */
     @Bean
     public RetrievalAugmentationAdvisor retrievalAugmentationAdvisor(
-        ChatClient.Builder chatClientBuilder,
+        @Qualifier("executorChatClientBuilder") ChatClient.Builder chatClientBuilder,  // ← qualifier manquant
         VectorStore vectorStore
     ) {
         log.info("Configuring RetrievalAugmentationAdvisor:");
