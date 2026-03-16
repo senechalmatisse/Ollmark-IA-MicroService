@@ -31,4 +31,19 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
     @Modifying
     @Query("DELETE FROM Message m WHERE m.conversation.conversationId = :conversationId")
     int deleteAllByConversationId(@Param("conversationId") UUID conversationId);
+
+    @Modifying
+    @Query(value = "DELETE FROM spring_ai_chat_memory WHERE conversation_id LIKE :prefix", nativeQuery = true)
+    void deleteByConversationIdPrefix(@Param("prefix") String prefix);
+
+    @Query(value = """
+        SELECT * FROM messages
+        WHERE project_id = :projectId
+        ORDER BY created_at DESC
+        LIMIT :nMessages
+    """, nativeQuery = true)
+    List<Message> findLastNMessagesByProjectId(
+        @Param("projectId") UUID projectId,
+        @Param("nMessages") int nMessages
+    );
 }

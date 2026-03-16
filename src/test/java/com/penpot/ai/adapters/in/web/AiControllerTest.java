@@ -1,6 +1,7 @@
 package com.penpot.ai.adapters.in.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.penpot.ai.application.service.MessageService;
 import com.penpot.ai.core.ports.in.AiConfigUseCase;
 import com.penpot.ai.core.ports.in.ConversationChatUseCase;
 import org.junit.jupiter.api.DisplayName;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import reactor.core.publisher.Mono;
 
@@ -41,6 +43,9 @@ class AiControllerTest {
     @MockBean
     private AiConfigUseCase aiConfigUseCase;
 
+    @MockitoBean
+    private MessageService messageService;
+
     /**
      * Test d'intégration de l'endpoint /api/ai/chat.
      * Vérifie que l'endpoint accepte les requêtes et produit un flux d'événements (SSE).
@@ -54,7 +59,7 @@ class AiControllerTest {
         request.setProjectId(projectId);
         request.setMessage("hello");
 
-        when(conversationChatUseCase.chat(any(), any()))
+        when(conversationChatUseCase.chat(any(), any(), any()))
                 .thenReturn(Mono.just("ai-response"));
 
         // When & Then

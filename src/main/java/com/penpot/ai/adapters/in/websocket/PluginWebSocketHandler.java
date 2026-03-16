@@ -42,12 +42,20 @@ public class PluginWebSocketHandler extends TextWebSocketHandler {
      */
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
-        String userToken = extractUserToken(session);
-        sessionManager.registerSession(session, userToken);
-
+        sessionManager.registerSession(session);
         log.info("WebSocket connection established: {} (active connections: {})", 
-            session.getId(), 
-            sessionManager.getActiveSessionCount());
+            session.getId(), sessionManager.getActiveSessionCount());
+
+        // Envoyer le sessionId au plugin Angular
+        try {
+            Map<String, String> handshake = Map.of(
+                "type", "session-id",
+                "sessionId", session.getId()
+            );
+            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(handshake)));
+        } catch (Exception e) {
+            log.error("Failed to send session-id handshake", e);
+        }
     }
 
     /**

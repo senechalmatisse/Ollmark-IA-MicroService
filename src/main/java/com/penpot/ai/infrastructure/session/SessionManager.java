@@ -33,21 +33,10 @@ public class SessionManager {
      * Enregistre une nouvelle session.
      * 
      * @param session la session WebSocket à enregistrer
-     * @param userToken token utilisateur optionnel
      */
-    public void registerSession(WebSocketSession session, String userToken) {
-        String sessionId = session.getId();
-        sessions.put(sessionId, session);
-
-        if (userToken != null && !userToken.isBlank()) {
-            sessionTokens.put(sessionId, userToken);
-            log.info("Registered session {} for user token: {}...", 
-                sessionId, 
-                userToken.substring(0, Math.min(8, userToken.length())));
-        } else {
-            log.info("Registered session {} (no user token)", sessionId);
-        }
-
+    public void registerSession(WebSocketSession session) {
+        sessions.put(session.getId(), session);
+        log.info("Registered session {} (no user token)", session.getId());
         log.debug("Total active sessions: {}", sessions.size());
     }
 
@@ -59,12 +48,8 @@ public class SessionManager {
     public void unregisterSession(WebSocketSession session) {
         String sessionId = session.getId();
         sessions.remove(sessionId);
-        String userToken = sessionTokens.remove(sessionId);
-
-        log.info("Unregistered session {} (user token: {})", 
-            sessionId,
-            userToken != null ? userToken.substring(0, Math.min(8, userToken.length())) + "..." : "none");
-
+        sessionTokens.remove(sessionId);
+        log.info("Unregistered session {} (user token: none)", sessionId);
         log.debug("Total active sessions: {}", sessions.size());
     }
 
@@ -78,16 +63,16 @@ public class SessionManager {
     public Optional<WebSocketSession> findSession(SessionCriteria criteria) {
         log.debug("Finding session with criteria: {}", criteria);
 
-        Optional<WebSocketSession> session = selectionStrategy.selectSession(
-            sessions, 
-            sessionTokens,
-            criteria
-        );
+        if (criteria.getSessionId().isPresent()) {
+            String targetId = criteria.getSessionId().get();
+            Optional<WebSocketSession> found = sessions.values().stream()
+                .filter(s -> s.getId().equals(targetId) && s.isOpen())
+                .findFirst();
+            log.debug("Session lookup by ID {}: {}", targetId, found.isPresent() ? "found" : "not found");
+            return found;
+        }
 
-        if (session.isPresent()) log.debug("Found session: {}", session.get().getId());
-        else log.debug("No session found matching criteria");
-
-        return session;
+        return selectionStrategy.selectSession(sessions, sessionTokens, criteria);
     }
 
     /**
@@ -106,15 +91,5 @@ public class SessionManager {
      */
     public int getActiveSessionCount() {
         return sessions.size();
-    }
-
-    /**
-     * Obtient le token utilisateur pour une session.
-     * 
-     * @param sessionId l'ID de la session
-     * @return le token ou null si non défini
-     */
-    public String getUserToken(String sessionId) {
-        return sessionTokens.get(sessionId);
     }
 }

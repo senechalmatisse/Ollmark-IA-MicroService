@@ -56,10 +56,15 @@ public class MessageService {
 
     // Supprimer tous les messages d'une conversation sans toucher à la conversation
     @Transactional
-        public void deleteAllByConversationId(UUID conversationId) {
+    public void deleteAllByConversationId(UUID conversationId) {
         log.debug("Suppression de tous les messages de la conversation {}", conversationId);
         int deleted = messageRepository.deleteAllByConversationId(conversationId);
         log.debug("{} message(s) supprimé(s) pour la conversation {}", deleted, conversationId);
+    }
+
+    @Transactional
+    public void deleteByConversationIdPrefix(String prefix) {
+        messageRepository.deleteByConversationIdPrefix(prefix);
     }
 
     // Supprimer un message individuel par son id
@@ -70,5 +75,20 @@ public class MessageService {
             throw new NoSuchElementException("Message not found: " + messageId);
         }
         messageRepository.deleteById(messageId);
+    }
+
+    public List<MessageDTO> getLastMessagesByProjectId(UUID projectId, int nMessages) {
+        List<Message> messages = messageRepository.findLastNMessagesByProjectId(projectId, nMessages);
+        messages.sort(Comparator.comparing(Message::getCreatedAt));
+        return messages.stream()
+            .map(m -> new MessageDTO(
+                m.getId(),
+                m.getConversation().getId(),
+                m.getProject().getId(),
+                m.getContentUser(),
+                m.getContentAssistant(),
+                m.getCreatedAt()
+            ))
+            .collect(Collectors.toList());
     }
 }

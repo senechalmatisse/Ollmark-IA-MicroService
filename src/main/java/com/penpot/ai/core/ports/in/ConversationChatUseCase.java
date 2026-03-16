@@ -1,6 +1,8 @@
 package com.penpot.ai.core.ports.in;
 
-import reactor.core.publisher.Flux;
+import java.util.*;
+
+import reactor.core.publisher.Mono;
 
 /**
  * Port d'entrée pour le chat avec gestion de conversation.
@@ -14,7 +16,7 @@ public interface ConversationChatUseCase {
      * @param message   message de l'utilisateur
      * @return la réponse générée par l'IA
      */
-    reactor.core.publisher.Mono<String> chat(String projectId, String message);
+    Mono<String> chat(String projectId, String message, String sessionId);
 
     /**
      * Démarre une nouvelle conversation pour un projet.
@@ -30,4 +32,6 @@ public interface ConversationChatUseCase {
      * @param projectId ID du projet
      */
     void clearConversation(String projectId);
+
+    List<Map<String, Object>> getHistory(String projectId, int limit);
 }
