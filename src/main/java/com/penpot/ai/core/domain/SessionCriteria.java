@@ -12,16 +12,6 @@ import java.util.Optional;
 public class SessionCriteria {
 
     /**
-     * Token utilisateur permettant d’identifier la session associée
-     * à un utilisateur spécifique.
-     *
-     * <p>Si ce champ est vide ({@link Optional#empty()}), la recherche
-     * n’est pas limitée à un utilisateur particulier.</p>
-     */
-    @Builder.Default
-    Optional<String> userToken = Optional.empty();
-
-    /**
      * Indique si la session recherchée doit obligatoirement être active.
      *
      * <p>Lorsque cette valeur est {@code true}, seules les sessions
@@ -40,19 +30,19 @@ public class SessionCriteria {
     boolean requireActive = true;
 
     /**
-     * Crée un critère de recherche ciblant un utilisateur spécifique.
-     *
-     * <p>Le token utilisateur est encapsulé dans un {@link Optional}
-     * afin de gérer proprement les valeurs nulles.</p>
-     *
-     * @param userToken le token identifiant l’utilisateur dont la session
-     *                  doit être recherchée ; peut être {@code null}
-     * @return une instance de {@link SessionCriteria} configurée
-     *         pour rechercher une session associée à cet utilisateur
+     * Identifiant de session WebSocket pour un routage précis.
+     * Absent = n'importe quelle session disponible.
      */
-    public static SessionCriteria forUser(String userToken) {
+    @Builder.Default
+    Optional<String> sessionId = Optional.empty();
+
+    /**
+     * Crée un critère ciblant une session WebSocket précise.
+     */
+    public static SessionCriteria forSession(String sessionId) {
         return SessionCriteria.builder()
-            .userToken(Optional.ofNullable(userToken))
+            .sessionId(Optional.ofNullable(sessionId))
+            .requireActive(true)
             .build();
     }
 

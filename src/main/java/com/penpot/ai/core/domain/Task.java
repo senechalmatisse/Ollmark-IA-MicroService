@@ -45,12 +45,9 @@ public class Task {
     Map<String, Object> parameters;
 
     /**
-     * Jeton d'authentification de l'utilisateur à l'origine de la tâche.
-     *
-     * <p>Absent ({@link Optional#empty()}) pour les tâches système ou anonymes.
-     * Lorsque présent, ce jeton est transmis au plugin Penpot pour autoriser
-     * les opérations nécessitant une identité utilisateur.</p>
+     * Identifiant de session WebSocket pour le routage précis vers le bon plugin.
+     * Remplace userToken qui n'est plus utilisé.
      */
     @Builder.Default
-    Optional<String> userToken = Optional.empty();
+    Optional<String> sessionId = Optional.empty();
 }

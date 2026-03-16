@@ -30,3 +30,5 @@
 .metals
 /data/
 .env
+.mvn
+docker-compose.yml

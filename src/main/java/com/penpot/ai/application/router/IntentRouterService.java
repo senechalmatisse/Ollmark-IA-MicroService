@@ -109,7 +109,9 @@ public class IntentRouterService implements ToolRouterPort {
         - INSPECTION        : list elements, find shape, get properties, what is on the page
         - DELETION          : delete, remove, clear element
         - TEMPLATE_SEARCH : find existing template, search template library, get template example
-        - CONTENT_GENERATION : create marketing section, hero section, landing section, premium section, structured block
+        - CONTENT_AND_TEXT  : text, title, paragraph, subtitle, marketing text
+        - SHAPE_CREATION    : create rectangle, board, frame, section container
+        - LAYOUT_AND_ALIGNMENT : align, arrange, layout structure
 
         RULES:
         - Return ONLY valid JSON, nothing else.
@@ -133,7 +135,7 @@ public class IntentRouterService implements ToolRouterPort {
         Response: {"categories": ["DELETION", "INSPECTION"]}
 
         User: "create a marketing hero section"
-        Response: {"categories": ["CONTENT_GENERATION"]}
+        Response: {"categories": ["SHAPE_CREATION"]}
 
         Return ONLY JSON. No explanation. No markdown.
     """;
