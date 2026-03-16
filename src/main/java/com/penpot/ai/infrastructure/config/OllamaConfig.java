@@ -44,13 +44,13 @@ import java.util.Map;
 @RefreshScope
 public class OllamaConfig {
 
-    @Value("${penpot.ai.executor.model}")
+    @Value("${penpot.ai.executor.model:qwen3:8b}")
     private String modelName;
     
-    @Value("${penpot.ai.executor.temperature}")
+    @Value("${penpot.ai.executor.temperature:0.7}")
     private Double defaultTemperature;
 
-    @Value("${penpot.ai.executor.max-tokens}")
+    @Value("${penpot.ai.executor.max-tokens:4096}")
     private Integer maxTokens;
 
     @Bean
@@ -124,7 +124,11 @@ public class OllamaConfig {
             .enableThinking()
             .temperature(defaultTemperature)
             .numPredict(maxTokens)
+            .topP(0.95)
             .topK(3)
+            .repeatPenalty(1.15)
+            .presencePenalty(0.3)
+            .numCtx(32000)
             .build();
     }
 
@@ -146,11 +150,12 @@ public class OllamaConfig {
     @RefreshScope
     public ChatClient.Builder chatClientBuilder(
         OllamaChatModel chatModel,
-        MessageChatMemoryAdvisor memoryAdvisor
+        MessageChatMemoryAdvisor memoryAdvisor,
+        @Qualifier("complexOptions") OllamaChatOptions complexOptions
     ) {
         log.info("Configuring executor ChatClient.Builder with model: {}", modelName);
         return ChatClient.builder(chatModel)
-            .defaultOptions(complexOptions())
+            .defaultOptions(complexOptions)
             .defaultAdvisors(memoryAdvisor);
     }
 
