@@ -3,7 +3,6 @@ package com.penpot.ai.application.advisor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.*;
 import org.springframework.ai.chat.client.advisor.api.*;
-import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
@@ -201,27 +200,22 @@ public class ToolErrorAdvisor implements CallAdvisor {
      */
     @Override
     public ChatClientResponse adviseCall(
-            ChatClientRequest request,
-            CallAdvisorChain chain
+        ChatClientRequest request,
+        CallAdvisorChain chain
     ) {
-
-        log.warn("ToolErrorAdvisor triggered");
-
         try {
+            log.warn("ToolErrorAdvisor triggered");
             return chain.nextCall(request);
-        }
-
-        catch (Exception e) {
-
+        } catch (Exception e) {
             log.warn("[ToolErrorAdvisor] Tool execution failed: {}", e.getMessage());
 
             String toolErrorPrompt = """
                     TOOL EXECUTION ERROR
-                    
+
                     A tool execution failed.
                     Error message:
                     %s
-                    
+
                     Decide how to continue:
                     - retry the tool
                     - use another tool

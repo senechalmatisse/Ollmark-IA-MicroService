@@ -27,7 +27,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
      * Port WebSocket configuré (non utilisé directement ici,
      * mais disponible pour logging ou validation).
      */
-    @Value("${penpot.ai.websocket-port:4401}")
+    @Value("${penpot.ai.websocket-port:8080}")
     private int websocketPort;
 
     /**

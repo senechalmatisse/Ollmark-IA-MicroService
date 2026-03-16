@@ -2,7 +2,10 @@ package com.penpot.ai.adapters.out.ai;
 
 import static org.springframework.ai.chat.memory.ChatMemory.CONVERSATION_ID;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.*;
@@ -16,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.penpot.ai.application.advisor.*;
 import com.penpot.ai.application.router.ToolCategoryResolver;
-import com.penpot.ai.application.service.PromptsConfigService;
+import com.penpot.ai.application.service.*;
 import com.penpot.ai.core.domain.*;
 import com.penpot.ai.core.ports.out.*;
 import com.penpot.ai.infrastructure.config.OllamaConfig.ChatClientFactory;
@@ -119,6 +122,13 @@ public class OllamaAiAdapter implements AiServicePort {
 
     private final ToolResultValidatorAdvisor toolResultValidatorAdvisor;
 
+    private final SessionContextHolder sessionContextHolder;
+
+    private final MessageService messageService;
+    private final ToolCallAdvisor toolCallAdvisor;
+    private final ReReadingAdvisor reReadingAdvisor;
+    private final SimpleLoggerAdvisor simpleLoggerAdvisor;
+
     public OllamaAiAdapter(
         ChatClientFactory chatClientFactory,
         RequestComplexityAnalyzer complexityAnalyzer,
@@ -126,13 +136,18 @@ public class OllamaAiAdapter implements AiServicePort {
         PromptsConfigService promptsConfigService,
         RetrievalAugmentationAdvisor retrievalAugmentationAdvisor,
         ToolRouterPort toolRouter,
+        SessionContextHolder sessionContextHolder,
         ToolCategoryResolver toolCategoryResolver,
         InspectionFirstAdvisor inspectionFirstAdvisor,
         ToolErrorAdvisor toolErrorAdvisor,
         ToolFailureRecoveryAdvisor toolFailureRecoveryAdvisor,
         ToolRetryLimiterAdvisor toolRetryLimiterAdvisor,
         ToolResultValidatorAdvisor toolResultValidatorAdvisor,
-        MissingInformationAdvisor missingInformationAdvisor
+        MissingInformationAdvisor missingInformationAdvisor,
+        MessageService messageService,
+        ToolCallAdvisor toolCallAdvisor,
+        ReReadingAdvisor reReadingAdvisor,
+        SimpleLoggerAdvisor simpleLoggerAdvisor
     ) {
         this.chatClientFactory = chatClientFactory;
         this.complexityAnalyzer = complexityAnalyzer;
@@ -140,6 +155,7 @@ public class OllamaAiAdapter implements AiServicePort {
         this.promptsConfigService = promptsConfigService;
         this.retrievalAugmentationAdvisor = retrievalAugmentationAdvisor;
         this.toolRouter = toolRouter;
+        this.sessionContextHolder = sessionContextHolder;
         this.toolCategoryResolver = toolCategoryResolver;
         this.inspectionFirstAdvisor = inspectionFirstAdvisor;
         this.toolErrorAdvisor = toolErrorAdvisor;
@@ -147,6 +163,10 @@ public class OllamaAiAdapter implements AiServicePort {
         this.toolRetryLimiterAdvisor = toolRetryLimiterAdvisor;
         this.toolResultValidatorAdvisor = toolResultValidatorAdvisor;
         this.missingInformationAdvisor = missingInformationAdvisor;
+        this.messageService = messageService;
+        this.toolCallAdvisor = toolCallAdvisor;
+        this.reReadingAdvisor = reReadingAdvisor;
+        this.simpleLoggerAdvisor = simpleLoggerAdvisor;
     }
 
     /**
@@ -181,28 +201,35 @@ public class OllamaAiAdapter implements AiServicePort {
 
             // Étape 4 : Exécution
             ChatClient adaptedClient = chatClientFactory.buildForComplexity(complexity);
+            String sessionId = extractSessionId(conversationId);
+            sessionContextHolder.set(sessionId);
 
-            String response = adaptedClient.prompt()
+            try {
+                String response = adaptedClient.prompt()
                     .system(promptsConfigService.getInitialInstructions())
                     .user(userMessage)
                     .advisors(buildAdvisors(categories))
                     .advisors(advisor -> advisor
-                            .param(CONVERSATION_ID, conversationId)
-                            .param(
-                                    InspectionFirstAdvisor.CTX_TOOL_CATEGORIES,
-                                    categories.stream().map(Enum::name).toList())
+                        .param(CONVERSATION_ID, conversationId)
+                        .param(
+                            InspectionFirstAdvisor.CTX_TOOL_CATEGORIES,
+                            categories.stream().map(Enum::name).toList()
+                        )
                     )
                     .tools(tools)
                     .toolContext(Map.of(
-                            "activeCategories", categories.stream().map(Enum::name).toList(),
-                            "conversationId", conversationId
+                        "activeCategories", categories.stream().map(Enum::name).toList(),
+                        "conversationId", conversationId,
+                        "sessionId", extractSessionId(conversationId)
                     ))
                     .call()
                     .content();
 
-            return Flux.just(response)
-                    .doOnError(e -> log.error(
-                            "Stream error for conversation: {}", conversationId, e));
+                return Flux.just(response)
+                    .doOnError(e -> log.error("Stream error for conversation: {}", conversationId, e));
+            } finally {
+                sessionContextHolder.clear();
+            }
         } catch (Exception e) {
             log.error("Failed to init stream for conversation: {}", conversationId, e);
             return Flux.error(new ToolExecutionException(
@@ -220,6 +247,7 @@ public class OllamaAiAdapter implements AiServicePort {
 
         try {
             log.info("Clearing conversation history for: {}", conversationId);
+            messageService.deleteByConversationIdPrefix(conversationId + ":%");
             chatMemory.clear(conversationId);
             log.info("Cleared conversation: {}", conversationId);
         } catch (Exception e) {
@@ -239,11 +267,11 @@ public class OllamaAiAdapter implements AiServicePort {
     private List<Advisor> buildAdvisors(Set<ToolCategory> categories) {
         List<Advisor> advisors = new ArrayList<>();
 
-        advisors.add(missingInformationAdvisor);
         advisors.add(inspectionFirstAdvisor);
 
-        advisors.add(ToolCallAdvisor.builder().build());
+        advisors.add(toolCallAdvisor);
 
+        //advisors.add(missingInformationAdvisor);
         advisors.add(toolRetryLimiterAdvisor);
         advisors.add(toolErrorAdvisor);
         advisors.add(toolFailureRecoveryAdvisor);
@@ -251,13 +279,19 @@ public class OllamaAiAdapter implements AiServicePort {
         advisors.add(toolResultValidatorAdvisor);
 
         if (categories.contains(ToolCategory.TEMPLATE_SEARCH) 
-            || categories.contains(ToolCategory.SHAPE_CREATION)) {
+            || categories.contains(ToolCategory.CONTENT_AND_TEXT)) {
             advisors.add(retrievalAugmentationAdvisor);
         }
 
-        advisors.add(new ReReadingAdvisor());
-        advisors.add(new SimpleLoggerAdvisor());
+        advisors.add(reReadingAdvisor);
+        advisors.add(simpleLoggerAdvisor);
 
         return advisors;
+    }
+
+    private String extractSessionId(String conversationKey) {
+        if (conversationKey == null) return "";
+        int sep = conversationKey.indexOf(':');
+        return sep >= 0 ? conversationKey.substring(sep + 1) : "";
     }
 }

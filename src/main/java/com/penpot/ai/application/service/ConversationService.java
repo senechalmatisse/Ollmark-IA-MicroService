@@ -4,11 +4,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.penpot.ai.application.DTO.ConversationDTO;
-import com.penpot.ai.application.DTO.ConversationMetaDataDTO;
-import com.penpot.ai.application.DTO.MessageDTO;
-import com.penpot.ai.application.persistance.Entity.Conversation;
-import com.penpot.ai.application.persistance.Entity.Message;
+import com.penpot.ai.application.DTO.*;
+import com.penpot.ai.application.persistance.Entity.*;
 import com.penpot.ai.application.persistance.Repositories.ConversationRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -29,7 +26,6 @@ public class ConversationService {
 
     private Pageable convUserPageable = PageRequest.of(0, 20);
     private Pageable convPageable = PageRequest.of(0, 20);
-    
 
     private ConversationDTO toDTO(Conversation c) {
         return new ConversationDTO(

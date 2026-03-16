@@ -44,7 +44,6 @@ class MessageControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(messageController).build();
         conversationId = UUID.randomUUID();
         messageId = UUID.randomUUID();
-        messageId = UUID.randomUUID();
     }
 
     // =========================================================

@@ -270,36 +270,36 @@ public class CoreDomainUnit {
                 assertThat(cmd.getCode()).isEqualTo("penpot.getPage()");
             }
 
-            @Test @DisplayName("of — userToken is empty")
+            @Test @DisplayName("of — sessionId is empty")
             void of_userTokenIsEmpty() {
                 // GIVEN / WHEN
                 ExecuteCodeCommand cmd = ExecuteCodeCommand.of("code");
 
                 // THEN
-                assertThat(cmd.getUserToken()).isEmpty();
+                assertThat(cmd.getSessionId()).isEmpty();
             }
         }
 
-        @Nested @DisplayName("of(String code, String userToken)")
+        @Nested @DisplayName("of(String code, String sessionId)")
         class OfCodeAndTokenTests {
 
-            @Test @DisplayName("of with token — userToken is present with provided value")
-            void ofWithToken_userTokenIsPresentWithProvidedValue() {
+            @Test @DisplayName("of with id — sessionId is present with provided value")
+            void ofWithToken_sessionIdIsPresentWithProvidedValue() {
                 // GIVEN / WHEN
-                ExecuteCodeCommand cmd = ExecuteCodeCommand.of("code", "tok-abc");
+                ExecuteCodeCommand cmd = ExecuteCodeCommand.of("code", "ses-abc");
 
                 // THEN
-                assertThat(cmd.getUserToken()).isPresent();
-                assertThat(cmd.getUserToken()).contains("tok-abc");
+                assertThat(cmd.getSessionId()).isPresent();
+                assertThat(cmd.getSessionId()).contains("ses-abc");
             }
 
-            @Test @DisplayName("of with null token — userToken is empty")
+            @Test @DisplayName("of with null id — sessionId is empty")
             void ofWithNullToken_userTokenIsEmpty() {
                 // GIVEN / WHEN
                 ExecuteCodeCommand cmd = ExecuteCodeCommand.of("code", null);
 
                 // THEN
-                assertThat(cmd.getUserToken()).isEmpty();
+                assertThat(cmd.getSessionId()).isEmpty();
             }
         }
 
@@ -356,45 +356,45 @@ public class CoreDomainUnit {
         @Nested @DisplayName("forUser factory method")
         class ForUserTests {
 
-            @Test @DisplayName("forUser — userToken is present with provided value")
-            void forUser_userTokenIsPresentWithProvidedValue() {
+            @Test @DisplayName("forUser — sessionId is present with provided value")
+            void forUser_sessionIdIsPresentWithProvidedValue() {
                 // GIVEN / WHEN
-                SessionCriteria c = SessionCriteria.forUser("user-token-123");
+                SessionCriteria c = SessionCriteria.forSession("session-123");
 
                 // THEN
-                assertThat(c.getUserToken()).isPresent();
-                assertThat(c.getUserToken()).contains("user-token-123");
+                assertThat(c.getSessionId()).isPresent();
+                assertThat(c.getSessionId()).contains("session-123");
             }
 
             @Test @DisplayName("forUser — requireActive is true by default")
             void forUser_requireActiveIsTrueByDefault() {
                 // GIVEN / WHEN
-                SessionCriteria c = SessionCriteria.forUser("tok");
+                SessionCriteria c = SessionCriteria.forSession("ses");
 
                 // THEN
                 assertThat(c.isRequireActive()).isTrue();
             }
 
-            @Test @DisplayName("forUser — userToken is empty when null is provided")
-            void forUser_userTokenIsEmptyWhenNullIsProvided() {
+            @Test @DisplayName("forUser — sessionId is empty when null is provided")
+            void forUser_sessionIdIsEmptyWhenNullIsProvided() {
                 // GIVEN / WHEN
-                SessionCriteria c = SessionCriteria.forUser(null);
+                SessionCriteria c = SessionCriteria.forSession(null);
 
                 // THEN
-                assertThat(c.getUserToken()).isEmpty();
+                assertThat(c.getSessionId()).isEmpty();
             }
         }
 
         @Nested @DisplayName("any factory method")
         class AnyTests {
 
-            @Test @DisplayName("any — userToken is empty")
-            void any_userTokenIsEmpty() {
+            @Test @DisplayName("any — sessionId is empty")
+            void any_sessionIdIsEmpty() {
                 // GIVEN / WHEN
                 SessionCriteria c = SessionCriteria.any();
 
                 // THEN
-                assertThat(c.getUserToken()).isEmpty();
+                assertThat(c.getSessionId()).isEmpty();
             }
 
             @Test @DisplayName("any — requireActive is true by default")
@@ -419,13 +419,13 @@ public class CoreDomainUnit {
                 assertThat(c.isRequireActive()).isFalse();
             }
 
-            @Test @DisplayName("builder — userToken defaults to Optional.empty when not set")
-            void builder_userTokenDefaultsToEmptyWhenNotSet() {
+            @Test @DisplayName("builder — sessionId defaults to Optional.empty when not set")
+            void builder_sessionIdDefaultsToEmptyWhenNotSet() {
                 // GIVEN / WHEN
                 SessionCriteria c = SessionCriteria.builder().build();
 
                 // THEN
-                assertThat(c.getUserToken()).isEmpty();
+                assertThat(c.getSessionId()).isEmpty();
             }
         }
     }

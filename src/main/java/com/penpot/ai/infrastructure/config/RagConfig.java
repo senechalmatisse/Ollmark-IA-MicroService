@@ -56,10 +56,10 @@ public class RagConfig {
     @Value("${penpot.ai.rag.similarity-threshold:0.5}")
     private double similarityThreshold;
 
-    @Value("${penpot.ai.rag.top-k:5}")
+    @Value("${penpot.ai.rag.top-k:3}")
     private int topK;
 
-    @Value("${penpot.ai.rag.query-variants:3}")
+    @Value("${penpot.ai.rag.query-variants:2}")
     private int queryVariants;
 
     /**

@@ -1,33 +1,53 @@
 package com.penpot.ai.adapters.out.ai;
 
-import com.penpot.ai.application.advisor.InspectionFirstAdvisor;
-import com.penpot.ai.application.advisor.ToolErrorAdvisor;
-import com.penpot.ai.application.advisor.ToolFailureRecoveryAdvisor;
-import com.penpot.ai.application.advisor.ToolResultValidatorAdvisor;
-import com.penpot.ai.application.advisor.ToolRetryLimiterAdvisor;
-import com.penpot.ai.application.advisor.MissingInformationAdvisor;
-import com.penpot.ai.application.router.ToolCategoryResolver;
-import com.penpot.ai.application.service.PromptsConfigService;
-import com.penpot.ai.core.domain.*;
-import com.penpot.ai.core.ports.out.ToolRouterPort;
-import com.penpot.ai.infrastructure.config.OllamaConfig.ChatClientFactory;
-import com.penpot.ai.shared.exception.ToolExecutionException;
-import org.junit.jupiter.api.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import java.util.Set;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.ChatClient.*;
+import org.springframework.ai.chat.client.ChatClient.CallResponseSpec;
+import org.springframework.ai.chat.client.ChatClient.ChatClientRequestSpec;
+import org.springframework.ai.chat.client.ChatClient.StreamResponseSpec;
+import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
+import org.springframework.ai.chat.client.advisor.ToolCallAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
+
+import com.penpot.ai.application.advisor.InspectionFirstAdvisor;
+import com.penpot.ai.application.advisor.MissingInformationAdvisor;
+import com.penpot.ai.application.advisor.ReReadingAdvisor;
+import com.penpot.ai.application.advisor.ToolErrorAdvisor;
+import com.penpot.ai.application.advisor.ToolFailureRecoveryAdvisor;
+import com.penpot.ai.application.advisor.ToolResultValidatorAdvisor;
+import com.penpot.ai.application.advisor.ToolRetryLimiterAdvisor;
+import com.penpot.ai.application.router.ToolCategoryResolver;
+import com.penpot.ai.application.service.MessageService;
+import com.penpot.ai.application.service.PromptsConfigService;
+import com.penpot.ai.application.service.SessionContextHolder;
+import com.penpot.ai.core.domain.TaskComplexity;
+import com.penpot.ai.core.domain.ToolCategory;
+import com.penpot.ai.core.ports.out.ToolRouterPort;
+import com.penpot.ai.infrastructure.config.OllamaConfig.ChatClientFactory;
+import com.penpot.ai.shared.exception.ToolExecutionException;
+
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
-
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 /**
  * Integration tests for {@link OllamaAiAdapter}.
@@ -48,9 +68,14 @@ class OllamaAiAdapterTest {
     @Mock private PromptsConfigService promptsConfigService;
     @Mock private RetrievalAugmentationAdvisor retrievalAugmentationAdvisor;
     @Mock private ToolRouterPort toolRouter;
+    @Mock private SessionContextHolder sessionContextHolder;
     @Mock private ToolCategoryResolver toolCategoryResolver;
     @Mock private InspectionFirstAdvisor inspectionFirstAdvisor;
     @Mock private MissingInformationAdvisor missingInformationAdvisor;
+    @Mock private MessageService messageService;
+    @Mock private ToolCallAdvisor toolCallAdvisor;
+    @Mock private ReReadingAdvisor reReadingAdvisor;
+    @Mock private SimpleLoggerAdvisor simpleLoggerAdvisor;
 
     // ---- Spring AI fluent chain mocks ----
     @Mock private ChatClient chatClient;
@@ -74,14 +99,21 @@ class OllamaAiAdapterTest {
             promptsConfigService,
             retrievalAugmentationAdvisor,
             toolRouter,
+            sessionContextHolder,
             toolCategoryResolver,
             inspectionFirstAdvisor,
             toolErrorAdvisor,
             toolFailureRecoveryAdvisor,
             toolRetryLimiterAdvisor,
             toolResultValidatorAdvisor,
-            missingInformationAdvisor
+            missingInformationAdvisor,
+            messageService,
+            toolCallAdvisor,
+            reReadingAdvisor,
+            simpleLoggerAdvisor
         );
+
+        lenient().when(sessionContextHolder.get()).thenReturn("");
     }
 
     // =========================================================================
@@ -92,15 +124,12 @@ class OllamaAiAdapterTest {
     @DisplayName("chat()")
     class ChatMethod {
 
-
-
         @Test
         @DisplayName("shouldIncludeRagAdvisor_givenCategoryIsTemplateSearch_whenChatIsCalled")
         void shouldIncludeRagAdvisor_givenCategoryIsTemplateSearch_whenChatIsCalled() {
             // GIVEN a message that routes to TEMPLATE_SEARCH category
             String conversationId = "conv-002";
             String userMessage = "Find a newsletter template";
-            String userToken = "token-xyz";
 
             when(complexityAnalyzer.analyze(userMessage)).thenReturn(TaskComplexity.CREATIVE);
             when(toolRouter.route(userMessage)).thenReturn(Set.of(ToolCategory.TEMPLATE_SEARCH));
