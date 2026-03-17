@@ -39,8 +39,6 @@ penpot:
 # Configuration Spring AI - pointe vers WireMock
 # ============================================
 spring:
-  flyway:
-    enabled: false
   ai:
     ollama:
       base-url: http://localhost:${wiremock.server.port:8080}
@@ -68,22 +66,19 @@ spring:
   # Base de données H2 en mémoire pour les tests
   # ============================================
   datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: ""
-    hikari:
-      maximum-pool-size: 5
-      minimum-idle: 1
-
-  h2:
-    console:
-      enabled: false
-
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USER}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD}}
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: create-drop
-    show-sql: false
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    locations: classpath:db/migration 
 
 # ============================================
 # Logs
@@ -96,3 +91,6 @@ logging:
     org.hibernate: WARN
   file:
     name: target/test-logs/penpot-test.log
+
+crypto:
+  master-key: 5d8b57a473a25517d5b30e8675b66a050b41238072374b3d810e6598dab5f194

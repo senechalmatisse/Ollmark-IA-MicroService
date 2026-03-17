@@ -174,3 +174,9 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+
+# ============================================
+# Configuration de Jasypt pour l'encryption des propriétés sensibles
+
+crypto:
+  master-key: ${CRYPTO_MASTER_KEY} # Clé de 256 bits (32 bytes) en hexadécimal
