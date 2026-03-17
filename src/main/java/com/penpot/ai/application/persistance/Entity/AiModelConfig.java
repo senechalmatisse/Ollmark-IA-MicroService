@@ -5,8 +5,13 @@ import java.util.Map;
 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.penpot.ai.application.persistance.Converter.EncryptedStringConverter;
+
 import java.util.UUID;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -52,6 +57,8 @@ public class AiModelConfig {
     @Column(name = "parameters", columnDefinition = "jsonb")
     private Map<String, Object> parameters;
 
+    @JsonIgnore
+    @Convert( converter = EncryptedStringConverter.class)
     @Column(name = "model_api_key", columnDefinition = "text")
     private String modelApiKey;
 
