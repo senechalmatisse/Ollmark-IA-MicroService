@@ -11,8 +11,6 @@ import java.util.Optional;
  * </p>
  * <ul>
  *     <li>le code JavaScript à exécuter dans l'environnement Penpot</li>
- *     <li>un token utilisateur optionnel permettant de gérer les scénarios
- *     multi-utilisateurs</li>
  * </ul>
  */
 @Value
@@ -23,20 +21,12 @@ public class ExecuteCodeCommand {
     String code;
 
     /**
-     * Token utilisateur optionnel utilisé dans les environnements
-     * multi-utilisateurs.
-     *
-     * <p>
-     * Lorsque présent, ce token permet d'associer l'exécution du code
-     * à un utilisateur spécifique ou à une session donnée.
-     * </p>
-     *
-     * <p>
-     * Par défaut, la valeur est {@link Optional#empty()}.
-     * </p>
+     * Identifiant de session WebSocket permettant de router la tâche
+     * vers le bon plugin en contexte multi-utilisateur.
+     * Absent pour les tâches système ou en mode mono-utilisateur.
      */
     @Builder.Default
-    Optional<String> userToken = Optional.empty();
+    Optional<String> sessionId = Optional.empty();
 
     /**
      * Méthode de fabrique permettant de créer une commande simple
@@ -67,13 +57,13 @@ public class ExecuteCodeCommand {
      * </p>
      *
      * @param code le code JavaScript à exécuter
-     * @param userToken token représentant l'utilisateur ou la session
+     * @param sessionId identifiant représentant la session
      * @return une instance de {@link ExecuteCodeCommand}
      */
-    public static ExecuteCodeCommand of(String code, String userToken) {
+    public static ExecuteCodeCommand of(String code, String sessionId) {
         return ExecuteCodeCommand.builder()
             .code(code)
-            .userToken(Optional.ofNullable(userToken))
+            .sessionId(Optional.ofNullable(sessionId))
             .build();
     }
 

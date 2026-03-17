@@ -5,7 +5,7 @@ import lombok.*;
 /**
  * Spécification définissant les paramètres de création d'un logo.
  *
- *  @see LogoStyle
+ * @see LogoStyle
  * @see LogoLayout
  */
 @Data

@@ -24,6 +24,7 @@
         <java.version>21</java.version>
         <spring-ai.version>1.1.2</spring-ai.version>
         <springdoc.version>2.5.0</springdoc.version>
+        <lombok.version>1.18.36</lombok.version>
         <sonar.projectKey>m2gil_ollmark_ollmark-microservices_ms-template_8facffff-d158-4d55-8adc-5804b947b2de</sonar.projectKey>
         <sonar.projectName>MS-Template</sonar.projectName>
         <sonar.qualitygate.wait>true</sonar.qualitygate.wait>
@@ -117,7 +118,20 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
 
         <dependency>
@@ -158,6 +172,12 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>spring-dotenv</artifactId>
+            <version>4.0.0</version>
         </dependency>
 
         <!-- Test Dependencies -->
@@ -209,8 +229,16 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.2</version> 
+                <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                        <annotationProcessorPaths>
+                    <path>
+                    <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+                    </path>
+                </annotationProcessorPaths>
+                </configuration>
             </plugin>
 
             <plugin>
@@ -237,6 +265,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.2</version>
                 <configuration>
                     <includes>
                         <include>**/*Test.java</include>

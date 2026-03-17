@@ -58,10 +58,10 @@ public class OllamaConfigTest {
         }
 
         @Test
-        @DisplayName("simpleOptions — topK is 10 (low diversity)")
-        void simpleOptions_topKIs10() {
+        @DisplayName("simpleOptions — topK is 3 (low diversity)")
+        void simpleOptions_topKIs3() {
             // GIVEN / WHEN / THEN
-            assertThat(simpleOptions.getTopK()).isEqualTo(10);
+            assertThat(simpleOptions.getTopK()).isEqualTo(3);
         }
     }
 
@@ -84,10 +84,10 @@ public class OllamaConfigTest {
         }
 
         @Test
-        @DisplayName("creativeOptions — topK is 40 (high diversity)")
-        void creativeOptions_topKIs40() {
+        @DisplayName("creativeOptions — topK is 5 (high diversity)")
+        void creativeOptions_topKIs5() {
             // GIVEN / WHEN / THEN
-            assertThat(creativeOptions.getTopK()).isEqualTo(40);
+            assertThat(creativeOptions.getTopK()).isEqualTo(5);
         }
 
         @Test
@@ -110,10 +110,10 @@ public class OllamaConfigTest {
         }
 
         @Test
-        @DisplayName("complexOptions — temperature is 0.6 (balanced reasoning)")
-        void complexOptions_temperatureIs06() {
+        @DisplayName("complexOptions — temperature is 0.0 (balanced reasoning)")
+        void complexOptions_temperatureIs00() {
             // GIVEN / WHEN / THEN
-            assertThat(complexOptions.getTemperature()).isEqualTo(0.6);
+            assertThat(complexOptions.getTemperature()).isEqualTo(0.0);
         }
     }
 

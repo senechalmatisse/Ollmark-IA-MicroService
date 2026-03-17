@@ -40,10 +40,11 @@ public class ExecuteCodeUseCaseImpl implements ExecuteCodeUseCase {
 
         Task task = taskFactory.createExecuteCodeTask(
             command.getCode(),
-            command.getUserToken().orElse(null)
+            command.getSessionId().orElse(null)
         );
 
-        log.debug("Created task with ID: {}", task.getId());
+        log.debug("Created task with ID: {} (sessionId: {})", 
+            task.getId(), task.getSessionId().orElse("none"));
 
         try {
             PluginTaskResponse<?> response = pluginPort.sendTask(task);

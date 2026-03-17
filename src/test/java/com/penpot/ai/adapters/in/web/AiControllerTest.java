@@ -1,6 +1,8 @@
 package com.penpot.ai.adapters.in.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.penpot.ai.application.service.MessageService;
+import com.penpot.ai.core.ports.in.AiConfigUseCase;
 import com.penpot.ai.core.ports.in.ConversationChatUseCase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -8,13 +10,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 
 /**
  * Tests d'intégration pour {@link AiController}.
@@ -34,49 +40,64 @@ class AiControllerTest {
     @MockBean
     private ConversationChatUseCase conversationChatUseCase;
 
+    @MockBean
+    private AiConfigUseCase aiConfigUseCase;
+
+    @MockitoBean
+    private MessageService messageService;
+
     /**
-     * Test d'intégration de l'endpoint /ai/chat.
+     * Test d'intégration de l'endpoint /api/ai/chat.
      * Vérifie que l'endpoint accepte les requêtes et produit un flux d'événements (SSE).
      */
     @Test
-    @DisplayName("POST /ai/chat should return a text stream")
+    @DisplayName("POST /api/ai/chat should return a JSON response")
     void chatIntegration() throws Exception {
         // Given
+        String projectId = UUID.randomUUID().toString();
         ChatRequest request = new ChatRequest();
-        request.setConversationId("123");
+        request.setProjectId(projectId);
         request.setMessage("hello");
 
         when(conversationChatUseCase.chat(any(), any(), any()))
-                .thenReturn(Flux.just("stream-data"));
+                .thenReturn(Mono.just("ai-response"));
 
         // When & Then
-        mockMvc.perform(post("/ai/chat")
+        // For reactive endpoints returning Mono, we must handle the async result
+        org.springframework.test.web.servlet.MvcResult mvcResult = mockMvc.perform(post("/api/ai/chat")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_EVENT_STREAM));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.projectId").value(projectId))
+                .andExpect(jsonPath("$.response").value("ai-response"));
     }
 
     /**
-     * Test d'intégration de l'endpoint /ai/chat/new.
+     * Test d'intégration de l'endpoint /api/ai/chat/new.
      * Vérifie le bon fonctionnement du mapping POST pour la création de conversation.
      */
     @Test
-    @DisplayName("POST /ai/chat/new should return a new conversation ID")
+    @DisplayName("POST /ai/chat/new should return a success with projectId")
     void startNewConversationIntegration() throws Exception {
         // Given
+        String projectId = UUID.randomUUID().toString();
         NewConversationRequest request = new NewConversationRequest();
-        request.setUserId("user1");
+        request.setProjectId(projectId);
         
-        when(conversationChatUseCase.startNewConversation("user1")).thenReturn("conv-xyz");
+        when(conversationChatUseCase.startNewConversation(any())).thenReturn(projectId);
 
         // When & Then
-        mockMvc.perform(post("/ai/chat/new")
+        mockMvc.perform(post("/api/ai/chat/new")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.conversationId").value("conv-xyz"))
-                .andExpect(jsonPath("$.userId").value("user1"));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.projectId").value(projectId));
     }
 
     /**
@@ -84,12 +105,15 @@ class AiControllerTest {
      * Vérifie la résolution de la variable de chemin (PathVariable).
      */
     @Test
-    @DisplayName("DELETE /ai/chat/{id} should return success")
+    @DisplayName("DELETE /api/ai/chat/{projectId} should return success")
     void clearConversationIntegration() throws Exception {
+        // Given
+        String projectId = UUID.randomUUID().toString();
+
         // When & Then
-        mockMvc.perform(delete("/ai/chat/conv-123"))
+        mockMvc.perform(delete("/api/ai/chat/" + projectId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.conversationId").value("conv-123"));
+                .andExpect(jsonPath("$.projectId").value(projectId));
     }
 }

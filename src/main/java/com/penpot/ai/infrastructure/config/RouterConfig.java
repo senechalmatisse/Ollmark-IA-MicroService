@@ -48,7 +48,11 @@ public class RouterConfig {
         OllamaChatOptions routerOptions = OllamaChatOptions.builder()
             .model(routerModel)
             .temperature(0.0)
-            .numPredict(150)
+            .topP(0.9)
+            .topK(10)
+            .repeatPenalty(1.05)
+            .numPredict(256)
+            .numCtx(8192)
             .build();
 
         OllamaChatModel routerModel = OllamaChatModel.builder()
