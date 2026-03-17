@@ -11,9 +11,9 @@ import java.util.stream.Collectors;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import com.penpot.ai.application.tools.support.JsScriptLoader;
 import com.penpot.ai.application.tools.support.PenpotToolExecutor;
 import com.penpot.ai.application.tools.support.ToolResponseBuilder;
@@ -23,37 +23,23 @@ import com.penpot.ai.shared.util.JsStringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * Tools de layout Penpot.
- *
- * <p>Cette version garde le Java simple :
- * <ul>
- *   <li>le Java prépare le contexte d'exécution (page, shapes, paramètres),</li>
- *   <li>les scripts JS métier sont chargés via {@link JsScriptLoader},</li>
- *   <li>les réponses sont mappées directement en JSON standardisé.</li>
- * </ul>
- *
- * <p>Aucune convention fragile du type {@code OK_*}, aucun parsing regex maison,
- * et pas de dépendance à {@code PenpotJsSnippets} ici.</p>
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class PenpotLayoutTools {
 
-    private static final String UNKNOWN_ERROR = "Unknown error";
     private static final String UNKNOWN_ID = "unknown";
-    private final ObjectMapper objectMapper;
 
+    private final ObjectMapper objectMapper;
     private final PenpotToolExecutor toolExecutor;
 
     @Tool(description = """
-        Move one or more shapes into an existing target board.
-        The board must already exist on the current page.
+        Move one or more existing shapes into an existing board on the current page.
+        Use this only when the destination board already exists.
     """)
     public String addShapeToBoard(
-        @ToolParam(description = "One or more shape IDs to move, separated by commas.") String shapeIds,
-        @ToolParam(description = "UUID of the target board.") String boardId
+        @ToolParam(description = "Comma-separated shape UUIDs to move.") String shapeIds,
+        @ToolParam(description = "UUID of the destination board.") String boardId
     ) {
         log.info("Tool called: addShapeToBoard({}, {})", shapeIds, boardId);
 
@@ -65,11 +51,11 @@ public class PenpotLayoutTools {
     }
 
     @Tool(description = """
-        Extract one or more shapes from their current parent without deleting them.
-        The shapes are moved back to the page root.
+        Remove one or more shapes from their current parent and place them back at the page root.
+        This does not delete the shapes.
     """)
     public String removeShapeFromParent(
-        @ToolParam(description = "One or more shape IDs to extract, separated by commas.") String shapeIds
+        @ToolParam(description = "Comma-separated shape UUIDs to extract.") String shapeIds
     ) {
         log.info("Tool called: removeShapeFromParent({})", shapeIds);
 
@@ -80,12 +66,12 @@ public class PenpotLayoutTools {
     }
 
     @Tool(description = """
-        Duplicate a shape and offset the clone by a given number of pixels.
+        Duplicate a shape and offset the copy by a number of pixels on the X and Y axes.
     """)
     public String cloneShape(
-        @ToolParam(description = "UUID of the shape to clone.") String shapeId,
-        @ToolParam(required = false, description = "Horizontal offset in pixels (default: 20).") Integer offsetX,
-        @ToolParam(required = false, description = "Vertical offset in pixels (default: 20).") Integer offsetY
+        @ToolParam(description = "UUID of the shape to duplicate.") String shapeId,
+        @ToolParam(required = false, description = "Horizontal offset in pixels. Default is 20.") Integer offsetX,
+        @ToolParam(required = false, description = "Vertical offset in pixels. Default is 20.") Integer offsetY
     ) {
         log.info("Tool called: cloneShape({}, {}, {})", shapeId, offsetX, offsetY);
 
@@ -100,10 +86,13 @@ public class PenpotLayoutTools {
         return executeClone(code);
     }
 
-    @Tool(description = "Align two or more shapes along a common axis or edge.")
+    @Tool(description = """
+        Align two or more shapes on the current page.
+        Valid alignment modes are: left, center, right, top, middle, bottom.
+    """)
     public String alignShapes(
-        @ToolParam(description = "Two or more shape IDs to align, separated by commas.") String shapeIds,
-        @ToolParam(description = "Alignment mode: left, center, right, top, middle, bottom.") String alignment
+        @ToolParam(description = "Comma-separated shape UUIDs to align.") String shapeIds,
+        @ToolParam(description = "Alignment mode: left, center, right, top, middle, or bottom.") String alignment
     ) {
         log.info("Tool called: alignShapes({}, {})", shapeIds, alignment);
 
@@ -127,10 +116,13 @@ public class PenpotLayoutTools {
         return executeMultiShape(code, "aligned");
     }
 
-    @Tool(description = "Distribute three or more shapes evenly along a horizontal or vertical axis.")
+    @Tool(description = """
+        Distribute three or more shapes evenly along one axis.
+        Valid axes are: horizontal or vertical.
+    """)
     public String distributeShapes(
-        @ToolParam(description = "Three or more shape IDs to distribute, separated by commas.") String shapeIds,
-        @ToolParam(description = "Axis: horizontal or vertical.") String axis
+        @ToolParam(description = "Comma-separated shape UUIDs to distribute.") String shapeIds,
+        @ToolParam(description = "Distribution axis: horizontal or vertical.") String axis
     ) {
         log.info("Tool called: distributeShapes({}, {})", shapeIds, axis);
 
@@ -159,8 +151,8 @@ public class PenpotLayoutTools {
         Group two or more shapes into a single Penpot group.
     """)
     public String groupShapes(
-        @ToolParam(description = "Two or more shape IDs to group together, separated by commas.") String shapeIds,
-        @ToolParam(description = "Optional name for the resulting group.", required = false) String groupName
+        @ToolParam(description = "Comma-separated shape UUIDs to group together.") String shapeIds,
+        @ToolParam(description = "Optional name for the new group.", required = false) String groupName
     ) {
         log.info("Tool called: groupShapes({}, {})", shapeIds, groupName);
 
@@ -171,9 +163,11 @@ public class PenpotLayoutTools {
         return executeGroup(code);
     }
 
-    @Tool(description = "Ungroup one or more Penpot groups, releasing their children back to the parent layer.")
+    @Tool(description = """
+        Ungroup one or more existing Penpot groups and release their children back to the parent layer.
+    """)
     public String ungroupShapes(
-        @ToolParam(description = "One or more group IDs to ungroup, separated by commas.") String groupIds
+        @ToolParam(description = "Comma-separated group UUIDs to ungroup.") String groupIds
     ) {
         log.info("Tool called: ungroupShapes({})", groupIds);
 
@@ -183,35 +177,47 @@ public class PenpotLayoutTools {
         return executeMultiShape(code, "ungrouped");
     }
 
-    @Tool(description = "Move one or more shapes one step backward in the layer stack (z-order).")
-    public String sendShapeBackward(
-        @ToolParam(description = "One or more shape IDs to send backward, separated by commas.") String shapeIds
+    @Tool(description = """
+        Send one or more shapes one step backward in the layer order on the current page.
+        Penpot equivalent: Send backward.
+    """)
+    public String sendBackward(
+        @ToolParam(description = "Comma-separated shape UUIDs to move backward.") String shapeIds
     ) {
-        log.info("Tool called: sendShapeBackward({})", shapeIds);
+        log.info("Tool called: sendBackward({})", shapeIds);
         return executeZOrder(shapeIds, "sendBackward", "sent backward");
     }
 
-    @Tool(description = "Move one or more shapes one step forward in the layer stack (z-order).")
-    public String sendShapeFrontward(
-        @ToolParam(description = "One or more shape IDs to bring forward, separated by commas.") String shapeIds
+    @Tool(description = """
+        Bring one or more shapes one step forward in the layer order on the current page.
+        Penpot equivalent: Bring forward.
+    """)
+    public String bringForward(
+        @ToolParam(description = "Comma-separated shape UUIDs to move forward.") String shapeIds
     ) {
-        log.info("Tool called: sendShapeFrontward({})", shapeIds);
+        log.info("Tool called: bringForward({})", shapeIds);
         return executeZOrder(shapeIds, "bringForward", "brought forward");
     }
 
-    @Tool(description = "Send one or more shapes to the very back of the layer stack (z-order).")
-    public String sendShapeToTheBack(
-        @ToolParam(description = "One or more shape IDs to send to the back, separated by commas.") String shapeIds
+    @Tool(description = """
+        Send one or more shapes to the very back of the layer order on the current page.
+        Penpot equivalent: Send to back.
+    """)
+    public String sendToBack(
+        @ToolParam(description = "Comma-separated shape UUIDs to send to the back.") String shapeIds
     ) {
-        log.info("Tool called: sendShapeToTheBack({})", shapeIds);
+        log.info("Tool called: sendToBack({})", shapeIds);
         return executeZOrder(shapeIds, "sendToBack", "sent to back");
     }
 
-    @Tool(description = "Bring one or more shapes to the very front of the layer stack (z-order).")
-    public String sendShapeToTheFront(
-        @ToolParam(description = "One or more shape IDs to bring to the front, separated by commas.") String shapeIds
+    @Tool(description = """
+        Bring one or more shapes to the very front of the layer order on the current page.
+        Penpot equivalent: Bring to front.
+    """)
+    public String bringToFront(
+        @ToolParam(description = "Comma-separated shape UUIDs to bring to the front.") String shapeIds
     ) {
-        log.info("Tool called: sendShapeToTheFront({})", shapeIds);
+        log.info("Tool called: bringToFront({})", shapeIds);
         return executeZOrder(shapeIds, "bringToFront", "brought to front");
     }
 
@@ -224,13 +230,13 @@ public class PenpotLayoutTools {
     }
 
     private String executeMultiShape(String code, String operationLabel) {
-    return toolExecutor.execute(code, operationLabel, result -> {
-        Object rawData = result.getData().orElse(null);
-        log.info("[PenpotLayoutTools] Raw task result data for '{}': {}", operationLabel, rawData);
+        return toolExecutor.execute(code, operationLabel, result -> {
+            Object rawData = result.getData().orElse(null);
+            log.info("[PenpotLayoutTools] Raw task result data for '{}': {}", operationLabel, rawData);
 
-        return ToolResponseBuilder.multiShapeOperation(operationLabel, readIds(result));
-    });
-}
+            return ToolResponseBuilder.multiShapeOperation(operationLabel, readIds(result));
+        });
+    }
 
     private String executeGroup(String code) {
         return toolExecutor.execute(code, "group shapes", result ->
@@ -249,9 +255,7 @@ public class PenpotLayoutTools {
             const page = penpot.currentPage;
             if (!page) throw new Error('No current page');
             const shapeIds = %s;
-            const resolvedShapes = shapeIds.length > 0
-                ? shapeIds.map(id => page.getShapeById(id)).filter(Boolean)
-                : (penpot.selection || []).filter(Boolean);
+            const resolvedShapes = shapeIds.map(id => page.getShapeById(id)).filter(Boolean);
             """.formatted(toJsArray(ids));
     }
 
@@ -291,29 +295,44 @@ public class PenpotLayoutTools {
             .collect(Collectors.joining(", ", "[", "]"));
     }
 
-private List<String> readIds(TaskResult result) {
-    Object raw = unwrapResultData(result);
-    log.info("[PenpotLayoutTools] Unwrapped result data: {}", raw);
+    private List<String> readIds(TaskResult result) {
+        Object raw = unwrapResultData(result);
+        log.info("[PenpotLayoutTools] Unwrapped result data: {}", raw);
 
-    if (!(raw instanceof Map<?, ?> map)) {
-        log.warn("[PenpotLayoutTools] Result data is not a Map: {}", raw);
+        if (!(raw instanceof Map<?, ?> map)) {
+            log.warn("[PenpotLayoutTools] Result data is not a Map: {}", raw);
+            return Collections.emptyList();
+        }
+
+        Object ids = map.get("ids");
+        log.info("[PenpotLayoutTools] Raw ids field: {}", ids);
+
+        if (ids instanceof List<?> list) {
+            return list.stream()
+                .filter(Objects::nonNull)
+                .map(Object::toString)
+                .filter(s -> !s.isBlank())
+                .toList();
+        }
+
+        Object resultsNode = map.get("results");
+        log.info("[PenpotLayoutTools] Raw results field: {}", resultsNode);
+
+        if (resultsNode instanceof List<?> resultsList) {
+            return resultsList.stream()
+                .filter(Objects::nonNull)
+                .filter(Map.class::isInstance)
+                .map(Map.class::cast)
+                .map(entry -> entry.get("id"))
+                .filter(Objects::nonNull)
+                .map(Object::toString)
+                .filter(s -> !s.isBlank())
+                .toList();
+        }
+
+        log.warn("[PenpotLayoutTools] Neither ids nor results contain usable IDs");
         return Collections.emptyList();
     }
-
-    Object ids = map.get("ids");
-    log.info("[PenpotLayoutTools] Raw ids field: {}", ids);
-
-    if (!(ids instanceof List<?> list)) {
-        log.warn("[PenpotLayoutTools] ids field is not a List: {}", ids);
-        return Collections.emptyList();
-    }
-
-    return list.stream()
-        .filter(Objects::nonNull)
-        .map(Object::toString)
-        .filter(s -> !s.isBlank())
-        .toList();
-}
 
     private String readString(TaskResult result, String key, String fallback) {
         Object raw = unwrapResultData(result);
@@ -404,7 +423,7 @@ private List<String> readIds(TaskResult result) {
     }
 
     private List<String> resolveIds(String raw) {
-        if (raw == null || raw.isBlank() || raw.equalsIgnoreCase("selection")) {
+        if (raw == null || raw.isBlank()) {
             return List.of();
         }
 
