@@ -205,4 +205,4 @@ springdoc:
 # Configuration de Jasypt pour l'encryption des propriétés sensibles
 
 crypto:
-  master-key: ${CRYPTO_MASTER_KEY} # Clé de 256 bits (32 bytes) en hexadécimal
+  master-key: ${CRYPTO_MASTER_KEY:5d8b57a473a25517d5b30e8675b66a050b41238072374b3d810e6598dab5f194}
