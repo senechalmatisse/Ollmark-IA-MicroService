@@ -13,7 +13,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import reactor.core.publisher.Mono;
-
+import com.penpot.ai.infrastructure.config.SecurityConfig; 
+import org.springframework.context.annotation.Import;     
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -29,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * les mappings d'URL, la sérialisation JSON et le comportement des en-têtes HTTP.
  */
 @WebMvcTest(AiController.class)
+@Import(SecurityConfig.class)
 class AiControllerTest {
 
     @Autowired
