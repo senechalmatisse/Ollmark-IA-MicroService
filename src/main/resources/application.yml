@@ -196,3 +196,7 @@ springdoc:
     operations-sorter: method
     # Permet de garder la session d'authentification active
     persist-authorization: true
+# Configuration de Jasypt pour l'encryption des propriétés sensibles
+
+crypto:
+  master-key: ${CRYPTO_MASTER_KEY} # Clé de 256 bits (32 bytes) en hexadécimal
