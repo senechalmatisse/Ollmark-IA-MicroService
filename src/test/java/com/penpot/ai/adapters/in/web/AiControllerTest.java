@@ -16,7 +16,6 @@ import reactor.core.publisher.Mono;
 import com.penpot.ai.infrastructure.config.SecurityConfig; 
 import org.springframework.context.annotation.Import;     
 import java.util.UUID;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
