@@ -1,6 +1,8 @@
 package com.penpot.ai.application.tools;
 
 import com.penpot.ai.application.tools.support.*;
+import com.penpot.ai.shared.util.JsStringUtils;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.*;
@@ -34,13 +36,16 @@ public class PenpotDeleteTools {
     public String deleteShapeById(
         @ToolParam(description = "The UUID of the shape to delete") String shapeId
     ) {
+        if (shapeId == null || !JsStringUtils.UUID_PATTERN.matcher(shapeId.trim()).matches()) {
+            throw new IllegalArgumentException("UUID invalide : " + shapeId);
+        }
         log.info("Tool called: deleteShapeById (id={})", shapeId);
         return executeDeleteWithStructuredResponse(
             String.format("""
                 const shape = penpot.currentPage.getShapeById('%s');
                 if (shape) { shape.remove(); return "OK:Shape deleted"; }
                 return "ERR:Shape not found";
-                """, shapeId),
+                """, shapeId.trim()),
             "delete shape " + shapeId
         );
     }

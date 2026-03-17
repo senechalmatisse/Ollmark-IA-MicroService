@@ -237,7 +237,7 @@ public class PenpotShapeTools {
         code.append(String.format("rect.y = %d;\n", y));
         code.append(String.format("rect.resize(%d, %d);\n", width, height));
         if (fillColor != null && !fillColor.isBlank())
-            code.append(String.format("rect.fills = [{ fillColor: '%s' }];\n", fillColor));
+            code.append(String.format("rect.fills = [{ fillColor: '%s' }];\n", JsStringUtils.sanitizeColor(fillColor)));
         if (name != null && !name.isBlank())
             code.append(String.format("rect.name = '%s';\n", JsStringUtils.jsSafe(name)));
         code.append("return rect.id;\n");
@@ -255,10 +255,13 @@ public class PenpotShapeTools {
         code.append(String.format("ellipse.x = %d;\n", x));
         code.append(String.format("ellipse.y = %d;\n", y));
         code.append(String.format("ellipse.resize(%d, %d);\n", width, height));
-        if (fillColor != null && !fillColor.isBlank())
-            code.append(String.format("ellipse.fills = [{ fillColor: '%s' }];\n", fillColor));
-        if (name != null && !name.isBlank())
+        if (fillColor != null && !fillColor.isBlank()) {
+            code.append(String.format("ellipse.fills = [{ fillColor: '%s' }];\n",
+                JsStringUtils.sanitizeColor(fillColor)));
+        }
+        if (name != null && !name.isBlank()) {
             code.append(String.format("ellipse.name = '%s';\n", JsStringUtils.jsSafe(name)));
+        }
         code.append("return ellipse.id;\n");
         return code.toString();
     }
@@ -272,10 +275,13 @@ public class PenpotShapeTools {
         StringBuilder code = new StringBuilder();
         code.append("const board = penpot.createBoard();\n");
         code.append(String.format("board.resize(%d, %d);\n", width, height));
-        if (name != null && !name.isBlank())
+        if (name != null && !name.isBlank()) {
             code.append(String.format("board.name = '%s';\n", JsStringUtils.jsSafe(name)));
-        if (backgroundColor != null && !backgroundColor.isBlank())
-            code.append(String.format("board.fills = [{ fillColor: '%s' }];\n", backgroundColor));
+        }
+        if (backgroundColor != null && !backgroundColor.isBlank()) {
+            code.append(String.format("board.fills = [{ fillColor: '%s' }];\n",
+                JsStringUtils.sanitizeColor(backgroundColor)));
+        }
         code.append("return board.id;\n");
         return code.toString();
     }
@@ -408,10 +414,12 @@ public class PenpotShapeTools {
         String resolvedType = resolveBooleanType(boolType);
         String[] ids = shapeIds.split(",");
         StringBuilder code = new StringBuilder();
-
         code.append("const shapes = [];\n");
         for (String id : ids) {
             String trimmedId = id.trim();
+            if (!JsStringUtils.UUID_PATTERN.matcher(trimmedId).matches()) {
+                throw new IllegalArgumentException("UUID invalide : " + trimmedId);
+            }
             code.append(String.format(
                 "const shape_%s = penpot.currentPage.getShapeById('%s');\n",
                 trimmedId.replace("-", "_"), trimmedId
@@ -423,13 +431,11 @@ public class PenpotShapeTools {
             code.append(String.format("shapes.push(shape_%s);\n",
                 trimmedId.replace("-", "_")));
         }
-
         code.append("if (shapes.length < 2) throw new Error('createBoolean requires at least 2 shapes');\n");
         code.append(String.format(
             "const result = penpot.createBoolean('%s', shapes);\n", resolvedType
         ));
         code.append("if (!result) throw new Error('Boolean operation failed');\n");
-
         if (name != null && !name.isBlank()) {
             code.append(String.format("result.name = '%s';\n",
                 JsStringUtils.jsSafe(name)));
