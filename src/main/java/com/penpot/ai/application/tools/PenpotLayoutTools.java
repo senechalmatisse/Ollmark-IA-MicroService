@@ -23,6 +23,14 @@ import com.penpot.ai.shared.util.JsStringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Tools dédiés aux opérations de mise en page et d'organisation des calques dans Penpot.
+ *
+ * <p>Cette classe regroupe les actions d'alignement, de distribution, de groupement,
+ * de changement de parent et de gestion de l'ordre d'empilement. L'exécution des scripts
+ * JavaScript est centralisée via {@link PenpotToolExecutor} afin d'uniformiser la gestion
+ * des retours et des erreurs.</p>
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -33,6 +41,13 @@ public class PenpotLayoutTools {
     private final ObjectMapper objectMapper;
     private final PenpotToolExecutor toolExecutor;
 
+    /**
+     * Déplace une ou plusieurs formes existantes dans un board déjà présent sur la page courante.
+     *
+     * @param shapeIds liste d'UUID séparés par des virgules pour les formes à déplacer
+     * @param boardId UUID du board de destination
+     * @return résultat JSON standardisé de l'opération de déplacement
+     */
     @Tool(description = """
         Move one or more existing shapes into an existing board on the current page.
         Use this only when the destination board already exists.
@@ -50,6 +65,12 @@ public class PenpotLayoutTools {
         return executeMultiShape(code, "moved to board");
     }
 
+    /**
+     * Extrait une ou plusieurs formes de leur parent courant pour les replacer à la racine de la page.
+     *
+     * @param shapeIds liste d'UUID séparés par des virgules pour les formes à extraire
+     * @return résultat JSON standardisé de l'opération d'extraction
+     */
     @Tool(description = """
         Remove one or more shapes from their current parent and place them back at the page root.
         This does not delete the shapes.
@@ -65,6 +86,14 @@ public class PenpotLayoutTools {
         return executeMultiShape(code, "extracted");
     }
 
+    /**
+     * Duplique une forme et applique un décalage X/Y à la copie.
+     *
+     * @param shapeId UUID de la forme source à cloner
+     * @param offsetX décalage horizontal en pixels (20 par défaut)
+     * @param offsetY décalage vertical en pixels (20 par défaut)
+     * @return résultat JSON contenant l'identifiant de la copie créée
+     */
     @Tool(description = """
         Duplicate a shape and offset the copy by a number of pixels on the X and Y axes.
     """)
@@ -86,6 +115,13 @@ public class PenpotLayoutTools {
         return executeClone(code);
     }
 
+    /**
+     * Aligne plusieurs formes selon un mode d'alignement horizontal ou vertical.
+     *
+     * @param shapeIds liste d'UUID séparés par des virgules pour les formes à aligner
+     * @param alignment mode d'alignement demandé
+     * @return résultat JSON de l'alignement, ou une erreur si le mode est invalide
+     */
     @Tool(description = """
         Align two or more shapes on the current page.
         Valid alignment modes are: left, center, right, top, middle, bottom.
@@ -116,6 +152,13 @@ public class PenpotLayoutTools {
         return executeMultiShape(code, "aligned");
     }
 
+    /**
+     * Distribue des formes de manière homogène sur un axe donné.
+     *
+     * @param shapeIds liste d'UUID séparés par des virgules pour les formes à distribuer
+     * @param axis axe de distribution attendu ({@code horizontal} ou {@code vertical})
+     * @return résultat JSON de distribution, ou une erreur si l'axe est invalide
+     */
     @Tool(description = """
         Distribute three or more shapes evenly along one axis.
         Valid axes are: horizontal or vertical.
@@ -147,6 +190,13 @@ public class PenpotLayoutTools {
         return executeMultiShape(code, "distributed");
     }
 
+    /**
+     * Regroupe plusieurs formes dans un groupe Penpot unique.
+     *
+     * @param shapeIds liste d'UUID séparés par des virgules pour les formes à regrouper
+     * @param groupName nom optionnel du groupe créé
+     * @return résultat JSON contenant l'identifiant du groupe créé
+     */
     @Tool(description = """
         Group two or more shapes into a single Penpot group.
     """)
@@ -163,6 +213,12 @@ public class PenpotLayoutTools {
         return executeGroup(code);
     }
 
+    /**
+     * Dégroupe un ou plusieurs groupes Penpot existants.
+     *
+     * @param groupIds liste d'UUID séparés par des virgules pour les groupes à dissoudre
+     * @return résultat JSON listant les éléments traités
+     */
     @Tool(description = """
         Ungroup one or more existing Penpot groups and release their children back to the parent layer.
     """)
@@ -177,6 +233,12 @@ public class PenpotLayoutTools {
         return executeMultiShape(code, "ungrouped");
     }
 
+    /**
+     * Envoie une ou plusieurs formes d'un niveau vers l'arrière dans l'ordre des calques.
+     *
+     * @param shapeIds liste d'UUID séparés par des virgules pour les formes ciblées
+     * @return résultat JSON de l'opération de z-order
+     */
     @Tool(description = """
         Send one or more shapes one step backward in the layer order on the current page.
         Penpot equivalent: Send backward.
@@ -188,6 +250,12 @@ public class PenpotLayoutTools {
         return executeZOrder(shapeIds, "sendBackward", "sent backward");
     }
 
+    /**
+     * Fait avancer une ou plusieurs formes d'un niveau dans l'ordre des calques.
+     *
+     * @param shapeIds liste d'UUID séparés par des virgules pour les formes ciblées
+     * @return résultat JSON de l'opération de z-order
+     */
     @Tool(description = """
         Bring one or more shapes one step forward in the layer order on the current page.
         Penpot equivalent: Bring forward.
@@ -199,6 +267,12 @@ public class PenpotLayoutTools {
         return executeZOrder(shapeIds, "bringForward", "brought forward");
     }
 
+    /**
+     * Place une ou plusieurs formes tout au fond de l'ordre des calques.
+     *
+     * @param shapeIds liste d'UUID séparés par des virgules pour les formes ciblées
+     * @return résultat JSON de l'opération de z-order
+     */
     @Tool(description = """
         Send one or more shapes to the very back of the layer order on the current page.
         Penpot equivalent: Send to back.
@@ -210,6 +284,12 @@ public class PenpotLayoutTools {
         return executeZOrder(shapeIds, "sendToBack", "sent to back");
     }
 
+    /**
+     * Place une ou plusieurs formes tout au premier plan de l'ordre des calques.
+     *
+     * @param shapeIds liste d'UUID séparés par des virgules pour les formes ciblées
+     * @return résultat JSON de l'opération de z-order
+     */
     @Tool(description = """
         Bring one or more shapes to the very front of the layer order on the current page.
         Penpot equivalent: Bring to front.
@@ -221,6 +301,14 @@ public class PenpotLayoutTools {
         return executeZOrder(shapeIds, "bringToFront", "brought to front");
     }
 
+    /**
+     * Exécute une action de z-order sur une collection de formes.
+     *
+     * @param shapeIds liste brute des identifiants ciblés
+     * @param action action Penpot à exécuter
+     * @param operationLabel libellé fonctionnel utilisé dans la réponse
+     * @return résultat JSON standardisé pour l'opération demandée
+     */
     private String executeZOrder(String shapeIds, String action, String operationLabel) {
         String code = buildResolvedShapesPrelude(resolveIds(shapeIds))
             + jsString("action", action)
@@ -229,6 +317,13 @@ public class PenpotLayoutTools {
         return executeMultiShape(code, operationLabel);
     }
 
+    /**
+     * Exécute un script orienté multi-formes et formate la réponse de sortie.
+     *
+     * @param code script JavaScript à exécuter
+     * @param operationLabel libellé de l'opération métier
+     * @return réponse sérialisée pour l'orchestrateur de tools
+     */
     private String executeMultiShape(String code, String operationLabel) {
         return toolExecutor.execute(code, operationLabel, result -> {
             Object rawData = result.getData().orElse(null);
@@ -238,18 +333,36 @@ public class PenpotLayoutTools {
         });
     }
 
+    /**
+     * Exécute un script de groupement et extrait l'identifiant de groupe créé.
+     *
+     * @param code script JavaScript de groupement
+     * @return réponse sérialisée de création de groupe
+     */
     private String executeGroup(String code) {
         return toolExecutor.execute(code, "group shapes", result ->
             ToolResponseBuilder.groupCreated(readString(result, "groupId", UNKNOWN_ID))
         );
     }
 
+    /**
+     * Exécute un script de duplication et extrait l'identifiant du clone créé.
+     *
+     * @param code script JavaScript de duplication
+     * @return réponse sérialisée de clonage
+     */
     private String executeClone(String code) {
         return toolExecutor.execute(code, "clone shape", result ->
             ToolResponseBuilder.shapeCloned(readString(result, "cloneId", UNKNOWN_ID))
         );
     }
 
+    /**
+     * Construit le préambule JavaScript pour résoudre plusieurs formes sur la page courante.
+     *
+     * @param ids identifiants des formes à résoudre
+     * @return fragment JavaScript prêt à concaténer avec le script métier
+     */
     private String buildResolvedShapesPrelude(List<String> ids) {
         return """
             const page = penpot.currentPage;
@@ -259,6 +372,12 @@ public class PenpotLayoutTools {
             """.formatted(toJsArray(ids));
     }
 
+    /**
+     * Construit le préambule JavaScript pour résoudre une forme unique.
+     *
+     * @param shapeId identifiant de la forme cible
+     * @return fragment JavaScript initialisant {@code shape}
+     */
     private String buildSingleShapePrelude(String shapeId) {
         return """
             const page = penpot.currentPage;
@@ -268,10 +387,24 @@ public class PenpotLayoutTools {
             """.formatted(JsStringUtils.jsSafe(shapeId));
     }
 
+    /**
+     * Génère une déclaration JavaScript de constante chaîne avec échappement sécurisé.
+     *
+     * @param variableName nom de la variable JavaScript
+     * @param value valeur textuelle à injecter
+     * @return ligne JavaScript déclarant la constante
+     */
     private String jsString(String variableName, String value) {
         return "const %s = '%s';\n".formatted(variableName, JsStringUtils.jsSafe(value));
     }
 
+    /**
+     * Génère une constante JavaScript nullable pour une valeur texte optionnelle.
+     *
+     * @param variableName nom de la variable JavaScript
+     * @param value valeur textuelle optionnelle
+     * @return déclaration JavaScript avec {@code null} ou chaîne échappée
+     */
     private String jsNullableString(String variableName, String value) {
         if (value == null || value.isBlank()) {
             return "const %s = null;\n".formatted(variableName);
@@ -279,10 +412,23 @@ public class PenpotLayoutTools {
         return jsString(variableName, value);
     }
 
+    /**
+     * Génère une déclaration JavaScript de constante numérique.
+     *
+     * @param variableName nom de la variable JavaScript
+     * @param value valeur numérique à injecter
+     * @return ligne JavaScript déclarant la constante numérique
+     */
     private String jsNumber(String variableName, Number value) {
         return "const %s = %s;\n".formatted(variableName, value);
     }
 
+    /**
+     * Convertit une liste d'identifiants en tableau JavaScript littéral.
+     *
+     * @param ids liste d'identifiants source
+     * @return représentation JavaScript du tableau d'identifiants
+     */
     private String toJsArray(List<String> ids) {
         if (ids == null || ids.isEmpty()) {
             return "[]";
@@ -295,6 +441,12 @@ public class PenpotLayoutTools {
             .collect(Collectors.joining(", ", "[", "]"));
     }
 
+    /**
+     * Extrait la liste d'identifiants depuis un résultat de tâche normalisé.
+     *
+     * @param result résultat brut renvoyé par l'exécution du script
+     * @return liste des identifiants exploitables, potentiellement vide
+     */
     private List<String> readIds(TaskResult result) {
         Object raw = unwrapResultData(result);
         log.info("[PenpotLayoutTools] Unwrapped result data: {}", raw);
@@ -334,6 +486,14 @@ public class PenpotLayoutTools {
         return Collections.emptyList();
     }
 
+    /**
+     * Lit une valeur texte dans la charge utile de résultat avec une valeur de secours.
+     *
+     * @param result résultat brut renvoyé par l'exécution du script
+     * @param key clé attendue dans l'objet de données
+     * @param fallback valeur retournée en cas d'absence ou d'invalidité
+     * @return valeur texte lue ou valeur de secours
+     */
     private String readString(TaskResult result, String key, String fallback) {
         Object raw = unwrapResultData(result);
         if (!(raw instanceof Map<?, ?> map)) {
@@ -349,6 +509,15 @@ public class PenpotLayoutTools {
         return text.isBlank() ? fallback : text;
     }
 
+    /**
+     * Déplie et normalise la structure de données d'un {@link TaskResult}.
+     *
+     * <p>Gère le cas où la charge utile contient un niveau d'imbrication supplémentaire
+     * sous la clé {@code result}.</p>
+     *
+     * @param result résultat brut à normaliser
+     * @return objet normalisé prêt à être interprété
+     */
     private Object unwrapResultData(TaskResult result) {
         Object data = result.getData().orElse(null);
 
@@ -366,6 +535,12 @@ public class PenpotLayoutTools {
         return normalized;
     }
 
+    /**
+     * Normalise une valeur potentiellement JSON sérialisée sous forme de chaîne.
+     *
+     * @param value valeur à inspecter et normaliser
+     * @return valeur convertie en objet/list/map lorsque possible, sinon valeur d'origine
+     */
     private Object normalizeJsonLikeData(Object value) {
         if (value == null) {
             return null;
@@ -395,6 +570,12 @@ public class PenpotLayoutTools {
         return value;
     }
 
+    /**
+     * Normalise les libellés d'alignement en anglais/français vers les valeurs attendues.
+     *
+     * @param alignment libellé brut fourni par l'appelant
+     * @return valeur normalisée exploitable par les scripts d'alignement
+     */
     private String normalizeAlignment(String alignment) {
         if (alignment == null) {
             return "";
@@ -422,6 +603,12 @@ public class PenpotLayoutTools {
         };
     }
 
+    /**
+     * Découpe une chaîne d'identifiants séparés par des virgules.
+     *
+     * @param raw chaîne source potentiellement vide
+     * @return liste d'identifiants nettoyés
+     */
     private List<String> resolveIds(String raw) {
         if (raw == null || raw.isBlank()) {
             return List.of();
