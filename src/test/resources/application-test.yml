@@ -3,6 +3,14 @@
 # ============================================
 server:
   port: 0
+# ============================================
+# Configuration Sécurité (AJOUTÉ POUR LA PIPELINE)
+# ============================================
+app:
+  security:
+    swagger:
+      user: admin_audit
+      password: admin_audit_secret
 
 # ============================================
 # Configuration Penpot (Valeurs statiques de test)

@@ -174,3 +174,25 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+
+# ============================================
+# Sécurité de l'interface Swagger/OpenAPI
+# ============================================
+app:
+  security:
+    swagger:
+      user: ${SWAGGER_USER:admin_audit}
+      password: ${SWAGGER_PASSWORD}
+
+# ============================================
+# Configuration SpringDoc (Swagger UI)
+# ============================================
+springdoc:
+  api-docs:
+    enabled: ${SWAGGER_ENABLED:true}
+  swagger-ui:
+    enabled: ${SWAGGER_ENABLED:true}
+    # Trie les endpoints par méthode HTTP
+    operations-sorter: method
+    # Permet de garder la session d'authentification active
+    persist-authorization: true
