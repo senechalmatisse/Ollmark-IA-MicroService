@@ -24,6 +24,7 @@ penpot:
       repeat-penalty: ${PENPOT_ROUTER_REPEAT_PENALTY:1.05}
       max-tokens: ${PENPOT_ROUTER_MAX_TOKENS:256}
       num-ctx: ${PENPOT_ROUTER_NUM_CTX:8192}
+
     # Modèle exécuteur principal (tool calling + génération)
     executor:
       model: ${PENPOT_EXECUTOR_MODEL:qwen3:8b}
@@ -51,12 +52,14 @@ penpot:
     log-dir: ${PENPOT_LOG_DIR:logs}
     # Accès au système de fichiers (pour les opérations futures)
     file-system-access: true
+
     # Configuration de la mémoire de conversation
     chat:
       memory:
         # Nombre maximum de messages à conserver en mémoire par conversation
         # Plus cette valeur est élevée, plus le contexte est maintenu, mais plus la consommation mémoire augmente
         max-messages: ${PENPOT_CHAT_MEMORY_MAX_MESSAGES:20}
+
     # Configuration RAG (Retrieval-Augmented Generation) pour les templates marketing
     rag:
       # Chemin vers les fichiers de templates (supporte les wildcards)
@@ -80,12 +83,13 @@ spring:
       chat:
         options:
           model: ${PENPOT_EXECUTOR_MODEL:qwen3:8b}
-          temperature: ${PENPOT_ROUTER_TEMPERATURE:0.0}
-          top-p: ${PENPOT_ROUTER_TOP_P:0.9}
-          top-k: ${PENPOT_ROUTER_TOP_K:10}
-          repeat-penalty: ${PENPOT_ROUTER_REPEAT_PENALTY:1.05}
-          max-tokens: ${PENPOT_ROUTER_MAX_TOKENS:256}
-          num-ctx: ${PENPOT_ROUTER_NUM_CTX:8192}
+          temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
+          top-p: ${PENPOT_EXECUTOR_TOP_P:0.95}
+          top-k: ${PENPOT_EXECUTOR_TOP_K:20}
+          repeat-penalty: ${PENPOT_EXECUTOR_REPEAT_PENALTY:1.15}
+          presence-penalty: ${PENPOT_EXECUTOR_PRESENCE_PENALTY:0.3}
+          max-tokens: ${PENPOT_EXECUTOR_MAX_TOKENS:4096}
+          num-ctx: ${PENPOT_EXECUTOR_NUM_CTX:32000}
         observations:
           log-prompt: ${SPRING_AI_LOG_PROMPT:false}
 
@@ -113,15 +117,28 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME:${DB_USER}}
     password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD}}
     driver-class-name: org.postgresql.Driver
+
   jpa:
     hibernate:
       ddl-auto: validate
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
   flyway:
     enabled: true
-    locations: classpath:db/migration   
+    locations: classpath:db/migration
+
+  # ============================================
+  # Configuration Spring Boot
+  # ============================================
+  application:
+    name: penpot-ai-server
+
+  # Désactiver certaines auto-configurations si nécessaire
+  autoconfigure:
+    exclude:
+      # - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
 
 # ============================================
 # Configuration des logs
@@ -151,17 +168,6 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
-
-# ============================================
-# Configuration Spring Boot
-# ============================================
-  application:
-    name: penpot-ai-server
-
-  # Désactiver certaines auto-configurations si nécessaire
-  autoconfigure:
-    exclude:
-      # - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
 
 # ============================================
 # Configuration des endpoints Actuator (monitoring)
