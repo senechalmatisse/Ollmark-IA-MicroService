@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono;
 import com.penpot.ai.infrastructure.config.SecurityConfig; 
 import org.springframework.context.annotation.Import;     
 import java.util.UUID;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -29,12 +30,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Utilise {@link WebMvcTest} pour tester la configuration Web de Spring, 
  * les mappings d'URL, la sérialisation JSON et le comportement des en-têtes HTTP.
  */
-@WebMvcTest(AiController.class)
-@Import(SecurityConfig.class)
-@SpringBootTest(properties = {
-    "SWAGGER_USER=admin_test",
-    "SWAGGER_PASSWORD=test_pass"
+@WebMvcTest(value = AiController.class, properties = {
+    "app.security.swagger.user=admin_audit",
+    "app.security.swagger.password=admin_audit_secret",
+    "SWAGGER_USER=admin_audit",
+    "SWAGGER_PASSWORD=admin_audit_secret"
 })
+@Import(SecurityConfig.class)
 class AiControllerTest {
 
     @Autowired
