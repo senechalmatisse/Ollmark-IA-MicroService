@@ -31,6 +31,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @WebMvcTest(AiController.class)
 @Import(SecurityConfig.class)
+@SpringBootTest(properties = {
+    "SWAGGER_USER=admin_test",
+    "SWAGGER_PASSWORD=test_pass"
+})
 class AiControllerTest {
 
     @Autowired
