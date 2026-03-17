@@ -25,7 +25,7 @@ class AiModelConfigRepositoryTest {
     @Test
     void la_cle_api_est_chiffree_en_base_et_dechiffree_en_lecture() {
        
-        Project project = em.persist(new Project(/* tes champs obligatoires */));
+        Project project = em.persist(new Project("Test Project"));
         em.flush();
 
         AiModelConfig config = new AiModelConfig(project, "gpt-4o", "openai");
