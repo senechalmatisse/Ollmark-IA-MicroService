@@ -1,0 +1,19 @@
+{
+  "name": "Start new conversation",
+  "request": {
+    "method": "POST",
+    "url": "{{BASE_URL}}/api/ai/chat/new",
+    "body": {
+      "projectId": "{{PROJECT_ID}}"
+    },
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  },
+  "tests": [
+    {
+      "name": "Start new conversation returns 200",
+      "script": "pm.test('Status is 200', function() { pm.response.to.have.status(200); });\npm.test('Success true', function() { var json = pm.response.json(); pm.expect(json.success).to.eql(true); });"
+    }
+  ]
+}
