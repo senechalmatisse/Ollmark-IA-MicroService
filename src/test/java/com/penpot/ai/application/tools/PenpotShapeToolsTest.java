@@ -13,13 +13,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import com.penpot.ai.application.tools.support.PenpotToolExecutor;
 
-@SpringBootTest
-@ActiveProfiles("test")
+@SpringBootTest(classes = PenpotShapeTools.class)
 @DisplayName("PenpotShapeTools - Integration Tests")
 class PenpotShapeToolsTest {
 

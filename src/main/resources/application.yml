@@ -1,88 +1,21 @@
-# ============================================
-# Configuration du serveur Penpot
-# ============================================
-
-server:
-  port: 8080
-  address: 0.0.0.0
-
-# ============================================
-# Configuration Penpot
-# ============================================
-penpot:
-  ai:
-    # =============================
-    # CONFIGURATION DUAL-MODEL
-    # =============================
-
-    # Modèle léger de routage (classification d’intention)
-    router:
-      model: ${PENPOT_ROUTER_MODEL:llama3.1}
-      temperature: ${PENPOT_ROUTER_TEMPERATURE:0.0}
-      top-p: ${PENPOT_ROUTER_TOP_P:0.9}
-      top-k: ${PENPOT_ROUTER_TOP_K:10}
-      repeat-penalty: ${PENPOT_ROUTER_REPEAT_PENALTY:1.05}
-      max-tokens: ${PENPOT_ROUTER_MAX_TOKENS:256}
-      num-ctx: ${PENPOT_ROUTER_NUM_CTX:8192}
-
-    # Modèle exécuteur principal (tool calling + génération)
-    executor:
-      model: ${PENPOT_EXECUTOR_MODEL:qwen3:8b}
-      temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
-      top-p: ${PENPOT_EXECUTOR_TOP_P:0.95}
-      top-k: ${PENPOT_EXECUTOR_TOP_K:20}
-      repeat-penalty: ${PENPOT_EXECUTOR_REPEAT_PENALTY:1.15}
-      presence-penalty: ${PENPOT_EXECUTOR_PRESENCE_PENALTY:0.3}
-      max-tokens: ${PENPOT_EXECUTOR_MAX_TOKENS:4096}
-      num-ctx: ${PENPOT_EXECUTOR_NUM_CTX:32000}
-
-    # Adresse du serveur pour les clients externes
-    server-address: ${PENPOT_SERVER_ADDRESS:localhost}
-    # Port WebSocket pour la communication avec le plugin
-    websocket-port: ${PENPOT_WEBSOCKET_PORT:8080}
-    # Port REPL (si activé)
-    repl-port: ${PENPOT_REPL_PORT:4403}
-    # Mode distant : true si le plugin est hébergé ailleurs
-    remote-mode: ${PENPOT_REMOTE_MODE:false}
-    # Mode multi-utilisateur : permet plusieurs connexions simultanées
-    multi-user: ${PENPOT_MULTI_USER:false}
-    # Niveau de log : trace, debug, info, warn, error
-    log-level: ${PENPOT_LOG_LEVEL:debug}
-    # Répertoire pour les fichiers de log
-    log-dir: ${PENPOT_LOG_DIR:logs}
-    # Accès au système de fichiers (pour les opérations futures)
-    file-system-access: true
-
-    # Configuration de la mémoire de conversation
-    chat:
-      memory:
-        # Nombre maximum de messages à conserver en mémoire par conversation
-        # Plus cette valeur est élevée, plus le contexte est maintenu, mais plus la consommation mémoire augmente
-        max-messages: ${PENPOT_CHAT_MEMORY_MAX_MESSAGES:20}
-
-    # Configuration RAG (Retrieval-Augmented Generation) pour les templates marketing
-    rag:
-      # Chemin vers les fichiers de templates (supporte les wildcards)
-      templates-path: ${PENPOT_RAG_TEMPLATES_PATH:classpath:data/rag/templates/*.json}
-      # Seuil de similarité pour la recherche sémantique (0.0 à 1.0)
-      # Plus élevé = correspondances plus strictes
-      similarity-threshold: ${PENPOT_RAG_SIMILARITY_THRESHOLD:0.5}
-      # Nombre de templates à retourner lors d'une recherche
-      top-k: ${PENPOT_RAG_TOP_K:3}
-      # Nombre de variantes générées
-      query-variants: ${PENPOT_RAG_QUERY_VARIANTS:2}
-      eager-embedding: true
-
-# ============================================
-# Configuration Spring AI avec Ollama
-# ============================================
 spring:
+  application:
+    name: penpot-ai-server
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
   ai:
     ollama:
-      base-url: ${OLLAMA_BASE_URL:http://localhost:11434/}
+      base-url: ${OLLAMA_BASE_URL:http://10.130.163.62:11434/}
       chat:
         options:
-          model: ${PENPOT_EXECUTOR_MODEL:qwen3:8b}
+          model: ${PENPOT_EXECUTOR_MODEL:qwen3.5:9b}
           temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
           top-p: ${PENPOT_EXECUTOR_TOP_P:0.95}
           top-k: ${PENPOT_EXECUTOR_TOP_K:20}
@@ -97,81 +30,67 @@ spring:
         observations:
           include-content: true
 
-      # Configuration des embeddings (pour la recherche sémantique)
       embedding:
         options:
-          # Modèle d'embedding pour le RAG
           model: ${OLLAMA_EMBEDDING_MODEL:hf.co/unsloth/embeddinggemma-300m-GGUF:Q8_0}
 
-    # ============================================
-    # CONFIGURATION CHAT MEMORY
-    # ============================================
     chat:
       memory:
         repository:
           jdbc:
             initialize-schema: never
 
-  datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}}
-    username: ${SPRING_DATASOURCE_USERNAME:${DB_USER}}
-    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD}}
-    driver-class-name: org.postgresql.Driver
+server:
+  port: 8080
+  address: 0.0.0.0
 
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+# ── Configuration AI commune (overridable par profil) ──────────────────────
+penpot:
+  ai:
+    router:
+      model: ${PENPOT_ROUTER_MODEL:llama3.1}
+      temperature: ${PENPOT_ROUTER_TEMPERATURE:0.0}
+      top-p: ${PENPOT_ROUTER_TOP_P:0.9}
+      top-k: ${PENPOT_ROUTER_TOP_K:10}
+      repeat-penalty: ${PENPOT_ROUTER_REPEAT_PENALTY:1.05}
+      max-tokens: ${PENPOT_ROUTER_MAX_TOKENS:256}
+      num-ctx: ${PENPOT_ROUTER_NUM_CTX:8192}
+    executor:
+      model: ${PENPOT_EXECUTOR_MODEL:qwen3.5:9b}
+      temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
+      top-p: ${PENPOT_EXECUTOR_TOP_P:0.95}
+      top-k: ${PENPOT_EXECUTOR_TOP_K:20}
+      repeat-penalty: ${PENPOT_EXECUTOR_REPEAT_PENALTY:1.15}
+      presence-penalty: ${PENPOT_EXECUTOR_PRESENCE_PENALTY:0.3}
+      max-tokens: ${PENPOT_EXECUTOR_MAX_TOKENS:4096}
+      num-ctx: ${PENPOT_EXECUTOR_NUM_CTX:32000}
+    chat:
+      memory:
+        max-messages: ${PENPOT_CHAT_MEMORY_MAX_MESSAGES:20}
+    rag:
+      templates-path: ${PENPOT_RAG_TEMPLATES_PATH:classpath:data/rag/templates/*.json}
+      similarity-threshold: ${PENPOT_RAG_SIMILARITY_THRESHOLD:0.5}
+      top-k: ${PENPOT_RAG_TOP_K:3}
+      query-variants: ${PENPOT_RAG_QUERY_VARIANTS:2}
+      eager-embedding: true
+    repl-port: ${PENPOT_REPL_PORT:4403}
+    remote-mode: ${PENPOT_REMOTE_MODE:false}
+    multi-user: ${PENPOT_MULTI_USER:false}
+    file-system-access: true
+    log-dir: ${PENPOT_LOG_DIR:logs}
 
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
-
-  # ============================================
-  # Configuration Spring Boot
-  # ============================================
-  application:
-    name: penpot-ai-server
-
-  # Désactiver certaines auto-configurations si nécessaire
-  autoconfigure:
-    exclude:
-      # - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
-
-# ============================================
-# Configuration des logs
-# ============================================
+# ── Format des logs (commun à tous les profils) ────────────────────────────
 logging:
-  level:
-    com.penpot.ai: ${penpot.ai.log-level:DEBUG}
-    org.springframework.ai.chat.client: TRACE
-    org.springframework.ai.rag: DEBUG
-    org.springframework.ai.chat.memory: DEBUG
-    org.springframework.ai.chat.memory.repository.jdbc: DEBUG
-    org.springframework.ai.chat.client.advisor: DEBUG
-    org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor: DEBUG
-    com.penpot.ai.adapters.out.ai.RequestComplexityAnalyzer: DEBUG
-    org.springframework.ai.ollama: ${penpot.ai.log-level}
-    org.springframework.web.socket: INFO
-    org.springframework.web.client: INFO
-
-  # Configuration du fichier de log
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
   file:
     name: ${penpot.ai.log-dir}/penpot.log
     max-size: 10MB
     max-history: 30
     total-size-cap: 100MB
 
-  # Format des logs
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
-
-# ============================================
-# Configuration des endpoints Actuator (monitoring)
-# ============================================
+# ── Actuator ───────────────────────────────────────────────────────────────
 management:
   endpoints:
     web:
@@ -205,4 +124,4 @@ springdoc:
 # Configuration de Jasypt pour l'encryption des propriétés sensibles
 
 crypto:
-  master-key: ${CRYPTO_MASTER_KEY:5d8b57a473a25517d5b30e8675b66a050b41238072374b3d810e6598dab5f194}
+  master-key: ${CRYPTO_MASTER_KEY}
