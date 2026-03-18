@@ -92,7 +92,7 @@ public class RagConfig {
      */
     @Bean
     public RetrievalAugmentationAdvisor retrievalAugmentationAdvisor(
-        @Qualifier("executorChatClientBuilder") ChatClient.Builder chatClientBuilder,  // ← qualifier manquant
+        @Qualifier("executorChatClientBuilder") ChatClient.Builder chatClientBuilder,
         VectorStore vectorStore
     ) {
         log.info("Configuring RetrievalAugmentationAdvisor:");
@@ -118,7 +118,7 @@ public class RagConfig {
         MultiQueryExpander multiQueryExpander = MultiQueryExpander.builder()
             .chatClientBuilder(transformerBuilder)
             .numberOfQueries(queryVariants)
-            .includeOriginal(true)  // inclure la query originale en plus des variantes
+            .includeOriginal(true)
             .build();
 
         // 3. Retriever : recherche vectorielle
@@ -130,7 +130,7 @@ public class RagConfig {
 
         // 4. Augmenter : injecte le contexte dans le prompt
         ContextualQueryAugmenter queryAugmenter = ContextualQueryAugmenter.builder()
-            .allowEmptyContext(true)  // ne bloque pas si aucun template trouvé
+            .allowEmptyContext(true)
             .build();
 
         return RetrievalAugmentationAdvisor.builder()

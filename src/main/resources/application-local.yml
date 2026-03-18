@@ -1,0 +1,82 @@
+# ═══════════════════════════════════════════════════════════════════
+# Profil LOCAL — développement sur machine locale
+# ═══════════════════════════════════════════════════════════════════
+
+# ── Base de données locale ─────────────────────────────────────────
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST}:${DB_PORT:5433}/${DB_NAME}}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USER}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD}}
+    driver-class-name: org.postgresql.Driver
+
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 30000
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  # ── Ollama local ─────────────────────────────────────────────────
+  ai:
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://10.130.163.62:11434/}
+      chat:
+        options:
+          model: ${PENPOT_EXECUTOR_MODEL:qwen3.5:9b}
+          temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
+          top-p: ${PENPOT_EXECUTOR_TOP_P:0.95}
+          top-k: ${PENPOT_EXECUTOR_TOP_K:20}
+          repeat-penalty: ${PENPOT_EXECUTOR_REPEAT_PENALTY:1.15}
+          presence-penalty: ${PENPOT_EXECUTOR_PRESENCE_PENALTY:0.3}
+          max-tokens: ${PENPOT_EXECUTOR_MAX_TOKENS:4096}
+          num-ctx: ${PENPOT_EXECUTOR_NUM_CTX:32000}
+        observations:
+          log-prompt: ${SPRING_AI_LOG_PROMPT:false}
+
+      tools:
+        observations:
+          include-content: true
+
+      embedding:
+        options:
+          model: ${OLLAMA_EMBEDDING_MODEL:hf.co/unsloth/embeddinggemma-300m-GGUF:Q8_0}
+
+    chat:
+      memory:
+        repository:
+          jdbc:
+            initialize-schema: never
+
+# ── CORS : uniquement localhost ────────────────────────────────────
+cors:
+  allowed-origins: >
+    http://localhost,
+    http://localhost:4200,
+    https://design.penpot.app
+
+# ── WebSocket ──────────────────────────────────────────────────────
+penpot:
+  ai:
+    server-address: localhost
+    websocket-port: 8080
+
+# ── Logging verbose ────────────────────────────────────────────────
+logging:
+  level:
+    com.penpot.ai: DEBUG
+    org.springframework.ai.chat.client: TRACE
+    org.springframework.ai.rag: DEBUG
+    org.springframework.ai.chat.memory: DEBUG
+    org.springframework.ai.ollama: DEBUG
+    org.springframework.web.socket: DEBUG
+    org.springframework.web.client: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.ai.chat.client.advisor: DEBUG
+    com.penpot.ai.adapters.out.ai.RequestComplexityAnalyzer: DEBUG
