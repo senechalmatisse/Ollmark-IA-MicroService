@@ -1,0 +1,18 @@
+meta {
+  name: "Get chat history"
+  type: "http"
+}
+
+get {
+  url: {{BASE_URL}}/api/ai/chat/{{PROJECT_ID}}/history?limit=10
+}
+
+tests {
+  pm.test("Status is 200", function() {
+    pm.response.to.have.status(200);
+  });
+  pm.test("Returns an array", function() {
+    var json = pm.response.json();
+    pm.expect(Array.isArray(json)).to.eql(true);
+  });
+}
