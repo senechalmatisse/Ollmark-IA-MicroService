@@ -58,6 +58,10 @@ cors:
   allowed-origins: >
     http://localhost,
     http://localhost:4200,
+    http://10.130.163.57:50012,
+    https://10.130.163.57:50012,
+    http://10.130.163.57:50030,
+    https://10.130.163.57:50030,
     https://design.penpot.app
 
 # ── WebSocket ──────────────────────────────────────────────────────
