@@ -1,0 +1,28 @@
+meta {
+  name: "Chat AI"
+  type: "http"
+}
+
+post {
+  url: {{BASE_URL}}/api/ai/chat
+}
+
+headers {
+  Content-Type: "application/json"
+}
+
+body:json {
+  "projectId": "{{PROJECT_ID}}",
+  "message": "Hello AI",
+  "sessionId": "session-1"
+}
+
+tests {
+  pm.test("Status is 200", function() {
+    pm.response.to.have.status(200);
+  });
+  pm.test("Success true", function() {
+    var json = pm.response.json();
+    pm.expect(json.success).to.eql(true);
+  });
+}
