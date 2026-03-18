@@ -3,7 +3,6 @@ package com.penpot.ai.application.tools;
 import com.penpot.ai.application.tools.support.PenpotToolExecutor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -92,7 +91,7 @@ class PenpotDeleteToolsUnit {
     @Test
     void shouldPassShapeIdInJsCodeWhenDeletingShapeById() {
         // GIVEN
-        String shapeId = "shape-uuid-123";
+        String shapeId = "11111111-1111-1111-1111-111111111111";
         when(toolExecutor.execute(anyString(), anyString(), any())).thenReturn("ok");
         ArgumentCaptor<String> codeCaptor = ArgumentCaptor.forClass(String.class);
 
@@ -101,13 +100,13 @@ class PenpotDeleteToolsUnit {
 
         // THEN
         verify(toolExecutor).execute(codeCaptor.capture(), anyString(), any());
-        assertThat(codeCaptor.getValue()).contains("shape-uuid-123");
+        assertThat(codeCaptor.getValue()).contains("11111111-1111-1111-1111-111111111111");
     }
 
     @Test
     void shouldIncludeShapeIdInOperationLabelWhenDeletingShapeById() {
         // GIVEN
-        String shapeId = "shape-uuid-456";
+        String shapeId = "11111111-1111-1111-1111-111111111111";
         when(toolExecutor.execute(anyString(), anyString(), any())).thenReturn("ok");
         ArgumentCaptor<String> labelCaptor = ArgumentCaptor.forClass(String.class);
 
@@ -116,7 +115,7 @@ class PenpotDeleteToolsUnit {
 
         // THEN
         verify(toolExecutor).execute(anyString(), labelCaptor.capture(), any());
-        assertThat(labelCaptor.getValue()).contains("shape-uuid-456");
+        assertThat(labelCaptor.getValue()).contains("11111111-1111-1111-1111-111111111111");
     }
 
     @Test
@@ -126,7 +125,7 @@ class PenpotDeleteToolsUnit {
         ArgumentCaptor<String> codeCaptor = ArgumentCaptor.forClass(String.class);
 
         // WHEN
-        penpotDeleteTools.deleteShapeById("any-id");
+        penpotDeleteTools.deleteShapeById("11111111-1111-1111-1111-111111111111");
 
         // THEN
         verify(toolExecutor).execute(codeCaptor.capture(), anyString(), any());
@@ -140,7 +139,7 @@ class PenpotDeleteToolsUnit {
         ArgumentCaptor<String> codeCaptor = ArgumentCaptor.forClass(String.class);
 
         // WHEN
-        penpotDeleteTools.deleteShapeById("any-id");
+        penpotDeleteTools.deleteShapeById("11111111-1111-1111-1111-111111111111");
 
         // THEN
         verify(toolExecutor).execute(codeCaptor.capture(), anyString(), any());

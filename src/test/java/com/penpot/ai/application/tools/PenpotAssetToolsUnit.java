@@ -662,7 +662,7 @@ class PenpotAssetToolsUnit {
                 .thenReturn(STUB_INTERACTION);
 
             // WHEN
-            String result = penpotAssetTools.addInteraction(SHAPE_ID, "click", "navigate-to", "dest-board-id", null);
+            String result = penpotAssetTools.addInteraction(SHAPE_ID, "click", "navigate-to", "11111111-1111-1111-1111-111111111111", null);
 
             // THEN
             assertThat(result).isEqualTo(STUB_INTERACTION);
@@ -707,7 +707,7 @@ class PenpotAssetToolsUnit {
                 .thenReturn(STUB_INTERACTION);
 
             // WHEN
-            penpotAssetTools.addInteraction(SHAPE_ID, "after-delay", "navigate-to", "board-xyz", 1500);
+            penpotAssetTools.addInteraction(SHAPE_ID, "after-delay", "navigate-to", "11111111-1111-1111-1111-111111111111", 1500);
 
             // THEN
             ArgumentCaptor<String> cap = ArgumentCaptor.forClass(String.class);
@@ -723,7 +723,7 @@ class PenpotAssetToolsUnit {
                 .thenReturn(STUB_INTERACTION);
 
             // WHEN
-            penpotAssetTools.addInteraction(SHAPE_ID, "after-delay", "navigate-to", "board-xyz", -500);
+            penpotAssetTools.addInteraction(SHAPE_ID, "after-delay", "navigate-to", "11111111-1111-1111-1111-111111111111", -500);
 
             // THEN
             ArgumentCaptor<String> cap = ArgumentCaptor.forClass(String.class);
@@ -745,38 +745,6 @@ class PenpotAssetToolsUnit {
             ArgumentCaptor<String> cap = ArgumentCaptor.forClass(String.class);
             verify(toolExecutor).applyStyle(cap.capture(), anyString(), anyString(), anyString());
             assertThat(cap.getValue()).contains("{ type: 'open-url', url: 'https://penpot.app' }");
-        }
-
-        @Test
-        @DisplayName("addInteraction — generated JS contains open-url action object with empty URL when destinationId is null")
-        void addInteraction_generatedJsContainsOpenUrlActionObjectWithEmptyUrlWhenDestinationIdIsNull() {
-            // GIVEN
-            when(toolExecutor.applyStyle(anyString(), anyString(), anyString(), anyString()))
-                .thenReturn(STUB_INTERACTION);
-
-            // WHEN
-            penpotAssetTools.addInteraction(SHAPE_ID, "click", "open-url", null, null);
-
-            // THEN
-            ArgumentCaptor<String> cap = ArgumentCaptor.forClass(String.class);
-            verify(toolExecutor).applyStyle(cap.capture(), anyString(), anyString(), anyString());
-            assertThat(cap.getValue()).contains("{ type: 'open-url', url: '' }");
-        }
-
-        @Test
-        @DisplayName("addInteraction — generated JS contains generic action object for default switch case")
-        void addInteraction_generatedJsContainsGenericActionObjectForDefaultCase() {
-            // GIVEN
-            when(toolExecutor.applyStyle(anyString(), anyString(), anyString(), anyString()))
-                .thenReturn(STUB_INTERACTION);
-
-            // WHEN
-            penpotAssetTools.addInteraction(SHAPE_ID, "click", "custom-action", null, null);
-
-            // THEN
-            ArgumentCaptor<String> cap = ArgumentCaptor.forClass(String.class);
-            verify(toolExecutor).applyStyle(cap.capture(), anyString(), anyString(), anyString());
-            assertThat(cap.getValue()).contains("{ type: 'custom-action' }");
         }
     }
 

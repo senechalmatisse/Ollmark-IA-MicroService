@@ -561,20 +561,31 @@ public class PenpotAssetTools {
      * @return L'objet JavaScript représentant l'action sous format texte.
      */
     private String buildActionJs(String actionType, String destinationId) {
+        if (!JsStringUtils.ALLOWED_ACTION_TYPES.contains(actionType)) {
+            throw new IllegalArgumentException("Action invalide : " + actionType);
+        }
         return switch (actionType) {
-            case "navigate-to", "open-overlay", "toggle-overlay" ->
-                String.format("""
+            case "navigate-to", "open-overlay", "toggle-overlay" -> {
+                if (destinationId == null || !JsStringUtils.UUID_PATTERN.matcher(destinationId.trim()).matches()) {
+                    throw new IllegalArgumentException("UUID invalide : " + destinationId);
+                }
+                yield String.format("""
                     (() => {
                         const dest = penpot.currentPage.getShapeById('%s');
                         if (!dest) throw new Error('Destination board not found: %s');
                         return { type: '%s', destination: dest };
                     })()
-                    """, destinationId, destinationId, actionType);
+                    """, destinationId.trim(), destinationId.trim(), actionType);
+            }
             case "close-overlay" -> "{ type: 'close-overlay' }";
             case "prev-screen"   -> "{ type: 'prev-screen' }";
-            case "open-url"      -> String.format("{ type: 'open-url', url: '%s' }",
-                                        destinationId != null ? destinationId : "");
-            default              -> String.format("{ type: '%s' }", actionType);
+            case "open-url"      -> {
+                if (destinationId == null || !JsStringUtils.URL_PATTERN.matcher(destinationId).matches()) {
+                    throw new IllegalArgumentException("URL invalide : " + destinationId);
+                }
+                yield String.format("{ type: 'open-url', url: '%s' }", destinationId);
+            }
+            default -> throw new IllegalArgumentException("Action invalide : " + actionType);
         };
     }
 
