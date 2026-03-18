@@ -1,9 +1,13 @@
 package com.penpot.ai.application.usecases;
 
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
+import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.messages.Message;
 import org.springframework.stereotype.Service;
 
+import com.penpot.ai.application.service.MessagePersistenceService;
 import com.penpot.ai.core.ports.in.ConversationChatUseCase;
 import com.penpot.ai.core.ports.out.AiServicePort;
 import com.penpot.ai.shared.exception.ToolExecutionException;
@@ -11,8 +15,7 @@ import com.penpot.ai.shared.util.ValidationUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Implémentation du use case de chat conversationnel.
@@ -60,68 +63,78 @@ public class ConversationChatUseCaseImpl implements ConversationChatUseCase {
     /** Port vers le service d'IA. */
     private final AiServicePort aiService;
 
+    private final ChatMemory chatMemory;
+
+    private final MessagePersistenceService messagePersistenceService;
+
     @Override
-    public Flux<String> chat(String conversationId, String message, String userToken) {
-        validateChatInput(conversationId, message);
-        log.info("Processing chat request for conversation: {} (message length: {} chars)", 
-            conversationId, message.length());
-        return aiService.chat(conversationId, message, userToken);
+    public Mono<String> chat(String projectId, String message, String sessionId) {
+        validateChatInput(projectId, message, sessionId);
+        String conversationKey = (sessionId != null && !sessionId.isBlank())
+            ? projectId + ":" + sessionId
+            : projectId;
+
+        log.info(
+            "Processing chat for project: {} (conversationKey: {}, sessionId: {})", 
+            projectId, conversationKey, sessionId
+        );
+
+        return aiService.chat(conversationKey, message)
+            .collectList()
+            .map(list -> String.join("", list))
+            .doOnSuccess(aiResponse -> {
+                log.info("[Persistence] Triggering persist for project={} sessionId={} responseLength={}",
+                    projectId, sessionId, aiResponse != null ? aiResponse.length() : 0);
+                messagePersistenceService.persist(projectId, sessionId, message, aiResponse);
+            });
     }
 
     @Override
-    public String startNewConversation(String userId) {
-        String conversationId = generateConversationId(userId);
-        log.info("Started new conversation: {} (userId: {})", 
-            conversationId, 
-            userId != null ? userId : "anonymous");
-        return conversationId;
+    public String startNewConversation(String projectId) {
+        ValidationUtils.requireNonBlank(projectId, "Project ID");
+        log.info("Started new conversation for project: {}", projectId);
+        return projectId;
     }
 
     @Override
-    public void clearConversation(String conversationId) {
-        ValidationUtils.requireNonBlank(conversationId, "Conversation ID");
-        log.info("Clearing conversation history: {}", conversationId);
+    public void clearConversation(String projectId) {
+        ValidationUtils.requireNonBlank(projectId, "Project ID");
+        log.info("Clearing conversation history for project: {}", projectId);
 
         try {
-            aiService.clearConversation(conversationId);
-            log.info("Conversation {} cleared successfully", conversationId);
+            aiService.clearConversation(projectId);
+            log.info("Conversation for project {} cleared successfully", projectId);
         } catch (IllegalArgumentException e) {
-            log.warn("Invalid conversation ID: {}", conversationId, e);
+            log.warn("Invalid project ID: {}", projectId, e);
             throw e;
         } catch (Exception e) {
-            log.error("Failed to clear conversation: {}", conversationId, e);
+            log.error("Failed to clear conversation for project: {}", projectId, e);
             throw new ToolExecutionException(
-                "Failed to clear conversation " + conversationId + ": " + e.getMessage(), 
+                "Failed to clear conversation for project " + projectId + ": " + e.getMessage(), 
                 e
             );
         }
     }
 
-    /**
-     * Génère un ID de conversation unique.
-     * 
-     * <h3>Format</h3>
-     * <ul>
-     *     <li>Avec userId : {@code user-{userId}-{uuid8}}</li>
-     *     <li>Sans userId : {@code anonymous-{uuid8}}</li>
-     * </ul>
-     * 
-     * <h3>Exemples</h3>
-     * <ul>
-     *     <li>{@code user-alice-a1b2c3d4}</li>
-     *     <li>{@code user-bob-e5f6g7h8}</li>
-     *     <li>{@code anonymous-i9j0k1l2}</li>
-     * </ul>
-     * 
-     * @param userId ID de l'utilisateur (peut être null)
-     * @return ID de conversation généré
-     */
-    private String generateConversationId(String userId) {
-        String uuid8 = UUID.randomUUID().toString().substring(0, 8);
-        if (userId != null && !userId.isBlank()) {
-            return String.format("user-%s-%s", userId, uuid8);
+    @Override
+    public List<Map<String, Object>> getHistory(String projectId, int limit) {
+        ValidationUtils.requireNonBlank(projectId, "Project ID");
+        try {
+            List<Message> messages = chatMemory.get(projectId);
+            if (messages == null || messages.isEmpty()) return List.of();
+
+            return messages.stream()
+                .map(m -> {
+                    Map<String, Object> msg = new HashMap<>();
+                    msg.put("role", m.getMessageType().getValue());
+                    msg.put("content", m.getText());
+                    return msg;
+                })
+                .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.warn("Could not retrieve history for project {}: {}", projectId, e.getMessage());
+            return List.of();
         }
-        return String.format("anonymous-%s", uuid8);
     }
 
     /**
@@ -129,10 +142,12 @@ public class ConversationChatUseCaseImpl implements ConversationChatUseCase {
      * 
      * @param conversationId l'ID de conversation
      * @param message le message de l'utilisateur
+     * @param sessionID l'ID de la session
      * @throws ValidationException si les paramètres sont invalides
      */
-    private void validateChatInput(String conversationId, String message) {
+    private void validateChatInput(String conversationId, String message, String sessionId) {
         ValidationUtils.requireNonBlank(conversationId, "Conversation ID");
         ValidationUtils.validateString(message, "Message", 10000);
+        ValidationUtils.requireNonBlank(sessionId, "Session ID");
     }
 }

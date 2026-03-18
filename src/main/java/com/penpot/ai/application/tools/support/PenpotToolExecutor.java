@@ -1,5 +1,6 @@
 package com.penpot.ai.application.tools.support;
 
+import com.penpot.ai.application.service.SessionContextHolder;
 import com.penpot.ai.core.domain.*;
 import com.penpot.ai.core.ports.in.ExecuteCodeUseCase;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import java.util.function.Function;
 public class PenpotToolExecutor {
 
     private final ExecuteCodeUseCase executeCodeUseCase;
+    private final SessionContextHolder sessionContextHolder;
 
     /** Constante définissant la valeur par défaut lorsqu'un identifiant ne peut être extrait. */
     private static final String UNKNOWN_ID = "unknown";
@@ -33,12 +35,23 @@ public class PenpotToolExecutor {
      * @param resultMapper  La fonction de transformation chargée de convertir l'objet {@link TaskResult} de domaine en une chaîne JSON finalisée.
      * @return              La réponse JSON formatée, indiquant soit la réussite et les données associées, soit l'échec et son motif.
      */
-    public String execute(String code, String operationName, Function<TaskResult, String> resultMapper) {
+    public String execute(
+        String code,
+        String operationName,
+        Function<TaskResult, String> resultMapper
+    ) {
         try {
-            TaskResult result = executeCodeUseCase.execute(ExecuteCodeCommand.of(code));
+            String sessionId = sessionContextHolder.get();
+            ExecuteCodeCommand command = ExecuteCodeCommand.of(code, sessionId);
+
+            log.debug("[ToolExecutor] Executing '{}' (sessionId: {})",
+                operationName, sessionId != null ? sessionId : "none");
+
+            TaskResult result = executeCodeUseCase.execute(command);
             if (!result.isSuccess()) {
                 return ToolResponseBuilder.error(result.getError().orElse("Unknown error"));
             }
+
             return resultMapper.apply(result);
         } catch (Exception e) {
             log.error("Failed to execute Penpot operation: {}", operationName, e);
@@ -60,24 +73,6 @@ public class PenpotToolExecutor {
             log.debug("Created {} → ID: {}", shapeType, shapeId);
             return ToolResponseBuilder.shapeCreated(shapeType, shapeId);
         });
-    }
-
-    /**
-     * Tente d'extraire la valeur brute de l'identifiant contenu dans la réponse du moteur d'exécution.
-     *
-     * @param result L'objet encapsulant le résultat de la tâche exécutée.
-     * @return       La chaîne de caractères représentant l'identifiant, ou une valeur par défaut si l'extraction échoue.
-     */
-    private String extractRawId(TaskResult result) {
-        return result.getData()
-            .map(data -> {
-                if (data instanceof Map<?, ?> map) {
-                    Object inner = map.get("result");
-                    if (inner != null) return inner.toString();
-                }
-                return data.toString();
-            })
-            .orElse(UNKNOWN_ID);
     }
 
     /**
@@ -113,22 +108,6 @@ public class PenpotToolExecutor {
         return execute(code, operation, result -> {
             log.info("Successfully applied {} to: {}", operation, shapeId);
             return ToolResponseBuilder.shapeOperation(operation, shapeId, details);
-        });
-    }
-
-    /**
-     * Exécute un traitement par lots ciblant simultanément un ensemble d'éléments de l'interface.
-     *
-     * @param code           Le script d'opération collective retournant une matrice d'identifiants.
-     * @param operationLabel La nomenclature décrivant l'action d'ensemble menée.
-     * @return               La synthèse JSON de l'opération, incluant le décompte et la liste exhaustive des formes altérées.
-     */
-    public String executeMultiShape(String code, String operationLabel) {
-        log.info("Executing multi-shape operation: {}", operationLabel);
-        return execute(code, operationLabel, result -> {
-            List<String> ids = extractIdList(result, "ids");
-            log.info("Successfully {} {} shapes", operationLabel, ids.size());
-            return ToolResponseBuilder.multiShapeOperation(operationLabel, ids);
         });
     }
 
@@ -189,6 +168,24 @@ public class PenpotToolExecutor {
     }
 
     /**
+     * Tente d'extraire la valeur brute de l'identifiant contenu dans la réponse du moteur d'exécution.
+     *
+     * @param result L'objet encapsulant le résultat de la tâche exécutée.
+     * @return       La chaîne de caractères représentant l'identifiant, ou une valeur par défaut si l'extraction échoue.
+     */
+    private String extractRawId(TaskResult result) {
+        return result.getData()
+            .map(data -> {
+                if (data instanceof Map<?, ?> map) {
+                    Object inner = map.get("result");
+                    if (inner != null) return inner.toString();
+                }
+                return data.toString();
+            })
+            .orElse(UNKNOWN_ID);
+    }
+
+    /**
      * Inspecte les données contenues dans le résultat d'exécution pour isoler un identifiant unique associé à une clé spécifique.
      *
      * @param result   L'objet contenant les données de retour du script.
@@ -204,22 +201,5 @@ public class PenpotToolExecutor {
                 return id != null ? id.toString() : fallback;
             })
             .orElse(fallback);
-    }
-
-    /**
-     * Parcourt les résultats de la tâche pour extraire une collection d'identifiants sous forme de liste de chaînes.
-     *
-     * @param result L'objet de réponse contenant potentiellement la matrice d'identifiants.
-     * @param key    La clé permettant d'accéder au tableau d'identifiants dans la structure de données.
-     * @return       Une liste contenant les identifiants extraits, ou une liste vide en cas d'anomalie de format.
-     */
-    private List<String> extractIdList(TaskResult result, String key) {
-        return result.getData()
-            .filter(d -> d instanceof Map<?, ?>)
-            .map(d -> {
-                Object list = ((Map<?, ?>) d).get(key);
-                return (list instanceof List<?>) ? (List<String>) list : List.<String>of();
-            })
-            .orElse(List.of());
     }
 }

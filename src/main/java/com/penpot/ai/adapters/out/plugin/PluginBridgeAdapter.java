@@ -171,8 +171,8 @@ public class PluginBridgeAdapter implements PluginCommunicationPort {
      * @return     Les critères de recherche normalisés pour le gestionnaire de sessions.
      */
     private SessionCriteria buildCriteria(Task task) {
-        return task.getUserToken()
-            .map(SessionCriteria::forUser)
+        return task.getSessionId()
+            .map(SessionCriteria::forSession)
             .orElseGet(SessionCriteria::any);
     }
 

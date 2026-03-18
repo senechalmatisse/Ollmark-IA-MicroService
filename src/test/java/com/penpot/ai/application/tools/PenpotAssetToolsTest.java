@@ -13,6 +13,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import org.mockito.ArgumentCaptor;
+import com.penpot.ai.core.domain.ExecuteCodeCommand;
+
 /**
  * Tests d'intégration pour {@link PenpotAssetTools}.
  * <p>
@@ -104,6 +107,41 @@ class PenpotAssetToolsTest {
             // THEN
             verify(executeCodeUseCase, times(2)).execute(any());
         }
+
+        @Test
+        @DisplayName("applyFillColor — generated JS contains shapeId, fillColor and fillOpacity")
+        void applyFillColor_generatedJsContainsShapeIdFillColorAndFillOpacity() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotAssetTools.applyFillColor(SHAPE_ID, "#FF0000", 0.8f);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            String code = captor.getValue().getCode();
+            assertThat(code).contains("getShapeById('" + SHAPE_ID + "')");
+            assertThat(code).contains("fillColor: '#FF0000'");
+            assertThat(code).contains("fillOpacity: 0.80");
+        }
+
+        @Test
+        @DisplayName("applyFillColor — generated JS uses fallback fillOpacity 1.00 when opacity is out of range")
+        void applyFillColor_generatedJsUsesFallbackOpacityWhenOpacityIsOutOfRange() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotAssetTools.applyFillColor(SHAPE_ID, "#FF0000", -0.5f);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getCode()).contains("fillOpacity: 1.00");
+        }
     }
     /**
      * Tests liés à l'application de dégradés linéaires.
@@ -140,6 +178,48 @@ class PenpotAssetToolsTest {
 
             // THEN
             assertThat(result).contains("\"success\": true");
+        }
+
+        @Test
+        @DisplayName("applyGradient — generated JS contains linear gradient type, colors and angle")
+        void applyGradient_generatedJsContainsLinearGradientTypeColorsAndAngle() {
+        // GIVEN
+        when(executeCodeUseCase.execute(any()))
+            .thenReturn(TaskResult.success("{}"));
+        ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+        // WHEN
+        penpotAssetTools.applyGradient(SHAPE_ID, "#FF0000", "#0000FF", 45f);
+
+        // THEN
+        verify(executeCodeUseCase).execute(captor.capture());
+        String code = captor.getValue().getCode();
+        assertThat(code).contains("getShapeById('" + SHAPE_ID + "')");
+        assertThat(code).contains("type: 'linear'");
+        assertThat(code).contains("color: '#FF0000'");
+        assertThat(code).contains("color: '#0000FF'");
+        assertThat(code).contains("angle: 45");
+        }
+
+        @Test
+        @DisplayName("applyGradient — generated JS uses left-to-right coordinates when angle is null (default 0°)")
+        void applyGradient_generatedJsUsesLeftToRightCoordinatesWhenAngleIsNull() {
+        // GIVEN
+        when(executeCodeUseCase.execute(any()))
+            .thenReturn(TaskResult.success("{}"));
+        ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+        // WHEN
+        penpotAssetTools.applyGradient(SHAPE_ID, "#FF0000", "#0000FF", null);
+
+        // THEN
+        verify(executeCodeUseCase).execute(captor.capture());
+        String code = captor.getValue().getCode();
+        assertThat(code).contains("startX: 0.0000");
+        assertThat(code).contains("endX: 1.0000");
+        assertThat(code).contains("startY: 0.5000");
+        assertThat(code).contains("endY: 0.5000");
+        assertThat(code).contains("angle: 0");
         }
     }
     /**
@@ -193,6 +273,41 @@ class PenpotAssetToolsTest {
             // THEN
             verify(executeCodeUseCase, times(2)).execute(any());
         }
+        @Test
+        @DisplayName("applyStroke — generated JS contains strokeColor, strokeWidth and strokeAlignment")
+        void applyStroke_generatedJsContainsStrokeColorWidthAndAlignment() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotAssetTools.applyStroke(SHAPE_ID, "#000000", 2f);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            String code = captor.getValue().getCode();
+            assertThat(code).contains("getShapeById('" + SHAPE_ID + "')");
+            assertThat(code).contains("strokeColor: '#000000'");
+            assertThat(code).contains("strokeWidth: 2.0");
+            assertThat(code).contains("strokeAlignment: 'center'");
+        }
+
+        @Test
+        @DisplayName("applyStroke — generated JS uses default strokeWidth 1.0 when strokeWidth is null")
+        void applyStroke_generatedJsUsesDefaultWidthWhenStrokeWidthIsNull() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotAssetTools.applyStroke(SHAPE_ID, "#000000", null);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getCode()).contains("strokeWidth: 1.0");
+        }
     }
     /**
      * Tests liés à l'application d'ombres portées.
@@ -243,6 +358,43 @@ class PenpotAssetToolsTest {
 
             // THEN
             assertThat(result).contains("\"success\": true");
+        }
+
+        @Test
+        @DisplayName("applyShadow — generated JS contains offsetX, offsetY, blur and color")
+        void applyShadow_generatedJsContainsOffsetBlurAndColor() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotAssetTools.applyShadow(SHAPE_ID, 4f, 4f, 8f, "#00000066");
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            String code = captor.getValue().getCode();
+            assertThat(code).contains("getShapeById('" + SHAPE_ID + "')");
+            assertThat(code).contains("offsetX: 4.0");
+            assertThat(code).contains("offsetY: 4.0");
+            assertThat(code).contains("blur: 8.0");
+            assertThat(code).contains("color: '#00000066'");
+        }
+
+        @Test
+        @DisplayName("applyShadow — generated JS uses default color #00000066 when shadowColor is null")
+        void applyShadow_generatedJsUsesDefaultColorWhenShadowColorIsNull() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotAssetTools.applyShadow(SHAPE_ID, 4f, 4f, 8f, null);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getCode()).contains("color: '#00000066'");
         }
     }
     /**
@@ -312,6 +464,24 @@ class PenpotAssetToolsTest {
             assertThat(result).contains("Opacity must be between 0.0 and 1.0");
             verify(executeCodeUseCase, never()).execute(any());
         }
+
+        @Test
+        @DisplayName("updateOpacity — generated JS contains shape.opacity assignment with correct value")
+        void updateOpacity_generatedJsContainsOpacityAssignment() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotAssetTools.updateOpacity(SHAPE_ID, 0.5f);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            String code = captor.getValue().getCode();
+            assertThat(code).contains("getShapeById('" + SHAPE_ID + "')");
+            assertThat(code).contains("shape.opacity = 0.50");
+        }
     }
 
     @Nested
@@ -379,6 +549,339 @@ class PenpotAssetToolsTest {
             // THEN
             assertThat(result).contains("\"success\": true");
             verify(executeCodeUseCase, times(1)).execute(any());
+        }
+
+        @Test
+        @DisplayName("updateBorderRadius — generated JS contains uniform borderRadius assignment")
+        void updateBorderRadius_generatedJsContainsUniformBorderRadiusAssignment() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotAssetTools.updateBorderRadius(SHAPE_ID, 10f, null, null, null, null);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            String code = captor.getValue().getCode();
+            assertThat(code).contains("getShapeById('" + SHAPE_ID + "')");
+            assertThat(code).contains("'borderRadius' in shape");
+            assertThat(code).contains("shape.borderRadius = 10.00");
+        }
+
+        @Test
+        @DisplayName("updateBorderRadius — generated JS contains individual corner assignments when all four corners are specified")
+        void updateBorderRadius_generatedJsContainsIndividualCornerAssignmentsWhenAllFourCornersSpecified() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotAssetTools.updateBorderRadius(SHAPE_ID, null, 10f, 20f, 30f, 40f);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            String code = captor.getValue().getCode();
+            assertThat(code).contains("shape.borderRadiusTopLeft = 10.00");
+            assertThat(code).contains("shape.borderRadiusTopRight = 20.00");
+            assertThat(code).contains("shape.borderRadiusBottomRight = 30.00");
+            assertThat(code).contains("shape.borderRadiusBottomLeft = 40.00");
+        }
+    }
+/**
+ * Tests liés à l'ajout d'interactions sur une forme.
+ * Vérifie la validation des paramètres et le code JS produit (trigger, action, delay).
+ */
+    @Nested
+    @DisplayName("addInteraction")
+    class AddInteractionIntegrationTests {
+
+        private static final String DEST_ID = "dest-board-001";
+
+        @Test
+        @DisplayName("addInteraction — returns success response when use case execution succeeds")
+        void addInteraction_returnsSuccessResponseWhenUseCaseExecutionSucceeds() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("{\"id\": \"" + SHAPE_ID + "\", \"trigger\": \"click\"}"));
+
+            // WHEN
+            String result = penpotAssetTools.addInteraction(SHAPE_ID, "click", "navigate-to", DEST_ID, null);
+
+            // THEN
+            assertThat(result).contains("\"success\": true");
+            assertThat(result).contains("interactionAdded");
+            verify(executeCodeUseCase, times(1)).execute(any());
+        }
+
+        @Test
+        @DisplayName("addInteraction — generated JS contains trigger, addInteraction call and destination lookup")
+        void addInteraction_generatedJsContainsTriggerAndDestinationLookup() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotAssetTools.addInteraction(SHAPE_ID, "click", "navigate-to", DEST_ID, null);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            String code = captor.getValue().getCode();
+            assertThat(code).contains("getShapeById('" + SHAPE_ID + "')");
+            assertThat(code).contains("getShapeById('" + DEST_ID + "')");
+            assertThat(code).contains("shape.addInteraction('click', action)");
+            assertThat(code).contains("type: 'navigate-to'");
+        }
+
+        @Test
+        @DisplayName("addInteraction — generated JS contains delay argument when trigger is after-delay")
+        void addInteraction_generatedJsContainsDelayArgumentWhenTriggerIsAfterDelay() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotAssetTools.addInteraction(SHAPE_ID, "after-delay", "prev-screen", null, 500);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            String code = captor.getValue().getCode();
+            assertThat(code).contains("shape.addInteraction('after-delay', action, 500)");
+            assertThat(code).contains("type: 'prev-screen'");
+        }
+
+        @Test
+        @DisplayName("addInteraction — generated JS contains no delay argument when trigger is not after-delay")
+        void addInteraction_generatedJsContainsNoDelayArgumentWhenTriggerIsNotAfterDelay() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotAssetTools.addInteraction(SHAPE_ID, "click", "prev-screen", null, null);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            String code = captor.getValue().getCode();
+            assertThat(code).contains("shape.addInteraction('click', action)");
+            assertThat(code).doesNotContain("shape.addInteraction('click', action,");
+        }
+
+        @Test
+        @DisplayName("addInteraction — returns error JSON and never calls use case when trigger is blank")
+        void addInteraction_returnsErrorJsonAndNeverCallsUseCaseWhenTriggerIsBlank() {
+            // WHEN
+            String result = penpotAssetTools.addInteraction(SHAPE_ID, "  ", "navigate-to", DEST_ID, null);
+
+            // THEN
+            assertThat(result).contains("\"success\": false");
+            assertThat(result).contains("Trigger must be provided");
+            verify(executeCodeUseCase, never()).execute(any());
+        }
+
+        @Test
+        @DisplayName("addInteraction — returns error JSON and never calls use case when actionType is blank")
+        void addInteraction_returnsErrorJsonAndNeverCallsUseCaseWhenActionTypeIsBlank() {
+            // WHEN
+            String result = penpotAssetTools.addInteraction(SHAPE_ID, "click", "  ", DEST_ID, null);
+
+            // THEN
+            assertThat(result).contains("\"success\": false");
+            assertThat(result).contains("Action type must be provided");
+            verify(executeCodeUseCase, never()).execute(any());
+        }
+
+        @Test
+        @DisplayName("addInteraction — returns error JSON and never calls use case when navigate-to has no destinationId")
+        void addInteraction_returnsErrorJsonAndNeverCallsUseCaseWhenNavigateToHasNoDestinationId() {
+            // WHEN
+            String result = penpotAssetTools.addInteraction(SHAPE_ID, "click", "navigate-to", null, null);
+
+            // THEN
+            assertThat(result).contains("\"success\": false");
+            assertThat(result).contains("requires a destinationId");
+            verify(executeCodeUseCase, never()).execute(any());
+        }
+    }
+
+    /**
+ * Tests liés à la suppression d'interactions sur une forme.
+ * Vérifie la validation de l'index et le code JS produit.
+ */
+    @Nested
+    @DisplayName("removeInteraction")
+    class RemoveInteractionIntegrationTests {
+
+        @Test
+        @DisplayName("removeInteraction — returns success response when use case execution succeeds")
+        void removeInteraction_returnsSuccessResponseWhenUseCaseExecutionSucceeds() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("{\"id\": \"" + SHAPE_ID + "\", \"removedIndex\": 0}"));
+
+            // WHEN
+            String result = penpotAssetTools.removeInteraction(SHAPE_ID, 0);
+
+            // THEN
+            assertThat(result).contains("\"success\": true");
+            assertThat(result).contains("interactionRemoved");
+            verify(executeCodeUseCase, times(1)).execute(any());
+        }
+
+        @Test
+        @DisplayName("removeInteraction — generated JS contains correct index, bounds check and removeInteraction call")
+        void removeInteraction_generatedJsContainsIndexBoundsCheckAndRemoveCall() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotAssetTools.removeInteraction(SHAPE_ID, 0);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            String code = captor.getValue().getCode();
+            assertThat(code).contains("getShapeById('" + SHAPE_ID + "')");
+            assertThat(code).contains("if (0 >= interactions.length)");
+            assertThat(code).contains("interactions[0]");
+            assertThat(code).contains("shape.removeInteraction(interaction)");
+        }
+
+        @Test
+        @DisplayName("removeInteraction — generated JS targets the correct index when index is greater than 0")
+        void removeInteraction_generatedJsTargetsCorrectIndexWhenIndexIsGreaterThanZero() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotAssetTools.removeInteraction(SHAPE_ID, 2);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            String code = captor.getValue().getCode();
+            assertThat(code).contains("if (2 >= interactions.length)");
+            assertThat(code).contains("interactions[2]");
+        }
+
+        @Test
+        @DisplayName("removeInteraction — returns error JSON and never calls use case when index is negative")
+        void removeInteraction_returnsErrorJsonAndNeverCallsUseCaseWhenIndexIsNegative() {
+            // WHEN
+            String result = penpotAssetTools.removeInteraction(SHAPE_ID, -1);
+
+            // THEN
+            assertThat(result).contains("\"success\": false");
+            assertThat(result).contains("Interaction index must be >= 0");
+            verify(executeCodeUseCase, never()).execute(any());
+        }
+    }
+/**
+ * Tests liés au remplacement d'image sur une forme existante.
+ * Vérifie la validation de l'URL, le keepAspectRatio et le code JS produit.
+ */
+    @Nested
+    @DisplayName("replaceImage")
+    class ReplaceImageIntegrationTests {
+
+        private static final String IMAGE_URL = "https://example.com/image.png";
+
+        @Test
+        @DisplayName("replaceImage — returns success response when use case execution succeeds")
+        void replaceImage_returnsSuccessResponseWhenUseCaseExecutionSucceeds() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("{\"id\": \"" + SHAPE_ID + "\", \"imageId\": \"img-001\"}"));
+
+            // WHEN
+            String result = penpotAssetTools.replaceImage(SHAPE_ID, IMAGE_URL, false);
+
+            // THEN
+            assertThat(result).contains("\"success\": true");
+            assertThat(result).contains("imageReplaced");
+            verify(executeCodeUseCase, times(1)).execute(any());
+        }
+
+        @Test
+        @DisplayName("replaceImage — generated JS contains uploadMediaUrl with correct URL and keepAspectRatio false")
+        void replaceImage_generatedJsContainsUploadMediaUrlAndKeepAspectRatioFalse() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotAssetTools.replaceImage(SHAPE_ID, IMAGE_URL, false);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            String code = captor.getValue().getCode();
+            assertThat(code).contains("getShapeById('" + SHAPE_ID + "')");
+            assertThat(code).contains("uploadMediaUrl('IA-Replace', '" + IMAGE_URL + "')");
+            assertThat(code).contains("keepAspectRatio: false");
+        }
+
+        @Test
+        @DisplayName("replaceImage — generated JS contains keepAspectRatio true when keepAspectRatio is true")
+        void replaceImage_generatedJsContainsKeepAspectRatioTrueWhenFlagIsTrue() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotAssetTools.replaceImage(SHAPE_ID, IMAGE_URL, true);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getCode()).contains("keepAspectRatio: true");
+        }
+
+        @Test
+        @DisplayName("replaceImage — generated JS uses keepAspectRatio false when keepAspectRatio is null")
+        void replaceImage_generatedJsUsesKeepAspectRatioFalseWhenFlagIsNull() {
+            // GIVEN
+            when(executeCodeUseCase.execute(any()))
+                .thenReturn(TaskResult.success("{}"));
+            ArgumentCaptor<ExecuteCodeCommand> captor = ArgumentCaptor.forClass(ExecuteCodeCommand.class);
+
+            // WHEN
+            penpotAssetTools.replaceImage(SHAPE_ID, IMAGE_URL, null);
+
+            // THEN
+            verify(executeCodeUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getCode()).contains("keepAspectRatio: false");
+        }
+
+        @Test
+        @DisplayName("replaceImage — returns error JSON and never calls use case when newImageUrl is blank")
+        void replaceImage_returnsErrorJsonAndNeverCallsUseCaseWhenNewImageUrlIsBlank() {
+            // WHEN
+            String result = penpotAssetTools.replaceImage(SHAPE_ID, "   ", false);
+
+            // THEN
+            assertThat(result).contains("\"success\": false");
+            assertThat(result).contains("newImageUrl must be provided");
+            verify(executeCodeUseCase, never()).execute(any());
+        }
+
+        @Test
+        @DisplayName("replaceImage — returns error JSON and never calls use case when newImageUrl is null")
+        void replaceImage_returnsErrorJsonAndNeverCallsUseCaseWhenNewImageUrlIsNull() {
+            // WHEN
+            String result = penpotAssetTools.replaceImage(SHAPE_ID, null, false);
+
+            // THEN
+            assertThat(result).contains("\"success\": false");
+            assertThat(result).contains("newImageUrl must be provided");
+            verify(executeCodeUseCase, never()).execute(any());
         }
     }
 }

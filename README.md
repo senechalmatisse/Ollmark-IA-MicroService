@@ -2,11 +2,30 @@
 
 
 
-## Getting started
+## Quick Start
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+### 1. Start PostgreSQL (Docker)
+The application requires a PostgreSQL database. You can start it using the following command (parameters match the default `.env` configuration):
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+```powershell
+docker run --name penpot-postgres `
+  -e POSTGRES_DB=penpot_ai `
+  -e POSTGRES_USER=penpot_ai `
+  -e POSTGRES_PASSWORD=penpot_ai_secret `
+  -p 5433:5432 `
+  -d postgres
+```
+
+### 2. Start the Application
+Run the Spring Boot application using the Maven wrapper:
+
+```powershell
+.\mvnw spring-boot:run
+```
+
+The server will be available at `http://localhost:8080`.
+
+## GitLab Getting Started
 
 ## Add your files
 

@@ -236,8 +236,12 @@ public class PenpotContentTools {
     public String createLogo(
         @ToolParam(description = "The official brand or company name.") String brandName,
         @ToolParam(description = "An optional short slogan, catchphrase, or descriptor to accompany the brand name.", required = false) String tagline,
-        @ToolParam(description = "The desired visual style for the symbol (Choices: ABSTRACT, GEOMETRIC, MONOGRAM, MINIMALIST, EMBLEM).") LogoStyle style,
-        @ToolParam(description = "The spatial arrangement of the text and symbol (Choices: HORIZONTAL, VERTICAL, STACKED, EMBLEM).") LogoLayout layout,
+        @ToolParam(description = "The desired visual style for the symbol " +
+            "(Choices: ABSTRAIT, GEOMETRIQUE, MONOGRAMME, MINIMALISTE, EMBLEME).")
+        LogoStyle style,
+        @ToolParam(description = "The spatial arrangement of the text and symbol " +
+            "(Choices: HORIZONTAL, VERTICAL, STACKED, EMBLEM).")
+        LogoLayout layout,
         @ToolParam(description = "Absolute X coordinate. Defaults to 100.", required = false) Integer x,
         @ToolParam(description = "Absolute Y coordinate. Defaults to 100.", required = false) Integer y
     ) {
