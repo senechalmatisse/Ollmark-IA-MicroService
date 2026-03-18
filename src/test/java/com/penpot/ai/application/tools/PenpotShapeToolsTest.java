@@ -139,7 +139,7 @@ class PenpotShapeToolsTest {
         // WHEN
         penpotShapeTools.createBoolean(
                 null,
-                "uuid1,uuid2",
+                "11111111-1111-1111-1111-111111111111,22222222-2222-2222-2222-222222222222",
                 null
         );
 
@@ -439,7 +439,7 @@ class PenpotShapeToolsTest {
         ArgumentCaptor<String> codeCaptor = ArgumentCaptor.forClass(String.class);
 
         // WHEN
-        penpotShapeTools.createBoolean(boolType, "uuid-a,uuid-b", null);
+        penpotShapeTools.createBoolean(boolType, "11111111-1111-1111-1111-111111111111,22222222-2222-2222-2222-222222222222", null);
 
         // THEN
         verify(toolExecutor).createShape(codeCaptor.capture(), eq("boolean"));
@@ -455,7 +455,7 @@ class PenpotShapeToolsTest {
         ArgumentCaptor<String> codeCaptor = ArgumentCaptor.forClass(String.class);
 
         // WHEN
-        penpotShapeTools.createBoolean(boolType, "uuid-a,uuid-b", null);
+        penpotShapeTools.createBoolean(boolType, "11111111-1111-1111-1111-111111111111,22222222-2222-2222-2222-222222222222", null);
 
         // THEN
         verify(toolExecutor).createShape(codeCaptor.capture(), eq("boolean"));
@@ -470,7 +470,7 @@ class PenpotShapeToolsTest {
         ArgumentCaptor<String> codeCaptor = ArgumentCaptor.forClass(String.class);
 
         // WHEN
-        penpotShapeTools.createBoolean(null, "uuid1,uuid2", null);
+        penpotShapeTools.createBoolean(null, "11111111-1111-1111-1111-111111111111,22222222-2222-2222-2222-222222222222", null);
 
         // THEN
         verify(toolExecutor).createShape(codeCaptor.capture(), eq("boolean"));

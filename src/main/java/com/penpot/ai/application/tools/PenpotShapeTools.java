@@ -214,7 +214,7 @@ public class PenpotShapeTools {
     @Tool(description = "Combine multiple existing shapes using a boolean operation in Penpot.")
     public String createBoolean(
         @ToolParam(description = "Boolean operation type: union, subtract, intersect, or exclude") String boolType,
-        @ToolParam(description = "Comma-separated UUIDs of the shapes to combine (minimum 2), e.g: 'uuid1,uuid2,uuid3'") String shapeIds,
+        @ToolParam(description = "Comma-separated UUIDs of the shapes to combine (minimum 2), e.g: '11111111-1111-1111-1111-111111111111,22222222-2222-2222-2222-222222222222,33333333-3333-3333-3333-333333333333'") String shapeIds,
         @ToolParam(description = "Optional name for the resulting boolean shape", required = false) String name
     ) {
         log.info("Tool called: createBoolean (type={}, shapeIds={})", boolType, shapeIds);
