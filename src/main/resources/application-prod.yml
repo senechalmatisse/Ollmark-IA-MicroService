@@ -42,7 +42,13 @@ spring:
           model: ${OLLAMA_EMBEDDING_MODEL:hf.co/unsloth/embeddinggemma-300m-GGUF:Q8_0}
 
 cors:
-  allowed-origins: http://10.130.163.57, https://10.130.163.57
+  allowed-origins:
+    http://10.130.163.57,
+    https://10.130.163.57,
+    http://10.130.163.57:50012,
+    https://10.130.163.57:50012,
+    http://10.130.163.57:50030,
+    https://10.130.163.57:50030,
 
 penpot:
   ai:
