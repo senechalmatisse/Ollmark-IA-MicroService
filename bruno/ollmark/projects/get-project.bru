@@ -1,0 +1,24 @@
+meta {
+  name: Get Project
+  type: http
+}
+
+get {
+  url: {{BASE_URL}}/api/ai/projects/{{PROJECT_ID}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  test("Response has projectId", function() {
+    var body = res.getBody();
+    var json = typeof body === 'string' ? JSON.parse(body) : body;
+    expect(json.id).to.eql("11111111-1111-1111-1111-111111111111");
+  });
+}
+
