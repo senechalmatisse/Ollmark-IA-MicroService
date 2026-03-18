@@ -9,6 +9,7 @@ import org.springframework.ai.rag.preretrieval.query.expansion.MultiQueryExpande
 import org.springframework.ai.rag.preretrieval.query.transformation.RewriteQueryTransformer;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.*;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.ai.embedding.EmbeddingModel;
@@ -56,10 +57,10 @@ public class RagConfig {
     @Value("${penpot.ai.rag.similarity-threshold:0.5}")
     private double similarityThreshold;
 
-    @Value("${penpot.ai.rag.top-k:5}")
+    @Value("${penpot.ai.rag.top-k:3}")
     private int topK;
 
-    @Value("${penpot.ai.rag.query-variants:3}")
+    @Value("${penpot.ai.rag.query-variants:2}")
     private int queryVariants;
 
     /**
@@ -91,7 +92,7 @@ public class RagConfig {
      */
     @Bean
     public RetrievalAugmentationAdvisor retrievalAugmentationAdvisor(
-        ChatClient.Builder chatClientBuilder,
+        @Qualifier("executorChatClientBuilder") ChatClient.Builder chatClientBuilder,
         VectorStore vectorStore
     ) {
         log.info("Configuring RetrievalAugmentationAdvisor:");
@@ -117,7 +118,7 @@ public class RagConfig {
         MultiQueryExpander multiQueryExpander = MultiQueryExpander.builder()
             .chatClientBuilder(transformerBuilder)
             .numberOfQueries(queryVariants)
-            .includeOriginal(true)  // inclure la query originale en plus des variantes
+            .includeOriginal(true)
             .build();
 
         // 3. Retriever : recherche vectorielle
@@ -129,7 +130,7 @@ public class RagConfig {
 
         // 4. Augmenter : injecte le contexte dans le prompt
         ContextualQueryAugmenter queryAugmenter = ContextualQueryAugmenter.builder()
-            .allowEmptyContext(true)  // ne bloque pas si aucun template trouvé
+            .allowEmptyContext(true)
             .build();
 
         return RetrievalAugmentationAdvisor.builder()

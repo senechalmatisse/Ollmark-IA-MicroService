@@ -1,67 +1,36 @@
 package com.penpot.ai.infrastructure.config;
 
-import org.springframework.context.annotation.*;
-import org.springframework.web.servlet.config.annotation.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Configuration Spring permettant de définir les règles CORS
- * (Cross-Origin Resource Sharing) pour l'application.
+ * Configuration CORS lisant les origines autorisées depuis les properties
+ * du profil actif (cors.allowed-origins).
  *
- * <p>
- * Les règles configurées ici permettent notamment :
- * </p>
- * <ul>
- *     <li>d'autoriser les requêtes provenant de certaines origines locales</li>
- *     <li>de définir les méthodes HTTP autorisées</li>
- *     <li>de contrôler les en-têtes HTTP acceptés</li>
- *     <li>de spécifier si les credentials sont autorisés</li>
- * </ul>
+ * Chaque profil définit sa propre liste d'origines :
+ * - local/dev : localhost + design.penpot.app
+ * - prod      : uniquement https://design.penpot.app
  */
 @Configuration
 public class CorsConfig {
 
     /**
-     * Définit un {@link WebMvcConfigurer} permettant de configurer
-     * les règles CORS de l'application Spring MVC.
-     *
-     * <p>
-     * Les règles appliquées dans cette configuration sont les suivantes :
-     * </p>
-     * <ul>
-     *     <li>autorise les requêtes sur toutes les routes de l'application</li>
-     *     <li>autorise les origines locales utilisées par le frontend</li>
-     *     <li>autorise les méthodes HTTP GET, POST et DELETE</li>
-     *     <li>autorise tous les en-têtes HTTP</li>
-     *     <li>désactive l'utilisation des credentials (cookies, authentification HTTP)</li>
-     * </ul>
-     *
-     * <p>
-     * Cette configuration est particulièrement utile lorsque le frontend
-     * est exécuté localement sur un serveur de développement (par exemple
-     * Angular, Vue ou React).
-     * </p>
-     *
-     * @return une instance de {@link WebMvcConfigurer} configurant
-     * les règles CORS de l'application
+     * Origines autorisées, lues depuis cors.allowed-origins dans le profil actif.
+     * Supporte une liste séparée par virgules.
      */
+    @Value("${cors.allowed-origins}")
+    private String[] allowedOrigins;
+
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
-
-            /**
-             * Configure les mappings CORS pour les endpoints exposés
-             * par l'application.
-             *
-             * @param registry registre permettant de définir les règles
-             *                 de mapping CORS
-             */
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                    .allowedOrigins(
-                        "http://localhost:4400",
-                        "http://127.0.0.1:4400"
-                    )
+                    .allowedOrigins(allowedOrigins)
                     .allowedMethods("GET", "POST", "DELETE")
                     .allowedHeaders("*")
                     .allowCredentials(false);

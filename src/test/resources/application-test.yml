@@ -3,12 +3,22 @@
 # ============================================
 server:
   port: 0
+# ============================================
+# Configuration Sécurité
+# ============================================
+app:
+  security:
+    swagger:
+      user: admin_audit
+      password: admin_audit_secret
 
 # ============================================
-# Configuration Penpot (Valeurs statiques de test)
+# Configuration Penpot
 # ============================================
 penpot:
   ai:
+    server-address: ${PENPOT_SERVER_ADDRESS:10.130.163.57}
+    websocket-port: ${PENPOT_WEBSOCKET_PORT:50030}
     router:
       model: llama3.1
       temperature: 0.0
@@ -34,27 +44,33 @@ penpot:
       similarity-threshold: 0.5
       top-k: 3
       query-variants: 1
+      eager-embedding: false
 
 # ============================================
-# Configuration Spring AI - pointe vers WireMock
+# Configuration Spring AI
 # ============================================
 spring:
+  flyway:
+    enabled: false
   ai:
     ollama:
-      base-url: http://localhost:${wiremock.server.port:8080}
+      base-url: ${OLLAMA_BASE_URL:http://10.130.163.62:11434/}
       chat:
         options:
-          # Rétablissement des valeurs statiques pour isoler l'environnement de test
-          model: qwen3:8b
-          temperature: 0.0
-          max-tokens: 512
-          num_ctx: 2048
+          model: ${PENPOT_EXECUTOR_MODEL:qwen3.5:9b}
+          model: ${PENPOT_EXECUTOR_MODEL:qwen3.5:9b}
+          temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.0}
+          top-p: ${PENPOT_EXECUTOR_TOP_P:0.95}
+          top-k: ${PENPOT_EXECUTOR_TOP_K:20}
+          repeat-penalty: ${PENPOT_EXECUTOR_REPEAT_PENALTY:1.15}
+          presence-penalty: ${PENPOT_EXECUTOR_PRESENCE_PENALTY:0.3}
+          max-tokens: ${PENPOT_EXECUTOR_MAX_TOKENS:512}
+          num-ctx: ${PENPOT_EXECUTOR_NUM_CTX:2048}
         observations:
           log-prompt: false
       embedding:
         options:
-          model: hf.co/unsloth/embeddinggemma-300m-GGUF:Q8_0
-
+          model: ${OLLAMA_EMBEDDING_MODEL:hf.co/unsloth/embeddinggemma-300m-GGUF:Q8_0}
     chat:
       memory:
         repository:
@@ -65,7 +81,7 @@ spring:
   # Base de données H2 en mémoire pour les tests
   # ============================================
   datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
     username: sa
     password: ""
@@ -93,3 +109,6 @@ logging:
     org.hibernate: WARN
   file:
     name: target/test-logs/penpot-test.log
+
+crypto:
+  master-key: ${CRYPTO_MASTER_KEY} 

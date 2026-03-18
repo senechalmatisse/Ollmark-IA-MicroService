@@ -26,25 +26,7 @@ public class MultiUserSessionStrategy implements SessionSelectionStrategy {
         SessionCriteria criteria
     ) {
         log.debug("Using multi-user session selection strategy");
-        if (criteria.getUserToken().isEmpty()) {
-            log.warn("No user token provided in multi-user mode");
-            return Optional.empty();
-        }
-
-        String requestedToken = criteria.getUserToken().get();
-
-        return sessions.entrySet().stream()
-            .filter(entry -> {
-                String sessionId = entry.getKey();
-                WebSocketSession session = entry.getValue();
-                String sessionToken = sessionTokens.get(sessionId);
-
-                if (!requestedToken.equals(sessionToken)) return false;
-                if (criteria.isRequireActive()) return session.isOpen();
-
-                return true;
-            })
-            .map(Map.Entry::getValue)
-            .findFirst();
+        log.warn("Multi-user mode: no sessionId provided, cannot route to specific session");
+        return Optional.empty();
     }
 }
