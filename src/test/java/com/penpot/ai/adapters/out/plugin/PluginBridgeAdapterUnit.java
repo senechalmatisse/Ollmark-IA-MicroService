@@ -44,7 +44,6 @@ public class PluginBridgeAdapterUnit {
 
     private static final String TASK_ID = "task-001";
     private static final String SESSION_ID = "session-001";
-    private static final String USER_TOKEN = "token-abc";
     private static final long   TIMEOUT_MS = 5_000L;
     private static final String SERIALIZED = "{\"id\":\"task-001\"}";
 
@@ -60,7 +59,7 @@ public class PluginBridgeAdapterUnit {
         when(task.getId()).thenReturn(TASK_ID);
         when(task.getType()).thenReturn(TaskType.EXECUTE_CODE);
         when(task.getParameters()).thenReturn(java.util.Map.of());
-        when(task.getUserToken()).thenReturn(Optional.of(USER_TOKEN));
+        when(task.getSessionId()).thenReturn(Optional.of(SESSION_ID));
 
         request = PluginTaskRequest.builder()
             .id(TASK_ID).task(TaskType.EXECUTE_CODE.getTaskName()).params(java.util.Map.of()).build();
@@ -132,8 +131,8 @@ public class PluginBridgeAdapterUnit {
         }
 
         @Test
-        @DisplayName("shouldBuildCriteriaFromUserToken_givenTaskWithUserToken_whenSendTaskIsCalled")
-        void shouldBuildCriteriaFromUserToken_givenTaskWithUserToken_whenSendTaskIsCalled()
+        @DisplayName("shouldBuildCriteriaFromUserToken_givenTaskWithSessionId_whenSendTaskIsCalled")
+        void shouldBuildCriteriaFromUserToken_givenTaskWithSessionId_whenSendTaskIsCalled()
             throws Exception {
             // GIVEN
             future.complete(successResponse("ok"));
@@ -143,15 +142,15 @@ public class PluginBridgeAdapterUnit {
 
             // THEN
             verify(sessionManager).findSession(argThat(c ->
-                c.equals(SessionCriteria.forUser(USER_TOKEN))));
+                c.equals(SessionCriteria.forSession(SESSION_ID))));
         }
 
         @Test
-        @DisplayName("shouldBuildCriteriaWithAny_givenTaskWithoutUserToken_whenSendTaskIsCalled")
-        void shouldBuildCriteriaWithAny_givenTaskWithoutUserToken_whenSendTaskIsCalled()
+        @DisplayName("shouldBuildCriteriaWithAny_givenTaskWithoutSessionId_whenSendTaskIsCalled")
+        void shouldBuildCriteriaWithAny_givenTaskWithoutSessionId_whenSendTaskIsCalled()
             throws Exception {
             // GIVEN
-            when(task.getUserToken()).thenReturn(Optional.empty());
+            when(task.getSessionId()).thenReturn(Optional.empty());
             future.complete(successResponse("ok"));
 
             // WHEN
@@ -460,7 +459,7 @@ public class PluginBridgeAdapterUnit {
         @DisplayName("shouldReturnSession_givenMatchingCriteria_whenFindSessionIsCalled")
         void shouldReturnSession_givenMatchingCriteria_whenFindSessionIsCalled() {
             // GIVEN
-            SessionCriteria criteria = SessionCriteria.forUser(USER_TOKEN);
+            SessionCriteria criteria = SessionCriteria.forSession(SESSION_ID);
             when(sessionManager.findSession(criteria)).thenReturn(Optional.of(webSocketSession));
 
             // WHEN
@@ -474,7 +473,7 @@ public class PluginBridgeAdapterUnit {
         @DisplayName("shouldReturnEmpty_givenNoMatchingSession_whenFindSessionIsCalled")
         void shouldReturnEmpty_givenNoMatchingSession_whenFindSessionIsCalled() {
             // GIVEN
-            SessionCriteria criteria = SessionCriteria.forUser("unknown-token");
+            SessionCriteria criteria = SessionCriteria.forSession("unknown-session");
             when(sessionManager.findSession(criteria)).thenReturn(Optional.empty());
 
             // WHEN

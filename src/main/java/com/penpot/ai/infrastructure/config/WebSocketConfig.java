@@ -27,8 +27,11 @@ public class WebSocketConfig implements WebSocketConfigurer {
      * Port WebSocket configuré (non utilisé directement ici,
      * mais disponible pour logging ou validation).
      */
-    @Value("${penpot.ai.websocket-port:4401}")
+    @Value("${penpot.ai.websocket-port:8080}")
     private int websocketPort;
+
+    @Value("${cors.allowed-origins}")
+    private String[] allowedOrigins;
 
     /**
      * Enregistre les handlers WebSocket avec leurs endpoints.
@@ -39,12 +42,12 @@ public class WebSocketConfig implements WebSocketConfigurer {
      */
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        log.info("Registering WebSocket handler on endpoint: /plugin");
+        log.info("Registering WebSocket handler on /plugin (port: {})", websocketPort);
 
         registry.addHandler(pluginWebSocketHandler, "/plugin")
-            .setAllowedOrigins("*");
+            .setAllowedOrigins(allowedOrigins);
 
-        log.info("WebSocket handler registered successfully (expected port: {})", 
-            websocketPort);
+        log.info("WebSocket handler registered — allowed origins: {}", 
+            String.join(", ", allowedOrigins));
     }
 }

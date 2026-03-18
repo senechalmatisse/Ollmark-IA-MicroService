@@ -35,7 +35,7 @@ checkstyle:
     - mvn checkstyle:check -Dcheckstyle.violationSeverity=error
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH =~ /^feat\/.*/
+    - if: $CI_COMMIT_BRANCH =~ /^(feat|feature)\/.*/
     - if: $CI_COMMIT_BRANCH == "develop"
     - if: $CI_COMMIT_BRANCH == "preprod"
     - if: $CI_COMMIT_BRANCH == "main"
@@ -71,6 +71,7 @@ build-backend:
     - mvn $MAVEN_CLI_OPTS clean package -DskipTests
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH =~ /^(feat|feature)\/.*/
     - if: $CI_COMMIT_BRANCH == "develop"
     - if: $CI_COMMIT_BRANCH == "preprod"
     - if: $CI_COMMIT_BRANCH == "main"
@@ -104,7 +105,7 @@ backend-unit-test:
   allow_failure: false
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH =~ /^feat\/.*/
+    - if: $CI_COMMIT_BRANCH =~ /^(feat|feature)\/.*/
     - if: $CI_COMMIT_BRANCH == "develop"
     - if: $CI_COMMIT_BRANCH == "preprod"
     - if: $CI_COMMIT_BRANCH == "main"
@@ -127,7 +128,7 @@ backend-integration-test:
   allow_failure: false
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH =~ /^feat\/.*/
+    - if: $CI_COMMIT_BRANCH =~ /^(feat|feature)\/.*/
     - if: $CI_COMMIT_BRANCH == "develop"
     - if: $CI_COMMIT_BRANCH == "preprod"
     - if: $CI_COMMIT_BRANCH == "main"
@@ -228,7 +229,52 @@ deploy-develop:
     # Add VM host to known_hosts to avoid SSH prompt
     - ssh-keyscan -H $VM_HOST >> ~/.ssh/known_hosts
   script:
-      - ssh -o StrictHostKeyChecking=no $VM_USER@$VM_HOST "~/ollmark-backend/ms-ollmark-ia/deploy.sh"
+      - |
+        ssh -o StrictHostKeyChecking=no $VM_USER@$VM_HOST << EOF
+                cd ~/ollmark-backend/ms-ollmark-ia
+                
+                # --- INITIALISATION (Écrase le fichier existant) ---
+                echo "# CONFIGURATION GENEREE PAR GITLAB CI" > .env
+                
+                # --- SERVEUR PENPOT ---
+                echo "PENPOT_SERVER_ADDRESS=$PENPOT_SERVER_ADDRESS" >> .env
+                echo "PENPOT_WEBSOCKET_PORT=$PENPOT_WEBSOCKET_PORT" >> .env
+                echo "PENPOT_REPL_PORT=$PENPOT_REPL_PORT" >> .env
+                echo "PENPOT_REMOTE_MODE=$PENPOT_REMOTE_MODE" >> .env
+                echo "PENPOT_MULTI_USER=$PENPOT_MULTI_USER" >> .env
+
+                # --- AI DUAL-MODEL (ROUTER) ---
+                echo "PENPOT_ROUTER_MODEL=$PENPOT_ROUTER_MODEL" >> .env
+                echo "PENPOT_ROUTER_TEMPERATURE=$PENPOT_ROUTER_TEMPERATURE" >> .env
+                echo "PENPOT_ROUTER_MAX_TOKENS=$PENPOT_ROUTER_MAX_TOKENS" >> .env
+
+                # --- AI DUAL-MODEL (EXECUTOR) ---
+                echo "PENPOT_EXECUTOR_MODEL=$PENPOT_EXECUTOR_MODEL" >> .env
+                echo "PENPOT_EXECUTOR_TEMPERATURE=$PENPOT_EXECUTOR_TEMPERATURE" >> .env
+                echo "PENPOT_EXECUTOR_MAX_TOKENS=$PENPOT_EXECUTOR_MAX_TOKENS" >> .env
+                echo "PENPOT_EXECUTOR_NUM_CTX=$PENPOT_EXECUTOR_NUM_CTX" >> .env
+
+                # --- CHAT MEMORY & RAG ---
+                echo "PENPOT_CHAT_MEMORY_MAX_MESSAGES=$PENPOT_CHAT_MEMORY_MAX_MESSAGES" >> .env
+                echo "PENPOT_RAG_TEMPLATES_PATH=$PENPOT_RAG_TEMPLATES_PATH" >> .env
+                echo "PENPOT_RAG_SIMILARITY_THRESHOLD=$PENPOT_RAG_SIMILARITY_THRESHOLD" >> .env
+                echo "PENPOT_RAG_TOP_K=$PENPOT_RAG_TOP_K" >> .env
+                echo "PENPOT_RAG_QUERY_VARIANTS=$PENPOT_RAG_QUERY_VARIANTS" >> .env
+
+                # --- OLLAMA & LOGS ---
+                echo "OLLAMA_BASE_URL=$OLLAMA_BASE_URL" >> .env
+                echo "OLLAMA_EMBEDDING_MODEL=$OLLAMA_EMBEDDING_MODEL" >> .env
+                echo "SPRING_AI_LOG_PROMPT=$SPRING_AI_LOG_PROMPT" >> .env
+                echo "PENPOT_LOG_LEVEL=$PENPOT_LOG_LEVEL" >> .env
+                echo "PENPOT_LOG_DIR=$PENPOT_LOG_DIR" >> .env
+
+                # --- BDD (Utilisées par Spring Boot et Docker Compose) ---
+                echo "SPRING_DATASOURCE_USERNAME=$DB_USER" >> .env
+                echo "SPRING_DATASOURCE_PASSWORD=$DB_PASSWORD" >> .env
+
+                # --- DEPLOIEMENT ---
+                ./deploy.sh
+        EOF
   rules:
     - if: $CI_COMMIT_BRANCH == "develop"
       when: on_success

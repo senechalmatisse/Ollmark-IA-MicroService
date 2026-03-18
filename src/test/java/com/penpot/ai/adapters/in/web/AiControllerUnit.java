@@ -9,13 +9,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 /**
@@ -34,41 +35,53 @@ class AiControllerUnit {
     // --- Tests pour chat (Flux) ---
 
     @Test
-    @DisplayName("should return a stream of strings when chat is successful")
+    @DisplayName("should return a Mono with success details when chat is successful")
     void chatSuccess() {
         // Given
         ChatRequest request = new ChatRequest();
-        request.setConversationId("conv-123");
+        request.setProjectId("proj-123");
         request.setMessage("Hello AI");
-        
-        when(conversationChatUseCase.chat("conv-123", "Hello AI", null))
-                .thenReturn(Flux.just("Part 1", " Part 2"));
+        request.setSessionId("ses-123");
+
+        when(conversationChatUseCase.chat("proj-123", "Hello AI", "ses-123"))
+                .thenReturn(Mono.just("AI response message"));
 
         // When
-        Flux<String> result = aiController.chat(request);
+        Mono<ResponseEntity<Map<String, Object>>> result = aiController.chat(request);
 
         // Then
         StepVerifier.create(result)
-                .expectNext("Part 1")
-                .expectNext(" Part 2")
+                .assertNext(response -> {
+                    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+                    Map<String, Object> body = response.getBody();
+                    assertThat(body).containsEntry("success", true);
+                    assertThat(body).containsEntry("projectId", "proj-123");
+                    assertThat(body).containsEntry("sessionId", "ses-123");
+                    assertThat(body).containsEntry("response", "AI response message");
+                })
                 .verifyComplete();
     }
 
     @Test
-    @DisplayName("should return an error message in the flux when chat fails")
+    @DisplayName("should return an error response when chat fails")
     void chatError() {
         // Given
         ChatRequest request = new ChatRequest();
-        request.setConversationId("conv-123");
+        request.setProjectId("proj-123");
         when(conversationChatUseCase.chat(any(), any(), any()))
-                .thenReturn(Flux.error(new RuntimeException("AI unreachable")));
+                .thenReturn(Mono.error(new RuntimeException("AI unreachable")));
 
         // When
-        Flux<String> result = aiController.chat(request);
+        Mono<ResponseEntity<Map<String, Object>>> result = aiController.chat(request);
 
         // Then
         StepVerifier.create(result)
-                .expectNext("[ERROR] AI unreachable")
+                .assertNext(response -> {
+                    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+                    Map<String, Object> body = response.getBody();
+                    assertThat(body).containsEntry("success", false);
+                    assertThat(body).containsEntry("error", "AI unreachable");
+                })
                 .verifyComplete();
     }
 
@@ -79,30 +92,44 @@ class AiControllerUnit {
     void startNewConversationSuccess() {
         // Given
         NewConversationRequest request = new NewConversationRequest();
-        request.setUserId("user-456");
-        when(conversationChatUseCase.startNewConversation("user-456")).thenReturn("new-conv-id");
+        request.setProjectId("proj-123");
+        when(conversationChatUseCase.startNewConversation("proj-123")).thenReturn("proj-123");
 
         // When
         ResponseEntity<Map<String, Object>> response = aiController.startNewConversation(request);
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).containsEntry("conversationId", "new-conv-id");
-        assertThat(response.getBody()).containsEntry("userId", "user-456");
+        assertThat(response.getBody()).containsEntry("success", true);
+        assertThat(response.getBody()).containsEntry("projectId", "proj-123");
     }
 
     @Test
-    @DisplayName("should handle failure when starting a new conversation")
-    void startNewConversationFailure() {
-        // Given
-        when(conversationChatUseCase.startNewConversation(any())).thenThrow(new RuntimeException("DB Error"));
-
+    @DisplayName("should handle failure when request is null")
+    void startNewConversationNullRequest() {
         // When
         ResponseEntity<Map<String, Object>> response = aiController.startNewConversation(null);
 
         // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).containsEntry("success", false);
+    }
+
+    @Test
+    @DisplayName("should handle service failure when starting a new conversation")
+    void startNewConversationServiceFailure() {
+        // Given
+        NewConversationRequest request = new NewConversationRequest();
+        request.setProjectId("proj-123");
+        when(conversationChatUseCase.startNewConversation("proj-123")).thenThrow(new RuntimeException("DB Error"));
+
+        // When
+        ResponseEntity<Map<String, Object>> response = aiController.startNewConversation(request);
+
+        // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(response.getBody()).containsEntry("success", false);
+        assertThat(response.getBody()).containsEntry("error", "DB Error");
     }
 
     // --- Tests pour clearConversation ---
@@ -123,37 +150,35 @@ class AiControllerUnit {
     }
 
     @Test
-    @DisplayName("should return 400 when clearing an invalid conversation ID")
-    void clearConversationInvalidId() {
+    @DisplayName("should return 500 when clearing fails")
+    void clearConversationFailure() {
         // Given
-        doThrow(new IllegalArgumentException("Invalid ID")).when(conversationChatUseCase).clearConversation(anyString());
+        doThrow(new RuntimeException("Error")).when(conversationChatUseCase).clearConversation(anyString());
 
         // When
-        ResponseEntity<Map<String, Object>> response = aiController.clearConversation("wrong-id");
+        ResponseEntity<Map<String, Object>> response = aiController.clearConversation("proj-123");
 
         // Then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).containsEntry("error", "Invalid ID");
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getBody()).containsEntry("success", false);
     }
 
     /**
-     * Teste la création d'une conversation sans identifiant utilisateur (anonyme).
-     * Couvre les branches ternaires 'ANONYMOUS_USER' dans startNewConversation.
+     * Teste la création d'une conversation sans identifiant de projet.
      */
     @Test
-    @DisplayName("should start an anonymous conversation when userId is null")
-    void startNewConversationAnonymous() {
+    @DisplayName("should start a conversation with null projectId")
+    void startNewConversationWithNullProject() {
         // Given
         NewConversationRequest request = new NewConversationRequest();
-        request.setUserId(null); 
-        when(conversationChatUseCase.startNewConversation(null)).thenReturn("anon-conv-id");
+        request.setProjectId(null); 
+        when(conversationChatUseCase.startNewConversation(null)).thenReturn(null);
 
         // When
         ResponseEntity<Map<String, Object>> response = aiController.startNewConversation(request);
 
         // Then
-        assertThat(response.getBody()).containsEntry("userId", "anonymous");
-        assertThat(response.getBody()).containsEntry("conversationId", "anon-conv-id");
+        assertThat(response.getBody()).containsEntry("projectId", null);
     }
 
     /**
