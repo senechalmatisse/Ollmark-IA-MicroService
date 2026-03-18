@@ -51,7 +51,7 @@ public class RouterConfig {
             .topP(0.9)
             .topK(10)
             .repeatPenalty(1.05)
-            .numPredict(256)
+            .numPredict(512)
             .numCtx(8192)
             .build();
 
