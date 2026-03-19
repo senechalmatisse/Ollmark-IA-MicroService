@@ -111,29 +111,6 @@ class SingleUserSessionStrategyUnit {
     }
 
     @Nested
-    @DisplayName("selectSession — ignores user token")
-    class IgnoresTokenTests {
-
-        @Test
-        @DisplayName("selectSession — returns first session regardless of user token in criteria")
-        void selectSession_returnsSessionRegardlessOfToken() {
-            // GIVEN
-            when(openSession.isOpen()).thenReturn(true);
-
-            Map<String, WebSocketSession> sessions = new LinkedHashMap<>();
-            sessions.put(SESSION_ID_1, openSession);
-            Map<String, String> tokens = Map.of(SESSION_ID_1, "token-user-A");
-            SessionCriteria criteria = SessionCriteria.forUser("token-user-B");
-
-            // WHEN
-            Optional<WebSocketSession> result = strategy.selectSession(sessions, tokens, criteria);
-
-            // THEN
-            assertThat(result).isPresent().contains(openSession);
-        }
-    }
-
-    @Nested
     @DisplayName("selectSession — multiple sessions")
     class MultipleSessionsTests {
 

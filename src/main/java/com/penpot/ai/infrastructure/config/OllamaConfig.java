@@ -1,10 +1,14 @@
 package com.penpot.ai.infrastructure.config;
 
+import com.penpot.ai.application.advisor.ReReadingAdvisor;
 import com.penpot.ai.core.domain.TaskComplexity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
+import org.springframework.ai.chat.client.advisor.ToolCallAdvisor;
+import org.springframework.ai.model.tool.ToolCallingManager;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.api.OllamaChatOptions;
 import org.springframework.beans.factory.annotation.*;
@@ -40,14 +44,31 @@ import java.util.Map;
 @RefreshScope
 public class OllamaConfig {
 
-    @Value("${spring.ai.ollama.chat.options.model}")
+    @Value("${penpot.ai.executor.model:qwen3.5:9b}")
     private String modelName;
     
-    @Value("${spring.ai.ollama.chat.options.temperature:0.7}")
+    @Value("${penpot.ai.executor.temperature:0.7}")
     private Double defaultTemperature;
 
-    @Value("${spring.ai.ollama.chat.options.max-tokens:32000}")
+    @Value("${penpot.ai.executor.max-tokens:4096}")
     private Integer maxTokens;
+
+    @Bean
+    public ToolCallAdvisor toolCallAdvisor(ToolCallingManager toolCallingManager) {
+        return ToolCallAdvisor.builder()
+            .toolCallingManager(toolCallingManager)
+            .build();
+    }
+
+    @Bean
+    public ReReadingAdvisor reReadingAdvisor() {
+        return new ReReadingAdvisor();
+    }
+
+    @Bean
+    public SimpleLoggerAdvisor simpleLoggerAdvisor() {
+        return new SimpleLoggerAdvisor();
+    }
 
     /**
      * Options pour les tâches SIMPLES : déterministe, faible créativité.
@@ -56,11 +77,11 @@ public class OllamaConfig {
     @Bean("simpleOptions")
     @RefreshScope
     public OllamaChatOptions simpleOptions() {
-        log.info("Configuring SIMPLE ChatOptions (temperature=0.1, topK=10)");
+        log.info("Configuring SIMPLE ChatOptions (temperature=0.1, topK=3)");
         return OllamaChatOptions.builder()
             .model(modelName)
             .temperature(0.1)
-            .topK(10)
+            .topK(3)
             .build();
     }
 
@@ -71,11 +92,11 @@ public class OllamaConfig {
     @Bean("creativeOptions")
     @RefreshScope
     public OllamaChatOptions creativeOptions() {
-        log.info("Configuring CREATIVE ChatOptions (temperature=0.8, topK=40, topP=0.9)");
+        log.info("Configuring CREATIVE ChatOptions (temperature=0.8, topK=5, topP=0.9)");
         return OllamaChatOptions.builder()
             .model(modelName)
             .temperature(0.8)
-            .topK(40)
+            .topK(5)
             .topP(0.9)
             .build();
     }
@@ -101,7 +122,13 @@ public class OllamaConfig {
         return OllamaChatOptions.builder()
             .model(modelName)
             .enableThinking()
-            .temperature(0.6)
+            .temperature(defaultTemperature)
+            .numPredict(maxTokens)
+            .topP(0.95)
+            .topK(3)
+            .repeatPenalty(1.15)
+            .presencePenalty(0.3)
+            .numCtx(32000)
             .build();
     }
 
@@ -111,7 +138,7 @@ public class OllamaConfig {
      * <p>Qualifié {@code "executorChatClientBuilder"} pour ne pas entrer en conflit
      * lors de l'injection. Configuré avec :</p>
      * <ul>
-     *   <li>Options SIMPLE par défaut (surchargées par la factory selon la complexité)</li>
+     *   <li>Options COMPLEX par défaut (surchargées par la factory selon la complexité)</li>
      *   <li>{@link MessageChatMemoryAdvisor} pour la mémoire conversationnelle</li>
      * </ul>
      *
@@ -123,12 +150,12 @@ public class OllamaConfig {
     @RefreshScope
     public ChatClient.Builder chatClientBuilder(
         OllamaChatModel chatModel,
-        MessageChatMemoryAdvisor memoryAdvisor
+        MessageChatMemoryAdvisor memoryAdvisor,
+        @Qualifier("complexOptions") OllamaChatOptions complexOptions
     ) {
         log.info("Configuring executor ChatClient.Builder with model: {}", modelName);
-        log.info("Configuring executor ChatClient.Builder with model: {}", modelName);
         return ChatClient.builder(chatModel)
-            .defaultOptions(simpleOptions())
+            .defaultOptions(complexOptions)
             .defaultAdvisors(memoryAdvisor);
     }
 

@@ -4,132 +4,198 @@ import com.penpot.ai.core.domain.TaskComplexity;
 import com.penpot.ai.infrastructure.config.OllamaConfig.ChatClientFactory;
 import org.junit.jupiter.api.*;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.api.OllamaChatOptions;
-import org.springframework.beans.factory.annotation.*;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@DisplayName("OllamaConfig — Integration")
-public class OllamaConfigTest {
+/**
+ * Tests unitaires de {@link OllamaConfig}.
+ *
+ * Aucun contexte Spring — on instancie OllamaConfig directement
+ * et on injecte les @Value via les setters du test.
+ * Cela évite toute connexion vers Ollama, PostgreSQL ou Flyway.
+ */
+@DisplayName("OllamaConfig — Unit")
+class OllamaConfigTest {
 
-    @Autowired
-    @Qualifier("simpleOptions")
-    private OllamaChatOptions simpleOptions;
+    private OllamaConfig config;
 
-    @Autowired
-    @Qualifier("creativeOptions")
-    private OllamaChatOptions creativeOptions;
+    @BeforeEach
+    void setUp() {
+        config = new OllamaConfig();
+        // Injection manuelle des @Value (reflète application-test.yml)
+        setField(config, "modelName",           "test-executor-model");
+        setField(config, "defaultTemperature",  0.7);
+        setField(config, "maxTokens",           1024);
+    }
 
-    @Autowired
-    @Qualifier("complexOptions")
-    private OllamaChatOptions complexOptions;
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
-    @Autowired
-    @Qualifier("executorChatClientBuilder")
-    private ChatClient.Builder executorChatClientBuilder;
+    /**
+     * Injecte une valeur dans un champ privé (remplace l'injection @Value Spring).
+     */
+    private static void setField(Object target, String fieldName, Object value) {
+        try {
+            var field = target.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(target, value);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException("Cannot inject field: " + fieldName, e);
+        }
+    }
 
-    @Autowired
-    @Qualifier("executorChatClient")
-    private ChatClient executorChatClient;
-
-    @Autowired
-    private ChatClientFactory chatClientFactory;
+    // ── simpleOptions ─────────────────────────────────────────────────────────
 
     @Nested
     @DisplayName("simpleOptions bean")
     class SimpleOptionsBeanTests {
 
-        @Test
-        @DisplayName("simpleOptions — bean is loaded in Spring context and is not null")
-        void simpleOptions_beanIsLoadedInSpringContextAndIsNotNull() {
-            // GIVEN / WHEN / THEN
-            assertThat(simpleOptions).isNotNull();
+        private OllamaChatOptions options;
+
+        @BeforeEach
+        void build() {
+            options = config.simpleOptions();
         }
 
         @Test
-        @DisplayName("simpleOptions — temperature is 0.1 (deterministic)")
+        @DisplayName("bean non-null")
+        void simpleOptions_isNotNull() {
+            assertThat(options).isNotNull();
+        }
+
+        @Test
+        @DisplayName("température = 0.1 (déterministe)")
         void simpleOptions_temperatureIs01() {
-            // GIVEN / WHEN / THEN
-            assertThat(simpleOptions.getTemperature()).isEqualTo(0.1);
+            assertThat(options.getTemperature()).isEqualTo(0.1);
         }
 
         @Test
-        @DisplayName("simpleOptions — topK is 10 (low diversity)")
-        void simpleOptions_topKIs10() {
-            // GIVEN / WHEN / THEN
-            assertThat(simpleOptions.getTopK()).isEqualTo(10);
+        @DisplayName("topK = 3 (faible diversité)")
+        void simpleOptions_topKIs3() {
+            assertThat(options.getTopK()).isEqualTo(3);
         }
     }
+
+    // ── creativeOptions ───────────────────────────────────────────────────────
 
     @Nested
     @DisplayName("creativeOptions bean")
     class CreativeOptionsBeanTests {
 
-        @Test
-        @DisplayName("creativeOptions — bean is loaded in Spring context and is not null")
-        void creativeOptions_beanIsLoadedInSpringContextAndIsNotNull() {
-            // GIVEN / WHEN / THEN
-            assertThat(creativeOptions).isNotNull();
+        private OllamaChatOptions options;
+
+        @BeforeEach
+        void build() {
+            options = config.creativeOptions();
         }
 
         @Test
-        @DisplayName("creativeOptions — temperature is 0.8 (high creativity)")
+        @DisplayName("bean non-null")
+        void creativeOptions_isNotNull() {
+            assertThat(options).isNotNull();
+        }
+
+        @Test
+        @DisplayName("température = 0.8 (créativité élevée)")
         void creativeOptions_temperatureIs08() {
-            // GIVEN / WHEN / THEN
-            assertThat(creativeOptions.getTemperature()).isEqualTo(0.8);
+            assertThat(options.getTemperature()).isEqualTo(0.8);
         }
 
         @Test
-        @DisplayName("creativeOptions — topK is 40 (high diversity)")
-        void creativeOptions_topKIs40() {
-            // GIVEN / WHEN / THEN
-            assertThat(creativeOptions.getTopK()).isEqualTo(40);
+        @DisplayName("topK = 5 (diversité élevée)")
+        void creativeOptions_topKIs5() {
+            assertThat(options.getTopK()).isEqualTo(5);
         }
 
         @Test
-        @DisplayName("creativeOptions — topP is 0.9")
+        @DisplayName("topP = 0.9")
         void creativeOptions_topPIs09() {
-            // GIVEN / WHEN / THEN
-            assertThat(creativeOptions.getTopP()).isEqualTo(0.9);
+            assertThat(options.getTopP()).isEqualTo(0.9);
         }
     }
+
+    // ── complexOptions ────────────────────────────────────────────────────────
 
     @Nested
     @DisplayName("complexOptions bean")
     class ComplexOptionsBeanTests {
 
-        @Test
-        @DisplayName("complexOptions — bean is loaded in Spring context and is not null")
-        void complexOptions_beanIsLoadedInSpringContextAndIsNotNull() {
-            // GIVEN / WHEN / THEN
-            assertThat(complexOptions).isNotNull();
+        private OllamaChatOptions options;
+
+        @BeforeEach
+        void build() {
+            options = config.complexOptions();
         }
 
         @Test
-        @DisplayName("complexOptions — temperature is 0.6 (balanced reasoning)")
-        void complexOptions_temperatureIs06() {
-            // GIVEN / WHEN / THEN
-            assertThat(complexOptions.getTemperature()).isEqualTo(0.6);
+        @DisplayName("bean non-null")
+        void complexOptions_isNotNull() {
+            assertThat(options).isNotNull();
+        }
+
+        @Test
+        @DisplayName("température = valeur injectée depuis penpot.ai.executor.temperature")
+        void complexOptions_temperatureMatchesExecutorProperty() {
+            assertThat(options.getTemperature()).isEqualTo(0.7);
+        }
+
+        @Test
+        @DisplayName("numCtx = 32000 (grand contexte pour l'orchestration)")
+        void complexOptions_numCtxIs32000() {
+            assertThat(options.getNumCtx()).isEqualTo(32000);
+        }
+
+        @Test
+        @DisplayName("numPredict = valeur injectée depuis penpot.ai.executor.max-tokens")
+        void complexOptions_numPredictMatchesMaxTokensProperty() {
+            assertThat(options.getNumPredict()).isEqualTo(1024);
         }
     }
 
+    // ── chatClientFactory ─────────────────────────────────────────────────────
+
     @Nested
-    @DisplayName("chatClientFactory bean")
-    class ChatClientFactoryBeanTests {
+    @DisplayName("chatClientFactory")
+    class ChatClientFactoryTests {
+
+        private ChatClientFactory factory;
+
+        @BeforeEach
+        void build() {
+            OllamaChatOptions simple   = config.simpleOptions();
+            OllamaChatOptions creative = config.creativeOptions();
+            OllamaChatOptions complex  = config.complexOptions();
+
+            // Mock OllamaChatModel — ChatClient.builder() en a besoin
+            OllamaChatModel chatModel = mock(OllamaChatModel.class);
+            when(chatModel.getDefaultOptions()).thenReturn(simple);
+
+            MessageChatMemoryAdvisor memoryAdvisor = mock(MessageChatMemoryAdvisor.class);
+
+            factory = config.chatClientFactory(chatModel, memoryAdvisor, simple, creative, complex);
+        }
 
         @Test
-        @DisplayName("chatClientFactory — buildForComplexity returns distinct ChatClient instances per call")
-        void chatClientFactory_buildForComplexityReturnsDistinctInstancesPerCall() {
-            // GIVEN / WHEN
-            ChatClient client1 = chatClientFactory.buildForComplexity(TaskComplexity.SIMPLE);
-            ChatClient client2 = chatClientFactory.buildForComplexity(TaskComplexity.SIMPLE);
+        @DisplayName("buildForComplexity retourne des instances distinctes à chaque appel")
+        void factory_returnsDistinctInstancesPerCall() {
+            ChatClient client1 = factory.buildForComplexity(TaskComplexity.SIMPLE);
+            ChatClient client2 = factory.buildForComplexity(TaskComplexity.SIMPLE);
 
-            // THEN
             assertThat(client1).isNotSameAs(client2);
+        }
+
+        @Test
+        @DisplayName("buildForComplexity supporte tous les niveaux de complexité")
+        void factory_supportsAllComplexityLevels() {
+            for (TaskComplexity complexity : TaskComplexity.values()) {
+                ChatClient client = factory.buildForComplexity(complexity);
+                assertThat(client)
+                        .as("buildForComplexity(%s) ne doit pas retourner null", complexity)
+                        .isNotNull();
+            }
         }
     }
 }

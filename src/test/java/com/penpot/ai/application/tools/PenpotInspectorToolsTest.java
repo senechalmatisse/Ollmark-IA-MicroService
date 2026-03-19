@@ -1,11 +1,15 @@
 package com.penpot.ai.application.tools;
 
+import com.penpot.ai.application.service.SessionContextHolder;
+import com.penpot.ai.application.tools.support.PenpotToolExecutor;
 import com.penpot.ai.core.domain.TaskResult;
 import com.penpot.ai.core.ports.in.ExecuteCodeUseCase;
+import com.penpot.ai.infrastructure.factory.ResultFormatterFactory;
+import com.penpot.ai.infrastructure.factory.TaskFactory;
+
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -19,13 +23,24 @@ import static org.mockito.Mockito.*;
  * afin de vérifier la délégation correcte et la gestion des retours
  * (succès / échec) sans exécuter de JavaScript réel.</p>
  */
-@SpringBootTest
-@ActiveProfiles("test")
+@SpringBootTest(classes = {
+    PenpotInspectorTools.class,
+    PenpotToolExecutor.class,
+})
 @DisplayName("PenpotInspectorTools — Integration")
 class PenpotInspectorToolsTest {
 
     @MockitoBean
     private ExecuteCodeUseCase executeCodeUseCase;
+
+    @MockitoBean
+    private SessionContextHolder sessionContextHolder;
+
+    @MockitoBean
+    private ResultFormatterFactory resultFormatterFactory;
+
+    @MockitoBean
+    private TaskFactory taskFactory;
 
     @Autowired
     private PenpotInspectorTools penpotInspectorTools;

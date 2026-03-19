@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.penpot.ai.application.service.MessagePersistenceService;
 import com.penpot.ai.core.ports.out.AiServicePort;
 import com.penpot.ai.shared.exception.ToolExecutionException;
 import com.penpot.ai.shared.exception.ValidationException;
@@ -15,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 @ExtendWith(MockitoExtension.class)
@@ -24,12 +26,18 @@ class ConversationChatUseCaseImplUnit {
     @Mock
     private AiServicePort aiService;
 
+    @Mock
+    private MessagePersistenceService messagePersistenceService;
+
+    @Mock
+    private org.springframework.ai.chat.memory.ChatMemory chatMemory;
+
     @InjectMocks
     private ConversationChatUseCaseImpl useCase;
 
-    private static final String CONVERSATION_ID = "conv-123";
+    private static final String PROJECT_ID = "proj-123";
     private static final String MESSAGE = "Crée un post Instagram pour ma boulangerie";
-    private static final String USER_TOKEN = "token-user-A";
+    private static final String SESSION_ID = "ses-123";
 
     // ─────────────────────────────────────────────────────────────
     // chat
@@ -39,62 +47,83 @@ class ConversationChatUseCaseImplUnit {
     @DisplayName("chat — validation et délégation")
     class ChatTests {
 
+    @Test
+    @DisplayName("chat — delegates to aiService and returns mono")
+    void chat_delegatesToAiServiceAndReturnsMono() {
+        // GIVEN
+        String conversationKey = PROJECT_ID + ":" + SESSION_ID;
+        Flux<String> aiResponse = Flux.just("réponse ", "IA");
+        when(aiService.chat(conversationKey, MESSAGE)).thenReturn(aiResponse);
+
+        // WHEN
+        Mono<String> result = useCase.chat(PROJECT_ID, MESSAGE, SESSION_ID);
+
+        // THEN
+        StepVerifier.create(result)
+                .expectNext("réponse IA")
+                .verifyComplete();
+
+        verify(aiService).chat(conversationKey, MESSAGE);
+    }
+
         @Test
-        @DisplayName("chat — delegates to aiService and returns flux")
-        void chat_delegatesToAiServiceAndReturnsFlux() {
-            // GIVEN
-            Flux<String> expected = Flux.just("réponse IA");
-            when(aiService.chat(CONVERSATION_ID, MESSAGE, USER_TOKEN)).thenReturn(expected);
+        @DisplayName("chat — throws when projectId is null")
+        void chat_throwsWhenProjectIdIsNull() {
+            // WHEN / THEN
+            assertThatThrownBy(() -> useCase.chat(null, MESSAGE, SESSION_ID))
+                    .isInstanceOf(ValidationException.class);
 
-            // WHEN
-            Flux<String> result = useCase.chat(CONVERSATION_ID, MESSAGE, USER_TOKEN);
-
-            // THEN
-            StepVerifier.create(result)
-                    .expectNext("réponse IA")
-                    .verifyComplete();
-
-            verify(aiService).chat(CONVERSATION_ID, MESSAGE, USER_TOKEN);
+            verify(aiService, never()).chat(any(), any());
         }
 
         @Test
-        @DisplayName("chat — throws when conversationId is null")
-        void chat_throwsWhenConversationIdIsNull() {
+        @DisplayName("chat — throws when projectId is blank")
+        void chat_throwsWhenProjectIdIsBlank() {
             // WHEN / THEN
-            assertThatThrownBy(() -> useCase.chat(null, MESSAGE, USER_TOKEN))
+            assertThatThrownBy(() -> useCase.chat("  ", MESSAGE, SESSION_ID))
                     .isInstanceOf(ValidationException.class);
 
-            verify(aiService, never()).chat(any(), any(), any());
-        }
-
-        @Test
-        @DisplayName("chat — throws when conversationId is blank")
-        void chat_throwsWhenConversationIdIsBlank() {
-            // WHEN / THEN
-            assertThatThrownBy(() -> useCase.chat("  ", MESSAGE, USER_TOKEN))
-                    .isInstanceOf(ValidationException.class);
-
-            verify(aiService, never()).chat(any(), any(), any());
+            verify(aiService, never()).chat(any(), any());
         }
 
         @Test
         @DisplayName("chat — throws when message is null")
         void chat_throwsWhenMessageIsNull() {
             // WHEN / THEN
-            assertThatThrownBy(() -> useCase.chat(CONVERSATION_ID, null, USER_TOKEN))
+            assertThatThrownBy(() -> useCase.chat(PROJECT_ID, null, SESSION_ID))
                     .isInstanceOf(ValidationException.class);
 
-            verify(aiService, never()).chat(any(), any(), any());
+            verify(aiService, never()).chat(any(), any());
         }
 
         @Test
         @DisplayName("chat — throws when message is blank")
         void chat_throwsWhenMessageIsBlank() {
             // WHEN / THEN
-            assertThatThrownBy(() -> useCase.chat(CONVERSATION_ID, "   ", USER_TOKEN))
+            assertThatThrownBy(() -> useCase.chat(PROJECT_ID, "   ", SESSION_ID))
                     .isInstanceOf(ValidationException.class);
 
-            verify(aiService, never()).chat(any(), any(), any());
+            verify(aiService, never()).chat(any(), any());
+        }
+
+        @Test
+        @DisplayName("chat — throws when sessionId is null")
+        void chat_throwsWhenSessionIdIsNull() {
+            // WHEN / THEN
+            assertThatThrownBy(() -> useCase.chat(PROJECT_ID, MESSAGE, null))
+                    .isInstanceOf(ValidationException.class);
+
+            verify(aiService, never()).chat(any(), any());
+        }
+
+        @Test
+        @DisplayName("chat — throws when sessionId is blank")
+        void chat_throwsWhenSessionIdIsBlank() {
+            // WHEN / THEN
+            assertThatThrownBy(() -> useCase.chat(PROJECT_ID, MESSAGE, "   "))
+                    .isInstanceOf(ValidationException.class);
+
+            verify(aiService, never()).chat(any(), any());
         }
 
         @Test
@@ -104,10 +133,10 @@ class ConversationChatUseCaseImplUnit {
             String tooLongMessage = "a".repeat(10001);
 
             // WHEN / THEN
-            assertThatThrownBy(() -> useCase.chat(CONVERSATION_ID, tooLongMessage, USER_TOKEN))
+            assertThatThrownBy(() -> useCase.chat(PROJECT_ID, tooLongMessage, SESSION_ID))
                     .isInstanceOf(ValidationException.class);
 
-            verify(aiService, never()).chat(any(), any(), any());
+            verify(aiService, never()).chat(any(), any());
         }
 
         @Test
@@ -115,11 +144,12 @@ class ConversationChatUseCaseImplUnit {
         void chat_acceptsMessageWithExactlyMaxLength() {
             // GIVEN
             String maxLengthMessage = "a".repeat(10000);
-            Flux<String> expected = Flux.just("réponse IA");
-            when(aiService.chat(CONVERSATION_ID, maxLengthMessage, USER_TOKEN)).thenReturn(expected);
+            String conversationKey = PROJECT_ID + ":" + SESSION_ID;
+            Flux<String> aiResponse = Flux.just("réponse IA");
+            when(aiService.chat(conversationKey, maxLengthMessage)).thenReturn(aiResponse);
 
             // WHEN
-            Flux<String> result = useCase.chat(CONVERSATION_ID, maxLengthMessage, USER_TOKEN);
+            Mono<String> result = useCase.chat(PROJECT_ID, maxLengthMessage, SESSION_ID);
 
             // THEN
             StepVerifier.create(result)
@@ -137,50 +167,25 @@ class ConversationChatUseCaseImplUnit {
     class StartNewConversationTests {
 
         @Test
-        @DisplayName("startNewConversation — generates ID with userId prefix")
-        void startNewConversation_generatesIdWithUserIdPrefix() {
+        @DisplayName("startNewConversation — returns projectId")
+        void startNewConversation_returnsProjectId() {
             // WHEN
-            String conversationId = useCase.startNewConversation("alice");
+            String result = useCase.startNewConversation(PROJECT_ID);
 
             // THEN
-            assertThat(conversationId)
-                    .startsWith("user-alice-")
-                    .hasSize("user-alice-".length() + 8);
+            assertThat(result).isEqualTo(PROJECT_ID);
         }
 
         @Test
-        @DisplayName("startNewConversation — generates anonymous ID when userId is null")
-        void startNewConversation_generatesAnonymousIdWhenUserIdIsNull() {
+        @DisplayName("startNewConversation — works for any projectId")
+        void startNewConversation_worksForAnyProjectId() {
             // WHEN
-            String conversationId = useCase.startNewConversation(null);
+            String id1 = useCase.startNewConversation("proj-A");
+            String id2 = useCase.startNewConversation("proj-B");
 
             // THEN
-            assertThat(conversationId)
-                    .startsWith("anonymous-")
-                    .hasSize("anonymous-".length() + 8);
-        }
-
-        @Test
-        @DisplayName("startNewConversation — generates anonymous ID when userId is blank")
-        void startNewConversation_generatesAnonymousIdWhenUserIdIsBlank() {
-            // WHEN
-            String conversationId = useCase.startNewConversation("   ");
-
-            // THEN
-            assertThat(conversationId)
-                    .startsWith("anonymous-")
-                    .hasSize("anonymous-".length() + 8);
-        }
-
-        @Test
-        @DisplayName("startNewConversation — generates unique IDs for each call")
-        void startNewConversation_generatesUniqueIds() {
-            // WHEN
-            String id1 = useCase.startNewConversation("alice");
-            String id2 = useCase.startNewConversation("alice");
-
-            // THEN
-            assertThat(id1).isNotEqualTo(id2);
+            assertThat(id1).isEqualTo("proj-A");
+            assertThat(id2).isEqualTo("proj-B");
         }
     }
 
@@ -196,18 +201,18 @@ class ConversationChatUseCaseImplUnit {
         @DisplayName("clearConversation — delegates to aiService")
         void clearConversation_delegatesToAiService() {
             // GIVEN
-            doNothing().when(aiService).clearConversation(CONVERSATION_ID);
+            doNothing().when(aiService).clearConversation(PROJECT_ID);
 
             // WHEN
-            useCase.clearConversation(CONVERSATION_ID);
+            useCase.clearConversation(PROJECT_ID);
 
             // THEN
-            verify(aiService).clearConversation(CONVERSATION_ID);
+            verify(aiService).clearConversation(PROJECT_ID);
         }
 
         @Test
-        @DisplayName("clearConversation — throws when conversationId is null")
-        void clearConversation_throwsWhenConversationIdIsNull() {
+        @DisplayName("clearConversation — throws when projectId is null")
+        void clearConversation_throwsWhenProjectIdIsNull() {
             // WHEN / THEN
             assertThatThrownBy(() -> useCase.clearConversation(null))
                     .isInstanceOf(ValidationException.class);
@@ -216,8 +221,8 @@ class ConversationChatUseCaseImplUnit {
         }
 
         @Test
-        @DisplayName("clearConversation — throws when conversationId is blank")
-        void clearConversation_throwsWhenConversationIdIsBlank() {
+        @DisplayName("clearConversation — throws when projectId is blank")
+        void clearConversation_throwsWhenProjectIdIsBlank() {
             // WHEN / THEN
             assertThatThrownBy(() -> useCase.clearConversation("  "))
                     .isInstanceOf(ValidationException.class);
@@ -230,10 +235,10 @@ class ConversationChatUseCaseImplUnit {
         void clearConversation_rethrowsIllegalArgumentExceptionDirectly() {
             // GIVEN
             doThrow(new IllegalArgumentException("invalid id"))
-                    .when(aiService).clearConversation(CONVERSATION_ID);
+                    .when(aiService).clearConversation(PROJECT_ID);
 
             // WHEN / THEN
-            assertThatThrownBy(() -> useCase.clearConversation(CONVERSATION_ID))
+            assertThatThrownBy(() -> useCase.clearConversation(PROJECT_ID))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("invalid id");
         }
@@ -243,10 +248,10 @@ class ConversationChatUseCaseImplUnit {
         void clearConversation_wrapsUnexpectedExceptionInToolExecutionException() {
             // GIVEN
             doThrow(new RuntimeException("unexpected error"))
-                    .when(aiService).clearConversation(CONVERSATION_ID);
+                    .when(aiService).clearConversation(PROJECT_ID);
 
             // WHEN / THEN
-            assertThatThrownBy(() -> useCase.clearConversation(CONVERSATION_ID))
+            assertThatThrownBy(() -> useCase.clearConversation(PROJECT_ID))
                     .isInstanceOf(ToolExecutionException.class)
                     .hasMessageContaining("Failed to clear conversation");
         }
