@@ -1,6 +1,9 @@
   # ═══════════════════════════════════════════════════════════════════
   # Profil PREPROD
   # ═══════════════════════════════════════════════════════════════════
+  # ═══════════════════════════════════════════════════════════════════
+  # Profil PREPROD
+  # ═══════════════════════════════════════════════════════════════════
 
   spring:
     datasource:
@@ -18,10 +21,10 @@
       show-sql: false
     ai:
       ollama:
-        base-url: ${OLLAMA_BASE_URL:http://10.130.163.62:11434/}
+        base-url: http://10.130.163.62:11434/
         chat:
           options:
-            model: ${PENPOT_EXECUTOR_MODEL:qwen3.5:9b}
+            model: qwen3.5:9b
             temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
             top-p: ${PENPOT_EXECUTOR_TOP_P:0.95}
             top-k: ${PENPOT_EXECUTOR_TOP_K:20}
@@ -35,10 +38,13 @@
         tools:
           observations:
             include-content: true
+        tools:
+          observations:
+            include-content: true
 
         embedding:
           options:
-            model: ${OLLAMA_EMBEDDING_MODEL:hf.co/unsloth/embeddinggemma-300m-GGUF:Q8_0}
+            model: hf.co/unsloth/embeddinggemma-300m-GGUF:Q8_0
 
       chat:
         memory:
@@ -61,7 +67,19 @@
     ai:
       server-address: ${PENPOT_SERVER_ADDRESS:localhost}
       websocket-port: ${PENPOT_WEBSOCKET_PORT:8080}
+  penpot:
+    ai:
+      server-address: ${PENPOT_SERVER_ADDRESS:localhost}
+      websocket-port: ${PENPOT_WEBSOCKET_PORT:8080}
 
+  logging:
+    level:
+      com.penpot.ai: INFO
+      org.springframework.ai.chat.client: INFO
+      org.springframework.ai.rag: INFO
+      org.springframework.ai.ollama: INFO
+      org.springframework.web.socket: WARN
+      org.springframework.web.client: WARN
   logging:
     level:
       com.penpot.ai: INFO
