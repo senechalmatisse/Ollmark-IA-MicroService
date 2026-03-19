@@ -4,12 +4,12 @@ import com.penpot.ai.application.tools.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.ToolCallAdvisor;
+import org.springframework.ai.model.tool.ToolCallingManager;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.*;
 
 @Slf4j
 @Configuration
@@ -20,14 +20,24 @@ import org.springframework.context.annotation.Primary;
 public class OpenRouterConfig {
 
     /**
-     * Builder principal utilisé par tout le système (RAG, Adapter, etc.)
-     * 🔥 AVEC TOOLS PENPOT INJECTÉS
+     * 🔥 ACTIVE LE TOOL CALLING
+     */
+    @Bean
+    public ToolCallAdvisor toolCallAdvisor(ToolCallingManager toolCallingManager) {
+        return ToolCallAdvisor.builder()
+                .toolCallingManager(toolCallingManager)
+                .build();
+    }
+
+    /**
+     * 🔥 BUILDER AVEC TOOLS + TOOL CALLING
      */
     @Bean("executorChatClientBuilder")
     @Primary
     public ChatClient.Builder executorChatClientBuilder(
             ChatModel chatModel,
             MessageChatMemoryAdvisor memoryAdvisor,
+            ToolCallAdvisor toolCallAdvisor,
             PenpotShapeTools shapeTools,
             PenpotContentTools contentTools,
             PenpotLayoutTools layoutTools,
@@ -35,11 +45,14 @@ public class OpenRouterConfig {
             PenpotInspectorTools inspectorTools,
             PenpotDeleteTools deleteTools
     ) {
-        log.info("[OpenRouterConfig] Creating executorChatClientBuilder WITH TOOLS");
+        log.info("🔥 TOOLS + TOOL CALLING ACTIVATED");
 
         return ChatClient.builder(chatModel)
-                .defaultAdvisors(memoryAdvisor)
-                .defaultTools(   // 🔥 MAGIC ICI
+                .defaultAdvisors(
+                        memoryAdvisor,
+                        toolCallAdvisor // 🔥 SINON ÇA MARCHE PAS
+                )
+                .defaultTools(
                         shapeTools,
                         contentTools,
                         layoutTools,
@@ -49,14 +62,10 @@ public class OpenRouterConfig {
                 );
     }
 
-    /**
-     * ChatClient principal
-     */
     @Bean("executorChatClient")
     public ChatClient executorChatClient(
             @Qualifier("executorChatClientBuilder") ChatClient.Builder builder
     ) {
-        log.info("[OpenRouterConfig] Building executorChatClient");
         return builder.build();
     }
 }
