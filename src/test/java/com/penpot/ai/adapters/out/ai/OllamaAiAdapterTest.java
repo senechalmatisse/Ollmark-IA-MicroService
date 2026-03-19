@@ -36,6 +36,7 @@ import com.penpot.ai.application.advisor.ToolErrorAdvisor;
 import com.penpot.ai.application.advisor.ToolFailureRecoveryAdvisor;
 import com.penpot.ai.application.advisor.ToolResultValidatorAdvisor;
 import com.penpot.ai.application.advisor.ToolRetryLimiterAdvisor;
+import com.penpot.ai.application.advisor.SafeGuardPromptAdvisor;
 import com.penpot.ai.application.router.ToolCategoryResolver;
 import com.penpot.ai.application.service.MessageService;
 import com.penpot.ai.application.service.PromptsConfigService;
@@ -76,6 +77,7 @@ class OllamaAiAdapterTest {
     @Mock private ToolCallAdvisor toolCallAdvisor;
     @Mock private ReReadingAdvisor reReadingAdvisor;
     @Mock private SimpleLoggerAdvisor simpleLoggerAdvisor;
+    @Mock private SafeGuardPromptAdvisor safeGuardPromptAdvisor;
 
     // ---- Spring AI fluent chain mocks ----
     @Mock private ChatClient chatClient;
@@ -110,7 +112,8 @@ class OllamaAiAdapterTest {
             messageService,
             toolCallAdvisor,
             reReadingAdvisor,
-            simpleLoggerAdvisor
+            simpleLoggerAdvisor,
+            safeGuardPromptAdvisor
         );
 
         lenient().when(sessionContextHolder.get()).thenReturn("");

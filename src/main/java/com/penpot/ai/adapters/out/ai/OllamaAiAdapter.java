@@ -128,6 +128,7 @@ public class OllamaAiAdapter implements AiServicePort {
     private final ToolCallAdvisor toolCallAdvisor;
     private final ReReadingAdvisor reReadingAdvisor;
     private final SimpleLoggerAdvisor simpleLoggerAdvisor;
+    private final SafeGuardPromptAdvisor safeGuardPromptAdvisor;
 
     public OllamaAiAdapter(
         ChatClientFactory chatClientFactory,
@@ -147,7 +148,8 @@ public class OllamaAiAdapter implements AiServicePort {
         MessageService messageService,
         ToolCallAdvisor toolCallAdvisor,
         ReReadingAdvisor reReadingAdvisor,
-        SimpleLoggerAdvisor simpleLoggerAdvisor
+        SimpleLoggerAdvisor simpleLoggerAdvisor,
+        SafeGuardPromptAdvisor safeGuardPromptAdvisor
     ) {
         this.chatClientFactory = chatClientFactory;
         this.complexityAnalyzer = complexityAnalyzer;
@@ -167,6 +169,7 @@ public class OllamaAiAdapter implements AiServicePort {
         this.toolCallAdvisor = toolCallAdvisor;
         this.reReadingAdvisor = reReadingAdvisor;
         this.simpleLoggerAdvisor = simpleLoggerAdvisor;
+        this.safeGuardPromptAdvisor = safeGuardPromptAdvisor;
     }
 
     /**
@@ -267,6 +270,7 @@ public class OllamaAiAdapter implements AiServicePort {
     private List<Advisor> buildAdvisors(Set<ToolCategory> categories) {
         List<Advisor> advisors = new ArrayList<>();
 
+        advisors.add(safeGuardPromptAdvisor);
         advisors.add(inspectionFirstAdvisor);
 
         advisors.add(toolCallAdvisor);
