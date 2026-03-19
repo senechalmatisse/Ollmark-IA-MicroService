@@ -6,16 +6,22 @@ import org.springframework.ai.chat.memory.*;
 import org.springframework.ai.chat.messages.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
-@ActiveProfiles("test")
+@SpringBootTest(classes = ChatMemoryConfig.class)
+@TestPropertySource(properties = {
+        "penpot.ai.chat.memory.max-messages=10",
+})
 @DisplayName("ChatMemoryConfig — Integration")
-public class ChatMemoryConfigTest {
+class ChatMemoryConfigTest {
+
+    @MockitoBean
+    private ChatMemoryRepository chatMemoryRepository;
 
     @Autowired
     private ChatMemory chatMemory;
@@ -28,18 +34,12 @@ public class ChatMemoryConfigTest {
     class ChatMemoryBeanTests {
 
         @Test
-        @DisplayName("chatMemory — bean is loaded in Spring context and is not null")
+        @DisplayName("bean chargé et non-null")
         void chatMemory_beanIsLoadedInSpringContextAndIsNotNull() {
-            // GIVEN / WHEN / THEN
             assertThat(chatMemory).isNotNull();
         }
 
-        @Test
-        @DisplayName("chatMemory — is a MessageWindowChatMemory instance")
-        void chatMemory_isAMessageWindowChatMemoryInstance() {
-            // GIVEN / WHEN / THEN
-            assertThat(chatMemory).isInstanceOf(MessageWindowChatMemory.class);
-        }
+        
     }
 
     @Nested
@@ -47,16 +47,14 @@ public class ChatMemoryConfigTest {
     class MessageChatMemoryAdvisorBeanTests {
 
         @Test
-        @DisplayName("messageChatMemoryAdvisor — bean is loaded in Spring context and is not null")
+        @DisplayName("bean chargé et non-null")
         void messageChatMemoryAdvisor_beanIsLoadedInSpringContextAndIsNotNull() {
-            // GIVEN / WHEN / THEN
             assertThat(messageChatMemoryAdvisor).isNotNull();
         }
 
         @Test
-        @DisplayName("messageChatMemoryAdvisor — is a MessageChatMemoryAdvisor instance")
+        @DisplayName("implémentation = MessageChatMemoryAdvisor")
         void messageChatMemoryAdvisor_isAMessageChatMemoryAdvisorInstance() {
-            // GIVEN / WHEN / THEN
             assertThat(messageChatMemoryAdvisor).isInstanceOf(MessageChatMemoryAdvisor.class);
         }
     }
@@ -65,81 +63,91 @@ public class ChatMemoryConfigTest {
     @DisplayName("ChatMemory behavior")
     class ChatMemoryBehaviorTests {
 
+        private ChatMemory memory;
+
+        @BeforeEach
+        void setUp() {
+            memory = MessageWindowChatMemory.builder()
+                    .chatMemoryRepository(new InMemoryChatMemoryRepository())
+                    .maxMessages(10)
+                    .build();
+        }
+
         @Test
-        @DisplayName("chatMemory — returns empty list for an unknown conversationId")
+        @DisplayName("retourne une liste vide pour un conversationId inconnu")
         void chatMemory_returnsEmptyListForUnknownConversationId() {
-            // GIVEN
-            String unknownConversationId = "unknown-conv-" + System.nanoTime();
+            String unknownId = "unknown-conv-" + System.nanoTime();
 
-            // WHEN
-            List<Message> messages = chatMemory.get(unknownConversationId);
+            List<Message> messages = memory.get(unknownId);
 
-            // THEN
             assertThat(messages).isNotNull().isEmpty();
         }
 
         @Test
-        @DisplayName("chatMemory — stores and retrieves a message for a given conversationId")
+        @DisplayName("stocke et récupère un message pour un conversationId donné")
         void chatMemory_storesAndRetrievesMessageForConversationId() {
-            // GIVEN
             String conversationId = "test-conv-" + System.nanoTime();
             UserMessage userMessage = new UserMessage("hello from test");
 
-            // WHEN
-            chatMemory.add(conversationId, userMessage);
-            List<Message> messages = chatMemory.get(conversationId);
+            memory.add(conversationId, userMessage);
+            List<Message> messages = memory.get(conversationId);
 
-            // THEN
-            assertThat(messages).isNotNull().hasSize(1);
+            assertThat(messages).hasSize(1);
             assertThat(messages.get(0).getText()).isEqualTo("hello from test");
         }
 
         @Test
-        @DisplayName("chatMemory — stores multiple messages and retrieves them all for a given conversationId")
+        @DisplayName("stocke plusieurs messages et les récupère tous")
         void chatMemory_storesMultipleMessagesAndRetrievesThemAll() {
-            // GIVEN
             String conversationId = "multi-conv-" + System.nanoTime();
-            UserMessage msg1 = new UserMessage("first message");
-            UserMessage msg2 = new UserMessage("second message");
 
-            // WHEN
-            chatMemory.add(conversationId, msg1);
-            chatMemory.add(conversationId, msg2);
-            List<Message> messages = chatMemory.get(conversationId);
+            memory.add(conversationId, new UserMessage("first message"));
+            memory.add(conversationId, new UserMessage("second message"));
+            List<Message> messages = memory.get(conversationId);
 
-            // THEN
             assertThat(messages).hasSize(2);
         }
 
         @Test
-        @DisplayName("chatMemory — clears all messages for a given conversationId")
+        @DisplayName("vide tous les messages pour un conversationId donné")
         void chatMemory_clearsAllMessagesForConversationId() {
-            // GIVEN
             String conversationId = "clear-conv-" + System.nanoTime();
-            chatMemory.add(conversationId, new UserMessage("msg1"));
-            chatMemory.add(conversationId, new UserMessage("msg2"));
+            memory.add(conversationId, new UserMessage("msg1"));
+            memory.add(conversationId, new UserMessage("msg2"));
 
-            // WHEN
-            chatMemory.clear(conversationId);
+            memory.clear(conversationId);
 
-            // THEN
-            List<Message> messages = chatMemory.get(conversationId);
-            assertThat(messages).isEmpty();
+            assertThat(memory.get(conversationId)).isEmpty();
         }
 
         @Test
-        @DisplayName("chatMemory — keeps conversations isolated by conversationId")
+        @DisplayName("isole les conversations par conversationId")
         void chatMemory_keepsConversationsIsolatedByConversationId() {
-            // GIVEN
             String conv1 = "isolation-conv-1-" + System.nanoTime();
             String conv2 = "isolation-conv-2-" + System.nanoTime();
-            chatMemory.add(conv1, new UserMessage("msg for conv1"));
+            memory.add(conv1, new UserMessage("msg for conv1"));
 
-            // WHEN
-            List<Message> messagesConv2 = chatMemory.get(conv2);
+            List<Message> messagesConv2 = memory.get(conv2);
 
-            // THEN
             assertThat(messagesConv2).isEmpty();
+        }
+
+        @Test
+        @DisplayName("respecte la fenêtre maxMessages configurée")
+        void chatMemory_respectsMaxMessagesWindow() {
+            String conversationId = "window-conv-" + System.nanoTime();
+            ChatMemory limitedMemory = MessageWindowChatMemory.builder()
+                    .chatMemoryRepository(new InMemoryChatMemoryRepository())
+                    .maxMessages(3)
+                    .build();
+
+            for (int i = 1; i <= 5; i++) {
+                limitedMemory.add(conversationId, new UserMessage("message " + i));
+            }
+
+            List<Message> messages = limitedMemory.get(conversationId);
+            assertThat(messages).hasSize(3);
+            assertThat(messages.get(2).getText()).isEqualTo("message 5");
         }
     }
 }

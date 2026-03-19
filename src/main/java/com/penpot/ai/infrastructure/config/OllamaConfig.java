@@ -41,12 +41,12 @@ import java.util.Map;
  */
 @Slf4j
 @Configuration
-@ConditionalOnProperty(name = "penpot.ai.provider", havingValue = "ollama", matchIfMissing = true)
+@ConditionalOnProperty(name = "penpot.ai.provider", havingValue = "ollama")
 @RequiredArgsConstructor
 @RefreshScope
 public class OllamaConfig {
 
-    @Value("${penpot.ai.executor.model:qwen3:8b}")
+    @Value("${penpot.ai.executor.model:qwen3.5:9b}")
     private String modelName;
     
     @Value("${penpot.ai.executor.temperature:0.7}")
@@ -79,7 +79,7 @@ public class OllamaConfig {
     @Bean("simpleOptions")
     @RefreshScope
     public OllamaChatOptions simpleOptions() {
-        log.info("Configuring SIMPLE ChatOptions (temperature=0.1, topK=10)");
+        log.info("Configuring SIMPLE ChatOptions (temperature=0.1, topK=3)");
         return OllamaChatOptions.builder()
             .model(modelName)
             .temperature(0.1)
@@ -94,7 +94,7 @@ public class OllamaConfig {
     @Bean("creativeOptions")
     @RefreshScope
     public OllamaChatOptions creativeOptions() {
-        log.info("Configuring CREATIVE ChatOptions (temperature=0.8, topK=40, topP=0.9)");
+        log.info("Configuring CREATIVE ChatOptions (temperature=0.8, topK=5, topP=0.9)");
         return OllamaChatOptions.builder()
             .model(modelName)
             .temperature(0.8)

@@ -1,22 +1,27 @@
-spring:
-  application:
-    name: penpot-ai-server
+# ═══════════════════════════════════════════════════════════════════
+# Profil PREPROD
+# ═══════════════════════════════════════════════════════════════════
 
-  profiles:
-    active: ${SPRING_PROFILES_ACTIVE:local}
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
 
   jpa:
-    properties:
-      hibernate:
-        format_sql: true
-
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
 
   ai:
     # =================================
-    # OLLAMA (FALLBACK)
+    # OLLAMA (fallback interne)
     # =================================
     ollama:
       base-url: ${OLLAMA_BASE_URL:http://10.130.163.62:11434/}
@@ -44,7 +49,7 @@ spring:
           model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
 
     # =================================
-    # OPENROUTER (PRINCIPAL)
+    # OPENROUTER (principal)
     # =================================
     openai:
       base-url: https://openrouter.ai/api
@@ -52,8 +57,8 @@ spring:
 
       chat:
         options:
-          temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
-          max-tokens: ${PENPOT_EXECUTOR_MAX_TOKENS:4096}
+          temperature: 0.7
+          max-tokens: 4096
 
       # 🔥 FIX CRITIQUE EMBEDDING
       embedding:
@@ -71,91 +76,48 @@ spring:
 
 
 # ─────────────────────────────────────────────
-# CONFIG AI GLOBALE
+# CONFIG AI
 # ─────────────────────────────────────────────
 penpot:
   ai:
-
-    # 🔥 SWITCH GLOBAL
     provider: ${AI_PROVIDER:openrouter}
 
-    router:
-      model: ${PENPOT_ROUTER_MODEL:qwen/qwen-2.5-7b-instruct}
-      temperature: ${PENPOT_ROUTER_TEMPERATURE:0.0}
-      max-tokens: ${PENPOT_ROUTER_MAX_TOKENS:256}
-
-    executor:
-      model: ${PENPOT_EXECUTOR_MODEL:qwen/qwen3.5-35b-a3b}
-      temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
-
-    chat:
-      memory:
-        max-messages: ${PENPOT_CHAT_MEMORY_MAX_MESSAGES:20}
+    server-address: ${PENPOT_SERVER_ADDRESS:localhost}
+    websocket-port: ${PENPOT_WEBSOCKET_PORT:8080}
 
     rag:
       templates-path: ${PENPOT_RAG_TEMPLATES_PATH:classpath:data/rag/templates/*.json}
       similarity-threshold: ${PENPOT_RAG_SIMILARITY_THRESHOLD:0.5}
       top-k: ${PENPOT_RAG_TOP_K:3}
       query-variants: ${PENPOT_RAG_QUERY_VARIANTS:2}
-      eager-embedding: ${PENPOT_RAG_EAGER_EMBEDDING:true}
-
-    repl-port: ${PENPOT_REPL_PORT:4403}
-    remote-mode: ${PENPOT_REMOTE_MODE:false}
-    multi-user: ${PENPOT_MULTI_USER:false}
-    file-system-access: true
-    log-dir: ${PENPOT_LOG_DIR:logs}
+      eager-embedding: true
 
 
 # ─────────────────────────────────────────────
-# SERVER
+# CORS
 # ─────────────────────────────────────────────
-server:
-  port: ${SERVER_PORT:8080}
-  address: 0.0.0.0
+cors:
+  allowed-origins: >
+    http://10.130.163.57,
+    https://10.130.163.57,
+    http://10.130.163.62:11434/,
+    https://10.130.163.62:11434/,
+    http://10.130.163.57:50012,
+    https://10.130.163.57:50012,
+    http://10.130.163.57:50030,
+    https://10.130.163.57:50030,
+    https://design.penpot.app
 
 
 # ─────────────────────────────────────────────
 # LOGGING
 # ─────────────────────────────────────────────
 logging:
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
-
-  file:
-    name: ${penpot.ai.log-dir}/penpot.log
-    max-size: 10MB
-    max-history: 30
-
-
-# ─────────────────────────────────────────────
-# ACTUATOR
-# ─────────────────────────────────────────────
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,loggers,refresh
-
-
-# ─────────────────────────────────────────────
-# SWAGGER
-# ─────────────────────────────────────────────
-app:
-  security:
-    swagger:
-      user: ${SWAGGER_USER:admin}
-      password: ${SWAGGER_PASSWORD:admin}
-
-springdoc:
-  api-docs:
-    enabled: ${SWAGGER_ENABLED:true}
-
-  swagger-ui:
-    enabled: ${SWAGGER_ENABLED:true}
-
-
-# ─────────────────────────────────────────────
-# CRYPTO
-# ─────────────────────────────────────────────
-crypto:
-  master-key: ${CRYPTO_MASTER_KEY:dev-key-123}
+  level:
+    com.penpot.ai: INFO
+    org.springframework.ai.chat.client: INFO
+    org.springframework.ai.rag: INFO
+    org.springframework.ai.ollama: INFO
+    org.springframework.ai.openai: INFO
+    org.springframework.web.socket: WARN
+    org.springframework.web.client: WARN

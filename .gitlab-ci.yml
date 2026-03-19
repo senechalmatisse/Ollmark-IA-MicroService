@@ -242,6 +242,8 @@ deploy-develop:
                 echo "PENPOT_REPL_PORT=$PENPOT_REPL_PORT" >> .env
                 echo "PENPOT_REMOTE_MODE=$PENPOT_REMOTE_MODE" >> .env
                 echo "PENPOT_MULTI_USER=$PENPOT_MULTI_USER" >> .env
+                echo "CRYPTO_MASTER_KEY=$CRYPTO_MASTER_KEY" >> .env
+                echo "SWAGGER_PASSWORD=$SWAGGER_PASSWORD" >> .env
 
                 # --- AI DUAL-MODEL (ROUTER) ---
                 echo "PENPOT_ROUTER_MODEL=$PENPOT_ROUTER_MODEL" >> .env

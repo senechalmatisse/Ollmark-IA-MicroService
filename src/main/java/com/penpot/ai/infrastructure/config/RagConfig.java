@@ -38,14 +38,23 @@ public class RagConfig {
     @Value("${penpot.ai.rag.query-variants:2}")
     private int queryVariants;
 
+    @Value("${penpot.ai.embedding.provider:openai}")
+    private String embeddingProvider;
+
     /**
      * VectorStore en mémoire.
      * Le bean EmbeddingModel @Primary est résolu automatiquement selon le provider actif.
      */
     @Bean
-    public VectorStore vectorStore(EmbeddingModel embeddingModel) {
-        log.info("Initializing SimpleVectorStore (in-memory)");
-        return SimpleVectorStore.builder(embeddingModel).build();
+    public VectorStore vectorStore(
+        @Qualifier("ollamaEmbeddingModel") EmbeddingModel ollama,
+        @Qualifier("openAiEmbeddingModel") EmbeddingModel openai
+    ) {
+        EmbeddingModel selected = embeddingProvider.equals("ollama") ? ollama : openai;
+
+        log.info("Using EmbeddingModel provider: {}", embeddingProvider);
+
+        return SimpleVectorStore.builder(selected).build();
     }
 
     /**
