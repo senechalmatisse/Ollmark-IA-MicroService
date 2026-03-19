@@ -2,67 +2,65 @@ package com.penpot.ai.infrastructure.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.ollama.OllamaChatModel;
-import org.springframework.ai.ollama.api.*;
+import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.*;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * Configuration du ChatClient dédié au routing d'intention.
  *
- * <h2>Séparation des responsabilités</h2>
- * Cette classe est délibérément séparée de {@link OllamaConfig} pour respecter SRP :
- * {@code OllamaConfig} configure l'exécuteur (qwen3:8b avec mémoire),
- * {@code RouterConfig} configure le classifieur (phi3:mini sans mémoire).
- *
- * <h2>Paramètres intentionnels</h2>
- * <ul>
- *   <li>{@code temperature=0.0} : classification déterministe, pas de créativité</li>
- *   <li>{@code numPredict=150} : une réponse JSON courte suffit, limite les tokens gaspillés</li>
- *   <li>Pas de {@code MessageChatMemoryAdvisor} : le router ne doit pas avoir de mémoire
- *       (chaque requête est indépendante)</li>
- * </ul>
+ * <p>Utilise OpenRouter pour la classification.
+ * Séparé de l'exécuteur : pas de mémoire, température 0, tokens limités.</p>
  */
 @Slf4j
 @Configuration
+@ConditionalOnProperty(name = "penpot.ai.provider", havingValue = "openrouter")
 public class RouterConfig {
 
-    /**
-     * Modèle utilisé pour le routing.
-     * Configurable via {@code penpot.ai.router.model} dans application.properties.
-     * Défaut : {@code phi3:mini} (3.8B params, excellent classifieur).
-     */
-    @Value("${penpot.ai.router.model:llama3.1}")
+    @Value("${penpot.ai.router.model:qwen/qwen-2.5-7b-instruct}")
     private String routerModel;
 
+    @Value("${spring.ai.openai.base-url:https://openrouter.ai/api/v1}")
+    private String baseUrl;
+
+    @Value("${spring.ai.openai.api-key}")
+    private String apiKey;
+
+    @Value("${penpot.ai.router.max-tokens:256}")
+    private Integer maxTokens;
+
     /**
-     * Crée une instance dédiée de {@link OllamaChatModel} pour phi3:mini.
-     *
-     * @param ollamaApi l'API Ollama partagée, injectée automatiquement par Spring AI
-     * @return un ChatClient léger dédié à la classification
+     * ChatClient léger pour la classification d'intention.
+     * Pas de mémoire, déterministe, tokens limités.
      */
     @Bean("routerChatClient")
-    public ChatClient routerChatClient(OllamaApi ollamaApi) {
+    public ChatClient routerChatClient() {
+
         log.info("[RouterConfig] Configuring router ChatClient with model: {}", routerModel);
 
-        OllamaChatOptions routerOptions = OllamaChatOptions.builder()
-            .model(routerModel)
-            .temperature(0.0)
-            .topP(0.9)
-            .topK(10)
-            .repeatPenalty(1.05)
-            .numPredict(512)
-            .numCtx(8192)
+        OpenAiApi openAiApi = OpenAiApi.builder()
+            .baseUrl(baseUrl)
+            .apiKey(apiKey)
             .build();
 
-        OllamaChatModel routerModel = OllamaChatModel.builder()
-            .ollamaApi(ollamaApi)
+        OpenAiChatOptions routerOptions = OpenAiChatOptions.builder()
+            .model(routerModel)
+            .temperature(0.0)
+            .maxTokens(maxTokens)
+            .build();
+
+        OpenAiChatModel routerChatModel = OpenAiChatModel.builder()
+            .openAiApi(openAiApi)
             .defaultOptions(routerOptions)
             .build();
 
-        log.info("[RouterConfig] Router ChatClient ready (model={}, temperature=0.0, numPredict=150)",
-            this.routerModel);
+        log.info("[RouterConfig] Router ChatClient ready (model={}, temperature=0.0, maxTokens={})",
+            routerModel, maxTokens);
 
-        return ChatClient.builder(routerModel).build();
+        return ChatClient.builder(routerChatModel).build();
     }
 }

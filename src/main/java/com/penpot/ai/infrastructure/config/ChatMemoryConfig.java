@@ -40,10 +40,12 @@ public class ChatMemoryConfig {
         log.info("Repository type: {}", chatMemoryRepository.getClass().getSimpleName());
         log.info("==============================================");
 
-        return MessageWindowChatMemory.builder()
+        ChatMemory base = MessageWindowChatMemory.builder()
             .chatMemoryRepository(chatMemoryRepository)
             .maxMessages(maxMessages)
             .build();
+
+        return new SafeChatMemory(base);
     }
 
     /**
