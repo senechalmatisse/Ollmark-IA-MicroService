@@ -8,7 +8,8 @@ spring:
   jpa:
     properties:
       hibernate:
-        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect  
+        format_sql: true                                   
 
   flyway:
     enabled: true
@@ -23,7 +24,7 @@ spring:
 
       chat:
         options:
-          model: ${OLLAMA_CHAT_MODEL:qwen3.5:9b}
+          model: ${OLLAMA_CHAT_MODEL:qwen3.5:9b}   # fallback seulement
           temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
           top-p: ${PENPOT_EXECUTOR_TOP_P:0.95}
           top-k: ${PENPOT_EXECUTOR_TOP_K:20}
@@ -44,7 +45,7 @@ spring:
           model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
 
     # =================================
-    # OPENROUTER (PRINCIPAL)
+    # OPENROUTER (PRINCIPAL )
     # =================================
     openai:
       base-url: https://openrouter.ai/api
@@ -52,16 +53,16 @@ spring:
 
       chat:
         options:
+          model: ${OPENROUTER_CHAT_MODEL:qwen/qwen3.5-35b-a3b}   #  AJOUT CRITIQUE
           temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
           max-tokens: ${PENPOT_EXECUTOR_MAX_TOKENS:4096}
 
-      # 🔥 FIX CRITIQUE EMBEDDING
       embedding:
         options:
           model: ${OPENROUTER_EMBEDDING_MODEL:google/gemini-embedding-001}
 
     # =================================
-    # CHAT MEMORY
+    # CHAT MEMORY (inchangé)
     # =================================
     chat:
       memory:
@@ -70,23 +71,37 @@ spring:
             initialize-schema: never
 
 
-# ─────────────────────────────────────────────
-# CONFIG AI GLOBALE
-# ─────────────────────────────────────────────
+# ── SERVER (inchangé) ─────────────────────────
+server:
+  port: ${SERVER_PORT:8080}
+  address: 0.0.0.0
+
+
+# ── CONFIG AI GLOBALE ─────────────────────────
 penpot:
   ai:
 
-    # 🔥 SWITCH GLOBAL
-    provider: ${AI_PROVIDER:openrouter}
+    #  SWITCH GLOBAL
+    provider: ${AI_PROVIDER:openrouter}   #  AJOUT
 
     router:
-      model: ${PENPOT_ROUTER_MODEL:qwen/qwen-2.5-7b-instruct}
+      model: ${PENPOT_ROUTER_MODEL:llama3.1}   #  gardé ancien
       temperature: ${PENPOT_ROUTER_TEMPERATURE:0.0}
+      top-p: ${PENPOT_ROUTER_TOP_P:0.9}
+      top-k: ${PENPOT_ROUTER_TOP_K:10}
+      repeat-penalty: ${PENPOT_ROUTER_REPEAT_PENALTY:1.05}
       max-tokens: ${PENPOT_ROUTER_MAX_TOKENS:256}
+      num-ctx: ${PENPOT_ROUTER_NUM_CTX:8192}
 
     executor:
-      model: ${PENPOT_EXECUTOR_MODEL:qwen/qwen3.5-35b-a3b}
+      model: ${PENPOT_EXECUTOR_MODEL:qwen/qwen3.5-35b-a3b}   #  upgrade model
       temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
+      top-p: ${PENPOT_EXECUTOR_TOP_P:0.95}
+      top-k: ${PENPOT_EXECUTOR_TOP_K:20}
+      repeat-penalty: ${PENPOT_EXECUTOR_REPEAT_PENALTY:1.15}
+      presence-penalty: ${PENPOT_EXECUTOR_PRESENCE_PENALTY:0.3}
+      max-tokens: ${PENPOT_EXECUTOR_MAX_TOKENS:4096}
+      num-ctx: ${PENPOT_EXECUTOR_NUM_CTX:32000}
 
     chat:
       memory:
@@ -106,56 +121,45 @@ penpot:
     log-dir: ${PENPOT_LOG_DIR:logs}
 
 
-# ─────────────────────────────────────────────
-# SERVER
-# ─────────────────────────────────────────────
-server:
-  port: ${SERVER_PORT:8080}
-  address: 0.0.0.0
-
-
-# ─────────────────────────────────────────────
-# LOGGING
-# ─────────────────────────────────────────────
+# ── LOGGING ─────────────────────────
 logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
-
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
   file:
     name: ${penpot.ai.log-dir}/penpot.log
     max-size: 10MB
     max-history: 30
+    total-size-cap: 100MB
 
 
-# ─────────────────────────────────────────────
-# ACTUATOR
-# ─────────────────────────────────────────────
+# ── ACTUATOR ─────────────────────────
 management:
   endpoints:
     web:
       exposure:
         include: health,info,metrics,loggers,refresh
+  endpoint:
+    health:
+      show-details: when-authorized
 
 
-# ─────────────────────────────────────────────
-# SWAGGER
-# ─────────────────────────────────────────────
+# ── SWAGGER ─────────────────────────
 app:
   security:
     swagger:
-      user: ${SWAGGER_USER:admin}
-      password: ${SWAGGER_PASSWORD:admin}
+      user: ${SWAGGER_USER:admin_audit}
+      password: ${SWAGGER_PASSWORD}
 
 springdoc:
   api-docs:
     enabled: ${SWAGGER_ENABLED:true}
-
   swagger-ui:
     enabled: ${SWAGGER_ENABLED:true}
+    operations-sorter: method
+    persist-authorization: true
 
 
-# ─────────────────────────────────────────────
-# CRYPTO
-# ─────────────────────────────────────────────
+# ── CRYPTO ─────────────────────────
 crypto:
-  master-key: ${CRYPTO_MASTER_KEY:dev-key-123}
+  master-key: ${CRYPTO_MASTER_KEY}

@@ -8,7 +8,6 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
-
     hikari:
       maximum-pool-size: 10
       minimum-idle: 5
@@ -24,14 +23,14 @@ spring:
 
   ai:
     # =================================
-    # OLLAMA (LOCAL / VM)
+    # OLLAMA (fallback uniquement)
     # =================================
     ollama:
       base-url: ${OLLAMA_BASE_URL:http://10.130.163.62:11434/}
 
       chat:
         options:
-          model: ${OLLAMA_CHAT_MODEL:qwen3.5:9b}
+          model: ${OLLAMA_CHAT_MODEL:qwen3.5:9b}   # fallback seulement
           temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
           top-p: ${PENPOT_EXECUTOR_TOP_P:0.95}
           top-k: ${PENPOT_EXECUTOR_TOP_K:20}
@@ -47,13 +46,13 @@ spring:
         observations:
           include-content: true
 
-      # 🔥 fallback embedding local
+      # fallback embedding local
       embedding:
         options:
           model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
 
     # =================================
-    # OPENROUTER (REMOTE LLM)
+    # OPENROUTER (PRINCIPAL 🔥)
     # =================================
     openai:
       base-url: https://openrouter.ai/api
@@ -61,16 +60,17 @@ spring:
 
       chat:
         options:
+          model: ${OPENROUTER_CHAT_MODEL:qwen/qwen3.5-35b-a3b}   #  MODEL PRINCIPAL
           temperature: 0.7
           max-tokens: 4096
 
-      # 🔥 FIX CRITIQUE EMBEDDING
+      # embedding principal RAG
       embedding:
         options:
           model: ${OPENROUTER_EMBEDDING_MODEL:google/gemini-embedding-001}
 
     # =================================
-    # CHAT MEMORY
+    # CHAT MEMORY (inchangé)
     # =================================
     chat:
       memory:
@@ -84,7 +84,7 @@ spring:
 # ─────────────────────────────────────────────
 penpot:
   ai:
-    provider: ${AI_PROVIDER:openrouter}
+    provider: ${AI_PROVIDER:openrouter}   #  FORCE openrouter
 
     server-address: ${PENPOT_SERVER_ADDRESS:10.130.163.57}
     websocket-port: ${PENPOT_WEBSOCKET_PORT:50030}
@@ -98,7 +98,7 @@ penpot:
 
 
 # ─────────────────────────────────────────────
-# CORS
+# CORS (INCHANGÉ )
 # ─────────────────────────────────────────────
 cors:
   allowed-origins: >
