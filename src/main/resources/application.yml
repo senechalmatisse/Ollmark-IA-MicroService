@@ -7,7 +7,6 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        dialect: org.hibernate.dialect.PostgreSQLDialect
   flyway:
     enabled: true
     locations: classpath:db/migration
@@ -43,10 +42,8 @@ spring:
 
 server:
   port: 8080
-  port: 8080
   address: 0.0.0.0
 
-# ── Configuration AI commune (overridable par profil) ──────────────────────
 # ── Configuration AI commune (overridable par profil) ──────────────────────
 penpot:
   ai:
@@ -73,7 +70,6 @@ penpot:
       top-k: ${PENPOT_RAG_TOP_K:3}
       query-variants: ${PENPOT_RAG_QUERY_VARIANTS:2}
       eager-embedding: true
-      eager-embedding: true
     repl-port: ${PENPOT_REPL_PORT:4403}
     remote-mode: ${PENPOT_REMOTE_MODE:false}
     multi-user: ${PENPOT_MULTI_USER:false}
@@ -81,18 +77,15 @@ penpot:
     log-dir: ${PENPOT_LOG_DIR:logs}
 
 # ── Format des logs (commun à tous les profils) ────────────────────────────
-# ── Format des logs (commun à tous les profils) ────────────────────────────
 logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
-
 
   file:
     name: ${penpot.ai.log-dir}/penpot.log
     max-size: 10MB
     max-history: 30
 
-# ── Actuator ───────────────────────────────────────────────────────────────
 # ── Actuator ───────────────────────────────────────────────────────────────
 management:
   endpoints:
@@ -103,20 +96,12 @@ management:
 # ============================================
 # Sécurité de l'interface Swagger/OpenAPI
 # ============================================
-# ============================================
-# Sécurité de l'interface Swagger/OpenAPI
-# ============================================
 app:
   security:
     swagger:
       user: ${SWAGGER_USER:admin}
       password: ${SWAGGER_PASSWORD:admin}
-      user: ${SWAGGER_USER:admin}
-      password: ${SWAGGER_PASSWORD:admin}
 
-# ============================================
-# Configuration SpringDoc (Swagger UI)
-# ============================================
 # ============================================
 # Configuration SpringDoc (Swagger UI)
 # ============================================
@@ -124,18 +109,13 @@ springdoc:
   api-docs:
     enabled: ${SWAGGER_ENABLED:true}
 
-
   swagger-ui:
     enabled: ${SWAGGER_ENABLED:true}
     # Trie les endpoints par méthode HTTP
-    # Trie les endpoints par méthode HTTP
     operations-sorter: method
     # Permet de garder la session d'authentification active
-    # Permet de garder la session d'authentification active
     persist-authorization: true
-# Configuration de Jasypt pour l'encryption des propriétés sensibles
-# Configuration de Jasypt pour l'encryption des propriétés sensibles
 
+# Configuration de Jasypt pour l'encryption des propriétés sensibles
 crypto:
   master-key: ${CRYPTO_MASTER_KEY}
-

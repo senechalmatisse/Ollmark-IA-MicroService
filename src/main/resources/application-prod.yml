@@ -9,7 +9,6 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
-
     hikari:
       maximum-pool-size: 20
       minimum-idle: 10
@@ -46,7 +45,6 @@ spring:
 
 cors:
   allowed-origins: >
-  allowed-origins: >
     http://10.130.163.57,
     https://10.130.163.57,
     http://10.130.163.57:50012,
@@ -55,10 +53,6 @@ cors:
     https://10.130.163.57:50030
     https://10.130.163.57:50030
 
-penpot:
-  ai:
-    server-address: ${PENPOT_SERVER_ADDRESS:localhost}
-    websocket-port: ${PENPOT_WEBSOCKET_PORT:8080}
 penpot:
   ai:
     server-address: ${PENPOT_SERVER_ADDRESS:localhost}
