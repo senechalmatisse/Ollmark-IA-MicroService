@@ -269,6 +269,10 @@ deploy-develop:
                 echo "SPRING_AI_LOG_PROMPT=$SPRING_AI_LOG_PROMPT" >> .env
                 echo "PENPOT_LOG_LEVEL=$PENPOT_LOG_LEVEL" >> .env
                 echo "PENPOT_LOG_DIR=$PENPOT_LOG_DIR" >> .env
+                echo "AI_PROVIDER=$AI_PROVIDER" >> .env
+                echo "OPENROUTER_API_KEY=$OPENROUTER_API_KEY" >> .env
+                echo "OPENROUTER_CHAT_MODEL=$OPENROUTER_CHAT_MODEL" >> .env
+                echo "OPENROUTER_EMBEDDING_MODEL=$OPENROUTER_EMBEDDING_MODEL" >> .env
 
                 # --- BDD (Utilisées par Spring Boot et Docker Compose) ---
                 echo "SPRING_DATASOURCE_USERNAME=$DB_USER" >> .env
