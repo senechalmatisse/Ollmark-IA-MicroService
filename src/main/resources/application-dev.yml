@@ -2,17 +2,18 @@
 # Profil DEV
 # ═══════════════════════════════════════════════════════════════════
 
-# ── Base de données ────────────────────────────────────────────────
 spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
+
     hikari:
       maximum-pool-size: 10
       minimum-idle: 5
       connection-timeout: 30000
+
   jpa:
     hibernate:
       ddl-auto: validate
@@ -21,13 +22,16 @@ spring:
       hibernate:
         format_sql: true
 
-  # ── Ollama distant ─────────────────────────────────────────────
   ai:
+    # =================================
+    # OLLAMA (LOCAL / VM)
+    # =================================
     ollama:
       base-url: ${OLLAMA_BASE_URL:http://10.130.163.62:11434/}
+
       chat:
         options:
-          model: ${PENPOT_EXECUTOR_MODEL:qwen3.5:9b}
+          model: ${OLLAMA_CHAT_MODEL:qwen3.5:9b}
           temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
           top-p: ${PENPOT_EXECUTOR_TOP_P:0.95}
           top-k: ${PENPOT_EXECUTOR_TOP_K:20}
@@ -35,6 +39,7 @@ spring:
           presence-penalty: ${PENPOT_EXECUTOR_PRESENCE_PENALTY:0.3}
           max-tokens: ${PENPOT_EXECUTOR_MAX_TOKENS:4096}
           num-ctx: ${PENPOT_EXECUTOR_NUM_CTX:32000}
+
         observations:
           log-prompt: ${SPRING_AI_LOG_PROMPT:false}
 
@@ -42,17 +47,59 @@ spring:
         observations:
           include-content: true
 
+      # 🔥 fallback embedding local
       embedding:
         options:
-          model: ${OLLAMA_EMBEDDING_MODEL:hf.co/unsloth/embeddinggemma-300m-GGUF:Q8_0}
+          model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
 
+    # =================================
+    # OPENROUTER (REMOTE LLM)
+    # =================================
+    openai:
+      base-url: https://openrouter.ai/api
+      api-key: ${OPENROUTER_API_KEY}
+
+      chat:
+        options:
+          temperature: 0.7
+          max-tokens: 4096
+
+      # 🔥 FIX CRITIQUE EMBEDDING
+      embedding:
+        options:
+          model: ${OPENROUTER_EMBEDDING_MODEL:google/gemini-embedding-001}
+
+    # =================================
+    # CHAT MEMORY
+    # =================================
     chat:
       memory:
         repository:
           jdbc:
             initialize-schema: never
 
-# ── CORS : localhost + IP dev ──────────────────────────────────────
+
+# ─────────────────────────────────────────────
+# CONFIG AI
+# ─────────────────────────────────────────────
+penpot:
+  ai:
+    provider: ${AI_PROVIDER:openrouter}
+
+    server-address: ${PENPOT_SERVER_ADDRESS:10.130.163.57}
+    websocket-port: ${PENPOT_WEBSOCKET_PORT:50030}
+
+    rag:
+      templates-path: classpath:data/rag/templates/*.json
+      similarity-threshold: 0.5
+      top-k: 3
+      query-variants: 2
+      eager-embedding: true
+
+
+# ─────────────────────────────────────────────
+# CORS
+# ─────────────────────────────────────────────
 cors:
   allowed-origins: >
     http://10.130.163.57,
@@ -65,13 +112,10 @@ cors:
     https://10.130.163.62:11434/,
     https://design.penpot.app
 
-# ── WebSocket ──────────────────────────────────────────────────────
-penpot:
-  ai:
-    server-address: ${PENPOT_SERVER_ADDRESS:10.130.163.57}
-    websocket-port: ${PENPOT_WEBSOCKET_PORT:50030}
 
-# ── Logging détaillé ───────────────────────────────────────────────
+# ─────────────────────────────────────────────
+# LOGGING
+# ─────────────────────────────────────────────
 logging:
   level:
     com.penpot.ai: DEBUG
@@ -79,6 +123,7 @@ logging:
     org.springframework.ai.rag: DEBUG
     org.springframework.ai.chat.memory: DEBUG
     org.springframework.ai.ollama: DEBUG
+    org.springframework.ai.openai: DEBUG
     org.springframework.web.socket: INFO
     org.springframework.web.client: INFO
     org.hibernate.SQL: DEBUG
