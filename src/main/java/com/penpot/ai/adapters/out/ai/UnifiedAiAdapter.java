@@ -65,6 +65,7 @@ public class UnifiedAiAdapter implements AiServicePort {
     private final ToolFailureRecoveryAdvisor toolFailureRecoveryAdvisor;
     private final ToolRetryLimiterAdvisor toolRetryLimiterAdvisor;
     private final ToolResultValidatorAdvisor toolResultValidatorAdvisor;
+    
 
     public UnifiedAiAdapter(
         AiProviderStrategy providerStrategy,

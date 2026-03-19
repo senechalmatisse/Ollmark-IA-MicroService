@@ -70,7 +70,7 @@ spring:
       # embedding principal RAG
       embedding:
         options:
-          model: ${OPENROUTER_EMBEDDING_MODEL:google/gemini-embedding-001}
+          model: google/gemini-embedding-001
 
     # =================================
     # CHAT MEMORY (inchangé)
