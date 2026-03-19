@@ -1,5 +1,8 @@
 package com.penpot.ai.shared.util;
 
+import java.util.Set;
+import java.util.regex.Pattern;
+
 /**
  * Utilitaires d'échappement pour les chaînes JavaScript injectées dans les templates Penpot.
  *
@@ -9,6 +12,20 @@ package com.penpot.ai.shared.util;
  * et {@code A4CtaRenderer}.</p>
  */
 public final class JsStringUtils {
+
+    private static final Pattern HEX_COLOR = Pattern.compile("^#[0-9a-fA-F]{3,8}$");
+
+    public static final Pattern UUID_PATTERN =
+    Pattern.compile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
+
+    public static final Pattern URL_PATTERN =
+    Pattern.compile("^https?://[\\w\\-._~:/?#\\[\\]@!$&'()*+,;=%]+$");
+
+    public static final Set<String> ALLOWED_ACTION_TYPES = Set.of(
+        "navigate-to", "open-overlay", "toggle-overlay",
+        "close-overlay", "prev-screen", "open-url"
+    );
+
 
     private JsStringUtils() {}
 
@@ -64,4 +81,12 @@ public final class JsStringUtils {
         }
         return false;
     }
+
+    public static String sanitizeColor(String color) {
+        if (color == null || !HEX_COLOR.matcher(color).matches()) {
+            throw new IllegalArgumentException("Couleur invalide : " + color);
+        }
+        return color;
+    }
+
 }

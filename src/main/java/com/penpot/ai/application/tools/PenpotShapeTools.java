@@ -237,7 +237,7 @@ public class PenpotShapeTools {
         code.append(String.format("rect.y = %d;\n", y));
         code.append(String.format("rect.resize(%d, %d);\n", width, height));
         if (fillColor != null && !fillColor.isBlank())
-            code.append(String.format("rect.fills = [{ fillColor: '%s' }];\n", fillColor));
+            code.append(String.format("rect.fills = [{ fillColor: '%s' }];\n", JsStringUtils.sanitizeColor(fillColor)));
         if (name != null && !name.isBlank())
             code.append(String.format("rect.name = '%s';\n", JsStringUtils.jsSafe(name)));
         code.append("return rect.id;\n");
@@ -256,7 +256,8 @@ public class PenpotShapeTools {
         code.append(String.format("ellipse.y = %d;\n", y));
         code.append(String.format("ellipse.resize(%d, %d);\n", width, height));
         if (fillColor != null && !fillColor.isBlank())
-            code.append(String.format("ellipse.fills = [{ fillColor: '%s' }];\n", fillColor));
+            code.append(String.format("ellipse.fills = [{ fillColor: '%s' }];\n",
+                JsStringUtils.sanitizeColor(fillColor)));
         if (name != null && !name.isBlank())
             code.append(String.format("ellipse.name = '%s';\n", JsStringUtils.jsSafe(name)));
         code.append("return ellipse.id;\n");
@@ -275,7 +276,8 @@ public class PenpotShapeTools {
         if (name != null && !name.isBlank())
             code.append(String.format("board.name = '%s';\n", JsStringUtils.jsSafe(name)));
         if (backgroundColor != null && !backgroundColor.isBlank())
-            code.append(String.format("board.fills = [{ fillColor: '%s' }];\n", backgroundColor));
+            code.append(String.format("board.fills = [{ fillColor: '%s' }];\n",
+                JsStringUtils.sanitizeColor(backgroundColor)));
         code.append("return board.id;\n");
         return code.toString();
     }
