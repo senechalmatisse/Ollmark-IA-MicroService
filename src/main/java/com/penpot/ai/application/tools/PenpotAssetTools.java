@@ -561,22 +561,39 @@ public class PenpotAssetTools {
      * @return L'objet JavaScript représentant l'action sous format texte.
      */
     private String buildActionJs(String actionType, String destinationId) {
-        return switch (actionType) {
-            case "navigate-to", "open-overlay", "toggle-overlay" ->
-                String.format("""
-                    (() => {
-                        const dest = penpot.currentPage.getShapeById('%s');
-                        if (!dest) throw new Error('Destination board not found: %s');
-                        return { type: '%s', destination: dest };
-                    })()
-                    """, destinationId, destinationId, actionType);
-            case "close-overlay" -> "{ type: 'close-overlay' }";
-            case "prev-screen"   -> "{ type: 'prev-screen' }";
-            case "open-url"      -> String.format("{ type: 'open-url', url: '%s' }",
-                                        destinationId != null ? destinationId : "");
-            default              -> String.format("{ type: '%s' }", actionType);
-        };
-    }
+
+    String safeAction = JsStringUtils.jsSafe(actionType);
+    String safeDest = destinationId != null ? JsStringUtils.jsSafe(destinationId) : "";
+
+    return switch (actionType) {
+
+        case "navigate-to", "open-overlay", "toggle-overlay" ->
+            String.format("""
+                (() => {
+                    const dest = penpot.currentPage.getShapeById('%s');
+                    if (!dest) throw new Error('Destination board not found: %s');
+                    return { type: '%s', destination: dest };
+                })()
+                """,
+                safeDest,
+                safeDest,
+                safeAction
+            );
+
+        case "close-overlay" -> "{ type: 'close-overlay' }";
+
+        case "prev-screen" -> "{ type: 'prev-screen' }";
+
+        case "open-url" ->
+            String.format(
+                "{ type: 'open-url', url: '%s' }",
+                safeDest
+            );
+
+        default ->
+            String.format("{ type: '%s' }", safeAction);
+    };
+}
 
     /**
      * Formalise le code JavaScript destiné à la suppression d'une interaction ciblée.
