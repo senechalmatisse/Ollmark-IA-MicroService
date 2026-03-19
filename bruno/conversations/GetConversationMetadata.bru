@@ -1,0 +1,13 @@
+meta {
+  name: Get Conversation Metadata
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{base_url}}/api/ai/conversations/{{conversationId}}/metadata
+}
+
+assert {
+  res.status: eq 200
+}

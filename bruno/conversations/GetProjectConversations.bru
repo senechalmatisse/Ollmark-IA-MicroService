@@ -1,0 +1,13 @@
+meta {
+  name: Get Project Conversations
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/api/ai/conversations/project/{{projectId}}
+}
+
+assert {
+  res.status: eq 200
+}

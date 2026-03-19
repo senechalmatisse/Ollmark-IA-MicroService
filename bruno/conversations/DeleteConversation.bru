@@ -1,0 +1,13 @@
+meta {
+  name: Delete Conversation
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{base_url}}/api/ai/conversations/{{conversationId}}
+}
+
+assert {
+  res.status: eq 204
+}
