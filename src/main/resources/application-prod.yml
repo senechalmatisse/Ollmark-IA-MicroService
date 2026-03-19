@@ -20,10 +20,10 @@ spring:
     show-sql: false
   ai:
     ollama:
-      base-url: ${OLLAMA_BASE_URL:http://10.130.163.62:11434/}
+      base-url: http://10.130.163.62:11434/
       chat:
         options:
-          model: ${PENPOT_EXECUTOR_MODEL:qwen3.5:9b}
+          model: qwen3.5:9b
           temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
           top-p: ${PENPOT_EXECUTOR_TOP_P:0.95}
           top-k: ${PENPOT_EXECUTOR_TOP_K:20}
@@ -33,6 +33,7 @@ spring:
           num-ctx: ${PENPOT_EXECUTOR_NUM_CTX:32000}
         observations:
           log-prompt: ${SPRING_AI_LOG_PROMPT:false}
+          log-prompt: ${SPRING_AI_LOG_PROMPT:false}
 
       tools:
         observations:
@@ -40,7 +41,7 @@ spring:
 
       embedding:
         options:
-          model: ${OLLAMA_EMBEDDING_MODEL:hf.co/unsloth/embeddinggemma-300m-GGUF:Q8_0}
+          model: hf.co/unsloth/embeddinggemma-300m-GGUF:Q8_0
 
 cors:
   allowed-origins: >

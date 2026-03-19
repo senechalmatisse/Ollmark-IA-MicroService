@@ -12,10 +12,10 @@ spring:
     locations: classpath:db/migration
   ai:
     ollama:
-      base-url: ${OLLAMA_BASE_URL:http://10.130.163.62:11434/}
+      base-url: http://10.130.163.62:11434/
       chat:
         options:
-          model: ${PENPOT_EXECUTOR_MODEL:qwen3.5:9b}
+          model: qwen3.5:9b
           temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
           top-p: ${PENPOT_EXECUTOR_TOP_P:0.95}
           top-k: ${PENPOT_EXECUTOR_TOP_K:20}
@@ -32,7 +32,7 @@ spring:
 
       embedding:
         options:
-          model: ${OLLAMA_EMBEDDING_MODEL:hf.co/unsloth/embeddinggemma-300m-GGUF:Q8_0}
+          model: hf.co/unsloth/embeddinggemma-300m-GGUF:Q8_0
 
     chat:
       memory:
@@ -48,12 +48,12 @@ server:
 penpot:
   ai:
     router:
-      model: ${PENPOT_ROUTER_MODEL:llama3.1}
+      model: llama3.1
       temperature: ${PENPOT_ROUTER_TEMPERATURE:0.0}
       max-tokens: ${PENPOT_ROUTER_MAX_TOKENS:256}
       num-ctx: ${PENPOT_ROUTER_NUM_CTX:8192}
     executor:
-      model: ${PENPOT_EXECUTOR_MODEL:qwen3.5:9b}
+      model: qwen3.5:9b
       temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
       top-p: ${PENPOT_EXECUTOR_TOP_P:0.95}
       top-k: ${PENPOT_EXECUTOR_TOP_K:20}
@@ -63,7 +63,7 @@ penpot:
       num-ctx: ${PENPOT_EXECUTOR_NUM_CTX:32000}
     chat:
       memory:
-        max-messages: ${PENPOT_CHAT_MEMORY_MAX_MESSAGES:20}
+        max-messages: ${PENPOT_CHAT_MEMORY_MAX_MESSAGES:50}
     rag:
       templates-path: ${PENPOT_RAG_TEMPLATES_PATH:classpath:data/rag/templates/*.json}
       similarity-threshold: ${PENPOT_RAG_SIMILARITY_THRESHOLD:0.5}
@@ -115,7 +115,7 @@ springdoc:
     operations-sorter: method
     # Permet de garder la session d'authentification active
     persist-authorization: true
-# Configuration de Jasypt pour l'encryption des propriétés sensibles
 
+# Configuration de Jasypt pour l'encryption des propriétés sensibles
 crypto:
   master-key: ${CRYPTO_MASTER_KEY}
