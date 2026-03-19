@@ -12,6 +12,7 @@ import org.springframework.ai.model.tool.ToolCallingManager;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.api.OllamaChatOptions;
 import org.springframework.beans.factory.annotation.*;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.*;
 
@@ -40,6 +41,7 @@ import java.util.Map;
  */
 @Slf4j
 @Configuration
+@ConditionalOnProperty(name = "penpot.ai.provider", havingValue = "ollama")
 @RequiredArgsConstructor
 @RefreshScope
 public class OllamaConfig {

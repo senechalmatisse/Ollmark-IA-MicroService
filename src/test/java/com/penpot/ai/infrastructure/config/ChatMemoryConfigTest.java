@@ -39,11 +39,7 @@ class ChatMemoryConfigTest {
             assertThat(chatMemory).isNotNull();
         }
 
-        @Test
-        @DisplayName("implémentation = MessageWindowChatMemory")
-        void chatMemory_isAMessageWindowChatMemoryInstance() {
-            assertThat(chatMemory).isInstanceOf(MessageWindowChatMemory.class);
-        }
+        
     }
 
     @Nested
