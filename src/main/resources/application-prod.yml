@@ -23,7 +23,7 @@ spring:
       base-url: http://10.130.163.62:11434/
       chat:
         options:
-          model: qwen3.5:9b
+          model: qwen3.5:35b
           temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
           top-p: ${PENPOT_EXECUTOR_TOP_P:0.95}
           top-k: ${PENPOT_EXECUTOR_TOP_K:20}
