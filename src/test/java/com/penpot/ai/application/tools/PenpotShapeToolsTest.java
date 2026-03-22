@@ -5,20 +5,19 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.penpot.ai.application.tools.support.PenpotToolExecutor;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = PenpotShapeTools.class)
+@SpringBootTest(classes = PenpotShapeTools.class)
 @DisplayName("PenpotShapeTools - Integration Tests")
 class PenpotShapeToolsTest {
 

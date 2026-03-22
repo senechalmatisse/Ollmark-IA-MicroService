@@ -14,6 +14,7 @@ import org.springframework.web.socket.config.annotation.*;
 @Slf4j
 @Configuration
 @EnableWebSocket
+@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketConfigurer {
 
     /**
@@ -26,19 +27,11 @@ public class WebSocketConfig implements WebSocketConfigurer {
      * Port WebSocket configuré (non utilisé directement ici,
      * mais disponible pour logging ou validation).
      */
+    @Value("${penpot.ai.websocket-port:8080}")
     private int websocketPort;
 
+    @Value("${cors.allowed-origins}")
     private String[] allowedOrigins;
-
-    public WebSocketConfig(
-        PluginWebSocketHandler pluginWebSocketHandler,
-        @Value("${penpot.ai.websocket-port:8080}") int websocketPort,
-        @Value("${cors.allowed-origins}") String[] allowedOrigins
-    ) {
-        this.pluginWebSocketHandler = pluginWebSocketHandler;
-        this.websocketPort = websocketPort;
-        this.allowedOrigins = allowedOrigins;
-    }
 
     /**
      * Enregistre les handlers WebSocket avec leurs endpoints.
