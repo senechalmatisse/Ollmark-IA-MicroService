@@ -3,20 +3,25 @@ package com.penpot.ai.application.tools;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.penpot.ai.application.tools.support.PenpotToolExecutor;
@@ -39,11 +44,13 @@ import com.penpot.ai.core.domain.TaskResult;
  * les scénarios d'intégration utiles : câblage Spring, construction du code, lecture des
  * réponses, et robustesse face aux différents formats de {@link TaskResult}.</p>
  */
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {
-    PenpotLayoutTools.class,
-    PenpotLayoutToolsTest.TestConfig.class
-})
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.NONE,
+    classes = {
+        PenpotLayoutTools.class,
+        PenpotLayoutToolsTest.TestConfig.class
+    }
+)
 class PenpotLayoutToolsTest {
 
     @TestConfiguration

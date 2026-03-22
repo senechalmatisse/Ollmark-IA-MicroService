@@ -93,25 +93,28 @@ public class PenpotToolRegistry implements ToolCategoryResolver {
         Map<ToolCategory, List<Object>> mutable = new EnumMap<>(ToolCategory.class);
 
         // --- Création de formes ---
-        mutable.put(ToolCategory.SHAPE_CREATION, List.of(shapeTools, contentTools));
+        mutable.put(ToolCategory.SHAPE_CREATION, List.of(shapeTools, contentTools, templateSearchTools));
 
         // --- Modification de formes (transform + shape partagés) ---
         mutable.put(ToolCategory.SHAPE_MODIFICATION, List.of(shapeTools, transformTools, inspectorTools, layoutTools));
 
         // --- Couleurs et styles (assets gère les palettes) ---
-        mutable.put(ToolCategory.COLOR_AND_STYLE, List.of(assetTools, inspectorTools));
+        mutable.put(ToolCategory.COLOR_AND_STYLE, List.of(assetTools, inspectorTools, templateSearchTools));
 
         // --- Mise en page et alignement ---
         mutable.put(ToolCategory.LAYOUT_AND_ALIGNMENT, List.of(layoutTools, inspectorTools));
 
         // --- Contenu marketing textuel et médias ---
-        mutable.put(ToolCategory.CONTENT_AND_TEXT, List.of(contentTools, inspectorTools));
+        mutable.put(ToolCategory.CONTENT_AND_TEXT, List.of(contentTools, inspectorTools, templateSearchTools));
 
         // --- Inspection (toujours inclus comme contexte) ---
         mutable.put(ToolCategory.INSPECTION, List.of(inspectorTools));
 
         // --- Suppression ---
         mutable.put(ToolCategory.DELETION, List.of(deleteTools, inspectorTools, assetTools, layoutTools));
+
+        // --- Recherche de templates RAG ---
+        mutable.put(ToolCategory.TEMPLATE_SEARCH, List.of(templateSearchTools));
 
         this.registry = Map.copyOf(mutable);
     }
