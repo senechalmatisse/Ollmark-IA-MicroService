@@ -59,8 +59,7 @@ spring:
 
       embedding:
         options:
-          model: google/gemini-embedding-001
-
+          model: openai/text-embedding-3-large
     # =================================
     # CHAT MEMORY (inchangé)
     # =================================
@@ -85,7 +84,7 @@ penpot:
     provider: ${AI_PROVIDER:openrouter}   #  AJOUT
 
     router:
-      model: qwen/qwen-2.5-7b-instruct
+      model: meta-llama/llama-3.1-8b-instruct
       temperature: ${PENPOT_ROUTER_TEMPERATURE:0.0}
       top-p: ${PENPOT_ROUTER_TOP_P:0.9}
       top-k: ${PENPOT_ROUTER_TOP_K:10}
@@ -94,7 +93,7 @@ penpot:
       num-ctx: ${PENPOT_ROUTER_NUM_CTX:8192}
 
     executor:
-      model: qwen/qwen3.5-35b-a3b 
+      model: qwen/qwen3.5-9b
       temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
       top-p: ${PENPOT_EXECUTOR_TOP_P:0.95}
       top-k: ${PENPOT_EXECUTOR_TOP_K:20}
