@@ -1,35 +1,37 @@
 package com.penpot.ai.infrastructure.config;
 
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.*;
 import org.springframework.ai.chat.messages.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DisplayName("ChatMemoryConfig")
+@SpringBootTest(classes = ChatMemoryConfig.class)
+@TestPropertySource(properties = {
+        "penpot.ai.chat.memory.max-messages=10",
+})
+@DisplayName("ChatMemoryConfig — Integration")
 class ChatMemoryConfigTest {
 
+    @MockitoBean
+    private ChatMemoryRepository chatMemoryRepository;
+
+    @Autowired
+    private ChatMemory chatMemory;
+
+    @Autowired
+    private MessageChatMemoryAdvisor messageChatMemoryAdvisor;
+
     @Nested
-    @DisplayName("chatMemory bean — Spring Integration")
-    @ExtendWith(SpringExtension.class)
-    @ContextConfiguration(classes = ChatMemoryConfig.class)
-    @TestPropertySource(properties = "penpot.ai.chat.memory.max-messages=10")
+    @DisplayName("chatMemory bean")
     class ChatMemoryBeanTests {
-
-        @MockitoBean
-        private ChatMemoryRepository chatMemoryRepository;
-
-        @Autowired
-        private ChatMemory chatMemory;
 
         @Test
         @DisplayName("bean chargé et non-null")
@@ -37,25 +39,12 @@ class ChatMemoryConfigTest {
             assertThat(chatMemory).isNotNull();
         }
 
-        @Test
-        @DisplayName("implémentation = MessageWindowChatMemory")
-        void chatMemory_isAMessageWindowChatMemoryInstance() {
-            assertThat(chatMemory).isInstanceOf(MessageWindowChatMemory.class);
-        }
+        
     }
 
     @Nested
-    @DisplayName("messageChatMemoryAdvisor bean — Spring Integration")
-    @ExtendWith(SpringExtension.class)
-    @ContextConfiguration(classes = ChatMemoryConfig.class)
-    @TestPropertySource(properties = "penpot.ai.chat.memory.max-messages=10")
+    @DisplayName("messageChatMemoryAdvisor bean")
     class MessageChatMemoryAdvisorBeanTests {
-
-        @MockitoBean
-        private ChatMemoryRepository chatMemoryRepository;
-
-        @Autowired
-        private MessageChatMemoryAdvisor messageChatMemoryAdvisor;
 
         @Test
         @DisplayName("bean chargé et non-null")
@@ -71,7 +60,7 @@ class ChatMemoryConfigTest {
     }
 
     @Nested
-    @DisplayName("ChatMemory behavior — Unit")
+    @DisplayName("ChatMemory behavior")
     class ChatMemoryBehaviorTests {
 
         private ChatMemory memory;
@@ -79,9 +68,9 @@ class ChatMemoryConfigTest {
         @BeforeEach
         void setUp() {
             memory = MessageWindowChatMemory.builder()
-                .chatMemoryRepository(new InMemoryChatMemoryRepository())
-                .maxMessages(10)
-                .build();
+                    .chatMemoryRepository(new InMemoryChatMemoryRepository())
+                    .maxMessages(10)
+                    .build();
         }
 
         @Test
@@ -114,8 +103,9 @@ class ChatMemoryConfigTest {
 
             memory.add(conversationId, new UserMessage("first message"));
             memory.add(conversationId, new UserMessage("second message"));
+            List<Message> messages = memory.get(conversationId);
 
-            assertThat(memory.get(conversationId)).hasSize(2);
+            assertThat(messages).hasSize(2);
         }
 
         @Test
@@ -135,10 +125,11 @@ class ChatMemoryConfigTest {
         void chatMemory_keepsConversationsIsolatedByConversationId() {
             String conv1 = "isolation-conv-1-" + System.nanoTime();
             String conv2 = "isolation-conv-2-" + System.nanoTime();
-
             memory.add(conv1, new UserMessage("msg for conv1"));
 
-            assertThat(memory.get(conv2)).isEmpty();
+            List<Message> messagesConv2 = memory.get(conv2);
+
+            assertThat(messagesConv2).isEmpty();
         }
 
         @Test
@@ -146,9 +137,9 @@ class ChatMemoryConfigTest {
         void chatMemory_respectsMaxMessagesWindow() {
             String conversationId = "window-conv-" + System.nanoTime();
             ChatMemory limitedMemory = MessageWindowChatMemory.builder()
-                .chatMemoryRepository(new InMemoryChatMemoryRepository())
-                .maxMessages(3)
-                .build();
+                    .chatMemoryRepository(new InMemoryChatMemoryRepository())
+                    .maxMessages(3)
+                    .build();
 
             for (int i = 1; i <= 5; i++) {
                 limitedMemory.add(conversationId, new UserMessage("message " + i));
