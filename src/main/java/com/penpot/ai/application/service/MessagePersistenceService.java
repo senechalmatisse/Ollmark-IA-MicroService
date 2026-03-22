@@ -66,17 +66,8 @@ public class MessagePersistenceService {
             Conversation conversation = findOrCreateConversation(
                 conversationUuid, project
             );
-            
 
-            String safeUserMessage = sanitize(userMessage);
-            String safeAiResponse = sanitize(aiResponse);
-
-            Message message = new Message(
-                conversation,
-                project,
-                safeUserMessage,
-                safeAiResponse
-            );
+            Message message = new Message(conversation, project, userMessage, aiResponse);
             messageRepository.save(message);
 
             log.debug("[Persistence] Saved message for conversation {} (project {})",
@@ -97,12 +88,6 @@ public class MessagePersistenceService {
             return projectRepository.save(p);
         });
     }
-    private String sanitize(String value) {
-            if (value == null || value.isBlank()) {
-                return "[EMPTY]";
-            }
-            return value;
-        }
 
     private Conversation findOrCreateConversation(UUID conversationId, Project project) {
         return conversationRepository.findByConversationId(conversationId).orElseGet(() -> {

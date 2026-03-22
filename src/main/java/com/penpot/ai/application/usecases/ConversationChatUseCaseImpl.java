@@ -1,6 +1,5 @@
 package com.penpot.ai.application.usecases;
 
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -71,14 +70,9 @@ public class ConversationChatUseCaseImpl implements ConversationChatUseCase {
     @Override
     public Mono<String> chat(String projectId, String message, String sessionId) {
         validateChatInput(projectId, message, sessionId);
-        String rawConversationKey = (sessionId != null && !sessionId.isBlank())
+        String conversationKey = (sessionId != null && !sessionId.isBlank())
             ? projectId + ":" + sessionId
             : projectId;
-
-        //  transformation en UUID compatible DB
-        String conversationKey = UUID.nameUUIDFromBytes(
-            rawConversationKey.getBytes(StandardCharsets.UTF_8)
-        ).toString();
 
         log.info(
             "Processing chat for project: {} (conversationKey: {}, sessionId: {})", 

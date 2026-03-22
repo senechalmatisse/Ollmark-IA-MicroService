@@ -276,7 +276,7 @@ Sélection du profil via la variable `SPRING_PROFILES_ACTIVE`.
 | `PENPOT_RAG_SIMILARITY_THRESHOLD` | Seuil de similarité cosinus | `0.5` |
 | `PENPOT_RAG_TOP_K` | Nombre de templates retournés | `3` |
 | `PENPOT_RAG_QUERY_VARIANTS` | Nombre de variantes de requête | `2` |
-| `PENPOT_CHAT_MEMORY_MAX_MESSAGES` | Fenêtre mémoire conversationnelle | `20` |
+| `PENPOT_CHAT_MEMORY_MAX_MESSAGES` | Fenêtre mémoire conversationnelle | `50` |
 
 ---
 

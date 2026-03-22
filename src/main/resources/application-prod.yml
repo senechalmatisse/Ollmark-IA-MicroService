@@ -8,27 +8,22 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
+
     hikari:
       maximum-pool-size: 20
       minimum-idle: 10
       connection-timeout: 30000
       leak-detection-threshold: 60000
-
   jpa:
     hibernate:
       ddl-auto: validate
     show-sql: false
-
   ai:
-    # =================================
-    # OLLAMA (fallback interne)
-    # =================================
     ollama:
-      base-url: ${OLLAMA_BASE_URL:http://10.130.163.62:11434/}
-
+      base-url: http://10.130.163.62:11434/
       chat:
         options:
-          model: ${OLLAMA_CHAT_MODEL:qwen3.5:9b}   # fallback seulement
+          model: qwen3.5:35b
           temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
           top-p: ${PENPOT_EXECUTOR_TOP_P:0.95}
           top-k: ${PENPOT_EXECUTOR_TOP_K:20}
@@ -36,18 +31,17 @@ spring:
           presence-penalty: ${PENPOT_EXECUTOR_PRESENCE_PENALTY:0.3}
           max-tokens: ${PENPOT_EXECUTOR_MAX_TOKENS:4096}
           num-ctx: ${PENPOT_EXECUTOR_NUM_CTX:32000}
-
         observations:
-          log-prompt: false
+          log-prompt: ${SPRING_AI_LOG_PROMPT:false}
+          log-prompt: ${SPRING_AI_LOG_PROMPT:false}
 
       tools:
         observations:
           include-content: true
 
-      # fallback embedding local (remplace ancien modèle)
       embedding:
         options:
-          model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
+          model: hf.co/unsloth/embeddinggemma-300m-GGUF:Q8_0
 
     # =================================
     # OPENROUTER (PRINCIPAL PROD )
@@ -99,24 +93,24 @@ penpot:
 # CORS (INCHANGÉ )
 # ─────────────────────────────────────────────
 cors:
-  allowed-origins:
+  allowed-origins: >
     http://10.130.163.57,
     https://10.130.163.57,
     http://10.130.163.57:50012,
     https://10.130.163.57:50012,
     http://10.130.163.57:50030,
-    https://10.130.163.57:50030,
+    https://10.130.163.57:50030
+    https://10.130.163.57:50030
 
+penpot:
+  ai:
+    server-address: ${PENPOT_SERVER_ADDRESS:localhost}
+    websocket-port: ${PENPOT_WEBSOCKET_PORT:8080}
 
-# ─────────────────────────────────────────────
-# LOGGING (minimal prod)
-# ─────────────────────────────────────────────
 logging:
   level:
     com.penpot.ai: WARN
     org.springframework.ai: WARN
-    org.springframework.ai.openai: WARN   #  ajouté
-    org.springframework.ai.ollama: WARN
     org.springframework.web.socket: WARN
     org.springframework.web.client: WARN
     root: WARN

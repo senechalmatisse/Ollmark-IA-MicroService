@@ -6,16 +6,19 @@ import com.penpot.ai.core.domain.logo.*;
 import com.penpot.ai.core.domain.spec.SectionSpec;
 import com.penpot.ai.core.ports.in.ExecuteCodeUseCase;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest(classes = PenpotContentTools.class)
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = PenpotContentTools.class)
 @DisplayName("PenpotContentTools — Integration")
 public class PenpotContentToolsTest {
 

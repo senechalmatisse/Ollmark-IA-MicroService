@@ -47,7 +47,24 @@ class ConversationChatUseCaseImplUnit {
     @DisplayName("chat — validation et délégation")
     class ChatTests {
 
-  
+    @Test
+    @DisplayName("chat — delegates to aiService and returns mono")
+    void chat_delegatesToAiServiceAndReturnsMono() {
+        // GIVEN
+        String conversationKey = PROJECT_ID + ":" + SESSION_ID;
+        Flux<String> aiResponse = Flux.just("réponse ", "IA");
+        when(aiService.chat(conversationKey, MESSAGE)).thenReturn(aiResponse);
+
+        // WHEN
+        Mono<String> result = useCase.chat(PROJECT_ID, MESSAGE, SESSION_ID);
+
+        // THEN
+        StepVerifier.create(result)
+                .expectNext("réponse IA")
+                .verifyComplete();
+
+        verify(aiService).chat(conversationKey, MESSAGE);
+    }
 
         @Test
         @DisplayName("chat — throws when projectId is null")
@@ -122,6 +139,23 @@ class ConversationChatUseCaseImplUnit {
             verify(aiService, never()).chat(any(), any());
         }
 
+        @Test
+        @DisplayName("chat — accepts message with exactly 10000 characters")
+        void chat_acceptsMessageWithExactlyMaxLength() {
+            // GIVEN
+            String maxLengthMessage = "a".repeat(10000);
+            String conversationKey = PROJECT_ID + ":" + SESSION_ID;
+            Flux<String> aiResponse = Flux.just("réponse IA");
+            when(aiService.chat(conversationKey, maxLengthMessage)).thenReturn(aiResponse);
+
+            // WHEN
+            Mono<String> result = useCase.chat(PROJECT_ID, maxLengthMessage, SESSION_ID);
+
+            // THEN
+            StepVerifier.create(result)
+                    .expectNext("réponse IA")
+                    .verifyComplete();
+        }
     }
 
     // ─────────────────────────────────────────────────────────────

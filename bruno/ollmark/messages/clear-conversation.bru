@@ -1,0 +1,13 @@
+{
+  "name": "Clear conversation",
+  "request": {
+    "method": "DELETE",
+    "url": "{{BASE_URL}}/api/ai/chat/{{PROJECT_ID}}"
+  },
+  "tests": [
+    {
+      "name": "Clear conversation returns 200",
+      "script": "pm.test('Status is 200', function() { pm.response.to.have.status(200); });\npm.test('Success true', function() { var json = pm.response.json(); pm.expect(json.success).to.eql(true); });"
+    }
+  ]
+}

@@ -1,14 +1,14 @@
 package com.penpot.ai.infrastructure.config;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.RemovalCause;
+import com.github.benmanes.caffeine.cache.*;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -16,35 +16,36 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(classes = EmbeddingCacheConfig.class)
-@DisplayName("EmbeddingCacheConfig — Integration")
+@DisplayName("EmbeddingCacheConfig")
 class EmbeddingCacheConfigTest {
 
-    @Autowired
-    private CacheManager cacheManager;
-
     @Nested
-    @DisplayName("Cache name constants")
+    @DisplayName("Cache name constants — Unit")
     class CacheNameConstantTests {
 
         @Test
         @DisplayName("QUERY_EMBEDDINGS_CACHE — valeur = 'query-embeddings'")
         void queryEmbeddingsCache_constantValueIsCorrect() {
             assertThat(EmbeddingCacheConfig.QUERY_EMBEDDINGS_CACHE)
-                    .isEqualTo("query-embeddings");
+                .isEqualTo("query-embeddings");
         }
 
         @Test
         @DisplayName("DOCUMENT_EMBEDDINGS_CACHE — valeur = 'document-embeddings'")
         void documentEmbeddingsCache_constantValueIsCorrect() {
             assertThat(EmbeddingCacheConfig.DOCUMENT_EMBEDDINGS_CACHE)
-                    .isEqualTo("document-embeddings");
+                .isEqualTo("document-embeddings");
         }
     }
 
     @Nested
-    @DisplayName("cacheManager bean")
+    @DisplayName("cacheManager bean — Spring Integration")
+    @ExtendWith(SpringExtension.class)
+    @ContextConfiguration(classes = EmbeddingCacheConfig.class)
     class CacheManagerBeanTests {
+
+        @Autowired
+        private CacheManager cacheManager;
 
         @Test
         @DisplayName("bean chargé et non-null")
@@ -77,15 +78,20 @@ class EmbeddingCacheConfigTest {
         void cacheManager_containsExactlyTwoConfiguredCacheNames() {
             Collection<String> names = cacheManager.getCacheNames();
             assertThat(names).containsExactlyInAnyOrder(
-                    EmbeddingCacheConfig.QUERY_EMBEDDINGS_CACHE,
-                    EmbeddingCacheConfig.DOCUMENT_EMBEDDINGS_CACHE
+                EmbeddingCacheConfig.QUERY_EMBEDDINGS_CACHE,
+                EmbeddingCacheConfig.DOCUMENT_EMBEDDINGS_CACHE
             );
         }
     }
 
     @Nested
-    @DisplayName("Cache behavior")
+    @DisplayName("Cache behavior — Spring Integration")
+    @ExtendWith(SpringExtension.class)
+    @ContextConfiguration(classes = EmbeddingCacheConfig.class)
     class CacheBehaviorTests {
+
+        @Autowired
+        private CacheManager cacheManager;
 
         @Test
         @DisplayName("query-embeddings — stocke et récupère une valeur")
@@ -142,40 +148,40 @@ class EmbeddingCacheConfigTest {
     }
 
     @Nested
-    @DisplayName("Eviction listener")
+    @DisplayName("Eviction listener — Unit")
     class EvictionListenerTests {
 
         @Test
         @DisplayName("invoqué avec la clé et la cause quand la capacité est dépassée")
         void evictionListener_isInvokedWithKeyAndCauseWhenCapacityExceeded() {
-            AtomicBoolean listenerCalled  = new AtomicBoolean(false);
-            AtomicReference<Object>       evictedKey   = new AtomicReference<>();
-            AtomicReference<RemovalCause> evictedCause = new AtomicReference<>();
+            AtomicBoolean listenerCalled = new AtomicBoolean(false);
+            AtomicReference<Object> evictedKey = new AtomicReference<>();
+            AtomicReference<RemovalCause> evictedCause  = new AtomicReference<>();
 
             Cache<Object, Object> testCache = Caffeine.newBuilder()
-                    .maximumSize(1)
-                    .recordStats()
-                    .weakKeys()
-                    .evictionListener((key, value, cause) -> {
-                        listenerCalled.set(true);
-                        evictedKey.set(key);
-                        evictedCause.set(cause);
-                    })
-                    .build();
+                .maximumSize(1)
+                .recordStats()
+                .weakKeys()
+                .evictionListener((key, value, cause) -> {
+                    listenerCalled.set(true);
+                    evictedKey.set(key);
+                    evictedCause.set(cause);
+                })
+                .build();
 
             testCache.put("key-to-evict",  "value-1");
             testCache.put("key-that-stays", "value-2");
             testCache.cleanUp();
 
             assertThat(listenerCalled.get())
-                    .as("le listener doit être appelé après dépassement de capacité")
-                    .isTrue();
+                .as("le listener doit être appelé après dépassement de capacité")
+                .isTrue();
             assertThat(evictedKey.get())
-                    .as("la clé évincée doit être la première insérée")
-                    .isEqualTo("key-to-evict");
+                .as("la clé évincée doit être la première insérée")
+                .isEqualTo("key-to-evict");
             assertThat(evictedCause.get())
-                    .as("la cause doit être SIZE (capacité dépassée)")
-                    .isEqualTo(RemovalCause.SIZE);
+                .as("la cause doit être SIZE (capacité dépassée)")
+                .isEqualTo(RemovalCause.SIZE);
         }
 
         @Test
@@ -184,17 +190,17 @@ class EmbeddingCacheConfigTest {
             AtomicBoolean listenerCalled = new AtomicBoolean(false);
 
             Cache<Object, Object> testCache = Caffeine.newBuilder()
-                    .maximumSize(100)
-                    .recordStats()
-                    .weakKeys()
-                    .evictionListener((key, value, cause) -> listenerCalled.set(true))
-                    .build();
+                .maximumSize(100)
+                .recordStats()
+                .weakKeys()
+                .evictionListener((key, value, cause) -> listenerCalled.set(true))
+                .build();
 
             testCache.cleanUp();
 
             assertThat(listenerCalled.get())
-                    .as("le listener ne doit pas être appelé sans ajout ni suppression")
-                    .isFalse();
+                .as("le listener ne doit pas être appelé sans ajout ni suppression")
+                .isFalse();
         }
     }
 }
