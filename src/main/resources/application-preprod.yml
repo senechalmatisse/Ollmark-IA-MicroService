@@ -39,6 +39,27 @@ spring:
         options:
           model: hf.co/unsloth/embeddinggemma-300m-GGUF:Q8_0
 
+    # =================================
+    # OPENROUTER (PRINCIPAL)
+    # =================================
+    openai:
+      base-url: https://openrouter.ai/api
+      api-key: ${OPENROUTER_API_KEY}
+
+      chat:
+        options:
+          model: ${OPENROUTER_CHAT_MODEL:qwen/qwen3.5-9b}   # MODEL PRINCIPAL
+          temperature: 0.7
+          max-tokens: 4096
+
+      # embedding principal RAG
+      embedding:
+        options:
+          model: openai/text-embedding-3-large
+
+    # =================================
+    # CHAT MEMORY (inchangé)
+    # =================================
     chat:
       memory:
         repository:
