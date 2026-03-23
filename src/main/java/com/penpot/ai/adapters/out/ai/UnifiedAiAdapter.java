@@ -2,10 +2,7 @@ package com.penpot.ai.adapters.out.ai;
 
 import static org.springframework.ai.chat.memory.ChatMemory.CONVERSATION_ID;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import com.penpot.ai.infrastructure.provider.AiProviderStrategy;
 import com.penpot.ai.infrastructure.session.SessionContextHolder;
@@ -19,13 +16,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.penpot.ai.application.advisor.InspectionFirstAdvisor;
-import com.penpot.ai.application.advisor.ReReadingAdvisor;
-import com.penpot.ai.adapters.out.ai.RequestComplexityAnalyzer;
-import com.penpot.ai.application.advisor.ToolErrorAdvisor;
-import com.penpot.ai.application.advisor.ToolFailureRecoveryAdvisor;
-import com.penpot.ai.application.advisor.ToolResultValidatorAdvisor;
-import com.penpot.ai.application.advisor.ToolRetryLimiterAdvisor;
+import com.penpot.ai.application.advisor.*;
 import com.penpot.ai.application.router.ToolCategoryResolver;
 import com.penpot.ai.application.service.PromptsConfigService;
 import com.penpot.ai.core.domain.TaskComplexity;
@@ -66,7 +57,6 @@ public class UnifiedAiAdapter implements AiServicePort {
     private final ToolFailureRecoveryAdvisor toolFailureRecoveryAdvisor;
     private final ToolRetryLimiterAdvisor toolRetryLimiterAdvisor;
     private final ToolResultValidatorAdvisor toolResultValidatorAdvisor;
-    private final ToolCallAdvisor toolCallAdvisor;
 
     public UnifiedAiAdapter(
         AiProviderStrategy providerStrategy,
@@ -95,7 +85,6 @@ public class UnifiedAiAdapter implements AiServicePort {
         this.toolFailureRecoveryAdvisor = toolFailureRecoveryAdvisor;
         this.toolRetryLimiterAdvisor = toolRetryLimiterAdvisor;
         this.toolResultValidatorAdvisor = toolResultValidatorAdvisor;
-        this.toolCallAdvisor = toolCallAdvisor;
 
         log.info("[UnifiedAiAdapter] Using provider: {}", providerStrategy.providerId());
     }
@@ -185,7 +174,6 @@ public class UnifiedAiAdapter implements AiServicePort {
     private List<Advisor> buildAdvisors(Set<ToolCategory> categories) {
         List<Advisor> advisors = new ArrayList<>();
         advisors.add(inspectionFirstAdvisor);
-        advisors.add(toolCallAdvisor);
         advisors.add(toolRetryLimiterAdvisor);
         advisors.add(toolErrorAdvisor);
         advisors.add(toolFailureRecoveryAdvisor);
