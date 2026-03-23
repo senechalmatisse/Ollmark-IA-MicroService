@@ -54,13 +54,13 @@ class PenpotJsSnippetsUnit {
         String content = "Texte";
         int x = 0;
         int y = 0;
-        String fontWeight = "bold";
+        String fontWeight = "700";
 
         // WHEN
         String result = PenpotJsSnippets.createText(content, x, y, null, fontWeight, null, null);
 
         // THEN
-        assertTrue(result.contains("text.fontWeight = 'bold';"));
+        assertTrue(result.contains("text.fontWeight = '700';"));
     }
 
     @Test

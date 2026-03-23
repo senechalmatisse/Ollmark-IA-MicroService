@@ -92,7 +92,8 @@ public class PenpotJsSnippets {
         if (fontSize != null && fontSize > 0)
             code.append(String.format("text.fontSize = %d;%n", fontSize));
         if (fontWeight != null && !fontWeight.isBlank())
-            code.append(String.format("text.fontWeight = '%s';%n", fontWeight));
+            code.append(String.format("text.fontWeight = '%s';%n",
+                PenpotStyleValues.resolveFontWeight(fontWeight)));
         if (fillColor != null && !fillColor.isBlank())
             code.append(String.format("text.fills = [{ fillColor: '%s' }];%n", fillColor));
         if (name != null && !name.isBlank())
