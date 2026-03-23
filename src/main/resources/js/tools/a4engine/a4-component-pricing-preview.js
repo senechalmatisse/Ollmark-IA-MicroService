@@ -5,7 +5,7 @@ priceCard.resize(240, 120);
 priceCard.x = PAGE_W / 2 - 120;
 priceCard.y = flowY;
 priceCard.borderRadius = 20;
-priceCard.fills = [{ fillColor: "rgba(255,255,255,0.08)" }];
+priceCard.fills = [{ fillColor: "#FFFFFF", fillOpacity: 0.08 }];
 priceCard.strokes = [{ strokeColor: "{{textColor}}", strokeWidth: 2 }];
 created.push(priceCard);
 

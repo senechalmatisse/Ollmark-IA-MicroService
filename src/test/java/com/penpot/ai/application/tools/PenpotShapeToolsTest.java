@@ -241,7 +241,7 @@ class PenpotShapeToolsTest {
                 .contains("text.x = 150;")
                 .contains("text.y = 250;")
                 .contains("text.fontSize = 48;")
-                .contains("text.fontWeight = 'bold';")
+                .contains("text.fontWeight = '700';")
                 .contains("text.fills = [{ fillColor: '#000000' }];")
                 .contains("text.name = 'Title';")
                 .contains("return text.id;");

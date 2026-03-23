@@ -16,7 +16,7 @@ function createA4Button(label, bg, fg, isSecondary) {
     rect.fills = [{ fillColor: bg }];
 
     if (isSecondary) {
-        rect.fills = [{ fillColor: "rgba(255,255,255,0.18)" }];
+        rect.fills = [{ fillColor: "#FFFFFF", fillOpacity: 0.18 }];
         rect.strokes = [{ strokeColor: fg, strokeWidth: 1.5, strokeOpacity: 0.6 }];
     }
     created.push(rect);
@@ -27,7 +27,8 @@ function createA4Button(label, bg, fg, isSecondary) {
     text.fontWeight = "bold";
     text.fills = [{ fillColor: fg }];
     text.resize(width, 40);
-    text.x = rect.x + (width - text.width) / 2;
+    const tw = (text.width && text.width > 0) ? text.width : estimatedTextWidth;
+    text.x = rect.x + (width - tw) / 2;
     text.y = rect.y + (62 - text.height) / 2;
     created.push(text);
 
