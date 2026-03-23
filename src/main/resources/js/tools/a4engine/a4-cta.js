@@ -4,10 +4,11 @@ flowY += CTA_SPACING;
 function createA4Button(label, bg, fg, isSecondary) {
     const MIN_W = isSecondary ? 200 : 260;
     const MAX_W = 440;
-    const estimatedWidth = label.length * 12;
+    const estimatedWidth = label.length * 11;
     const width = Math.min(MAX_W, Math.max(MIN_W, estimatedWidth + 80));
 
     const rect = penpot.createRectangle();
+    rect.name = isSecondary ? "CTA/Secondary" : "CTA/Primary";
     rect.resize(width, 62);
     rect.x = PAGE_W / 2 - width / 2;
     rect.y = flowY;
@@ -21,13 +22,13 @@ function createA4Button(label, bg, fg, isSecondary) {
     created.push(rect);
 
     const text = penpot.createText(label);
+    text.name = "CTA/Label";
     text.fontSize = 20;
     text.fontWeight = "bold";
     text.fills = [{ fillColor: fg }];
     text.resize(width, 40);
-    const textOffset = label.length * 5.2;
-    text.x = rect.x + width / 2 - textOffset;
-    text.y = rect.y + 18;
+    text.x = rect.x + (width - text.width) / 2;
+    text.y = rect.y + (62 - text.height) / 2;
     created.push(text);
 
     return 62;

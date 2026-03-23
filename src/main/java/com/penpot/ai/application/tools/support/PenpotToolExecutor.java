@@ -1,6 +1,6 @@
 package com.penpot.ai.application.tools.support;
 
-import com.penpot.ai.application.service.SessionContextHolder;
+import com.penpot.ai.infrastructure.session.SessionContextHolder;
 import com.penpot.ai.core.domain.*;
 import com.penpot.ai.core.ports.in.ExecuteCodeUseCase;
 import lombok.RequiredArgsConstructor;
@@ -12,8 +12,8 @@ import java.util.function.Function;
 
 /**
  * Service centralisé pilotant l'exécution technique de l'ensemble des outils Penpot.
- * Ce composant agit comme un chef d'orchestre : il réceptionne les scripts générés, 
- * délègue leur exécution physique au noyau applicatif via le port d'entrée approprié, 
+ * Ce composant agit comme un chef d'orchestre : il réceptionne les scripts générés,
+ * délègue leur exécution physique au noyau applicatif via le port d'entrée approprié,
  * puis uniformise les retours d'information.
  */
 @Slf4j
@@ -22,7 +22,6 @@ import java.util.function.Function;
 public class PenpotToolExecutor {
 
     private final ExecuteCodeUseCase executeCodeUseCase;
-    private final SessionContextHolder sessionContextHolder;
 
     /** Constante définissant la valeur par défaut lorsqu'un identifiant ne peut être extrait. */
     private static final String UNKNOWN_ID = "unknown";
@@ -41,11 +40,12 @@ public class PenpotToolExecutor {
         Function<TaskResult, String> resultMapper
     ) {
         try {
-            String sessionId = sessionContextHolder.get();
+            String sessionId = SessionContextHolder.getSessionId().orElse(null);
             ExecuteCodeCommand command = ExecuteCodeCommand.of(code, sessionId);
 
-            log.debug("[ToolExecutor] Executing '{}' (sessionId: {})",
-                operationName, sessionId != null ? sessionId : "none");
+            log.info("[TOOL EXEC] operation='{}' | thread={} | sessionId={}",
+                operationName, Thread.currentThread().getId(),
+                sessionId != null ? sessionId : "⚠ NULL — no session context !");
 
             TaskResult result = executeCodeUseCase.execute(command);
             if (!result.isSuccess()) {
