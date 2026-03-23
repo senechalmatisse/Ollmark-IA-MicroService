@@ -32,7 +32,7 @@ public class LayoutRenderer {
         Theme theme,
         MarketingIntent intent
     ) {
-        String hero = heroText(spec, theme, intent);
+        String hero = heroText(spec, theme, intent, template);
         return switch (template) {
             case SPLIT_LEFT_IMAGE -> loadWith("section-layout-split.js",         Map.of("imageLeft", "true"))  + hero;
             case SPLIT_RIGHT_IMAGE -> loadWith("section-layout-split.js",         Map.of("imageLeft", "false")) + hero;
@@ -52,33 +52,60 @@ public class LayoutRenderer {
 
     /**
      * Génère le bloc de texte principal ("hero text") d'une section.
-     *
-     * @param spec spécification contenant le contenu textuel de la section
-     * @param theme thème graphique déterminant notamment les couleurs de texte
-     * @param intent intention marketing déterminant la hiérarchie visuelle
-     * @return script JavaScript permettant de générer le bloc de texte
+     * Les tailles de police et la largeur de colonne s'adaptent au layout choisi.
      */
-    private static String heroText(SectionSpec spec, Theme theme, MarketingIntent intent) {
-        int titleSize = switch (intent.hierarchy) {
-            case STRONG_HERO -> 72;
-            case BALANCED -> 56;
-            case SOFT_BRANDING -> 46;
-        };
+    private static String heroText(SectionSpec spec, Theme theme, MarketingIntent intent, LayoutTemplate template) {
+        int columnWidth  = columnWidthFor(template);
+        int titleSize    = titleSizeFor(intent, columnWidth);
+        int subtitleSize = titleSize <= 38 ? 20 : 24;
+        int paragraphSize = titleSize <= 38 ? 15 : 17;
 
-        String title = JsStringUtils.jsSafe(spec.getTitle());
-        String subtitle = JsStringUtils.jsSafe(spec.getSubtitle());
+        String title     = JsStringUtils.jsSafe(spec.getTitle());
+        String subtitle  = JsStringUtils.jsSafe(spec.getSubtitle());
         String paragraph = JsStringUtils.jsSafe(spec.getParagraph());
 
-        return JsScriptLoader.loadWith("snippets/section-hero-text-block.js", Map.of(
-            "textColor", theme.gradient ? theme.textOnDark : theme.textOnLight,
-            "hasTitle", String.valueOf(!title.isBlank()),
-            "title", title,
-            "titleSize", String.valueOf(titleSize),
-            "hasSubtitle", String.valueOf(!subtitle.isBlank()),
-            "subtitle", subtitle,
-            "hasParagraph", String.valueOf(!paragraph.isBlank()),
-            "paragraph", paragraph
+        return JsScriptLoader.loadWith("snippets/section-hero-text-block.js", Map.ofEntries(
+            Map.entry("textColor",     theme.gradient ? theme.textOnDark : theme.textOnLight),
+            Map.entry("columnWidth",   String.valueOf(columnWidth)),
+            Map.entry("hasTitle",      String.valueOf(!title.isBlank())),
+            Map.entry("title",         title),
+            Map.entry("titleSize",     String.valueOf(titleSize)),
+            Map.entry("subtitleSize",  String.valueOf(subtitleSize)),
+            Map.entry("paragraphSize", String.valueOf(paragraphSize)),
+            Map.entry("hasSubtitle",   String.valueOf(!subtitle.isBlank())),
+            Map.entry("subtitle",      subtitle),
+            Map.entry("hasParagraph",  String.valueOf(!paragraph.isBlank())),
+            Map.entry("paragraph",     paragraph)
         ));
+    }
+
+    /**
+     * Retourne la largeur de colonne texte optimale pour un layout donné.
+     * Tient compte des marges internes de chaque template.
+     */
+    private static int columnWidthFor(LayoutTemplate template) {
+        return switch (template) {
+            case SPLIT_LEFT_IMAGE, SPLIT_RIGHT_IMAGE     -> 460;
+            case SPLIT_60_40_LEFT, SPLIT_60_40_RIGHT     -> 360;
+            case PRODUCT_FOCUS_LEFT, PRODUCT_FOCUS_RIGHT -> 480;
+            case MINIMAL_ULTRA_CLEAN                     -> 480;
+            case BACKGROUND_OVERLAY_CENTER               -> 680;
+            case PREMIUM_LUXURY_CENTER                   -> 600;
+            default /* CENTERED_STACK, IMAGE_TOP_STACK, TEXT_HEAVY */ -> 620;
+        };
+    }
+
+    /**
+     * Détermine la taille de titre adaptée à la largeur de colonne disponible.
+     * Les colonnes étroites (split) utilisent des tailles plus petites pour éviter
+     * les débordements et les retours à la ligne excessifs.
+     */
+    private static int titleSizeFor(MarketingIntent intent, int columnWidth) {
+        return switch (intent.hierarchy) {
+            case STRONG_HERO   -> columnWidth < 480 ? 46 : 68;
+            case BALANCED      -> columnWidth < 480 ? 38 : 52;
+            case SOFT_BRANDING -> columnWidth < 480 ? 32 : 42;
+        };
     }
 
     /**

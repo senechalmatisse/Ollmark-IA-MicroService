@@ -62,9 +62,21 @@ public class InspectionFirstAdvisor implements CallAdvisor {
                         || categories.contains("DELETION");
 
         if (needsInspection && !alreadyInjected) {
-            log.debug("[InspectionFirstAdvisor] INSPECTION detected → injecting PAGE context");
+            log.debug("[InspectionFirstAdvisor] INSPECTION detected → fetching PAGE context");
 
             String inspectionJson = inspectorTools.getPageContext("compact");
+
+            // If page context failed (plugin not connected, error JSON), skip injection.
+            // The LLM will still try to call tools; if the plugin is offline the
+            // individual tool call will produce a clear error via ToolErrorAdvisor.
+            boolean isError = inspectionJson == null
+                || inspectionJson.contains("\"success\": false")
+                || inspectionJson.contains("\"success\":false");
+
+            if (isError) {
+                log.warn("[InspectionFirstAdvisor] Page context unavailable (plugin not reachable) — skipping injection");
+                return chain.nextCall(request);
+            }
 
             String injection = """
                 # CONTEXTE ACTUEL DE LA PAGE

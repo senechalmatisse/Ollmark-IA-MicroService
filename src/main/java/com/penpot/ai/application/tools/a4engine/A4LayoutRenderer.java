@@ -5,6 +5,7 @@ import com.penpot.ai.core.domain.spec.SectionSpec;
 import com.penpot.ai.shared.util.JsonUtils;
 
 import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Moteur de rendu chargé de générer le code JavaScript correspondant
@@ -54,7 +55,7 @@ public class A4LayoutRenderer {
             case PRODUCT_SHOWCASE -> loadWith("a4-layout-product-showcase.js", titleOnly(spec));
             case CTA_FOCUSED -> loadWith("a4-layout-cta-focus.js", titleOnly(spec));
             case STATS_HEAVY_POSTER, SALE_POSTER -> loadWith("a4-layout-poster.js", titleOnly(spec));
-            case FEATURE_GRID_3 -> JsScriptLoader.load(JS + "a4-layout-feature-grid-3.js");
+            case FEATURE_GRID_3 -> loadWith("a4-layout-feature-grid-3.js", featureGrid(spec));
             case TESTIMONIAL_FOCUS -> JsScriptLoader.load(JS + "a4-layout-testimonial-focus.js");
             case PRICING_TABLE -> JsScriptLoader.load(JS + "a4-layout-pricing-table.js");
             default -> loadWith("a4-layout-centered-hero.js", titleAndParagraph(spec));
@@ -96,5 +97,27 @@ public class A4LayoutRenderer {
      */
     private static Map<String, String> titleOnly(SectionSpec spec) {
         return Map.of("title", JsonUtils.escapeJson(spec.getTitle()));
+    }
+
+    /**
+     * Extrait trois libellés de fonctionnalités à injecter dans le template feature-grid-3.
+     * Tente de les dériver du sous-titre (séparé par virgules) ; sinon utilise des valeurs génériques.
+     */
+    private static Map<String, String> featureGrid(SectionSpec spec) {
+        String[] defaults = { "Performance optimale", "Support réactif", "Mise à jour incluse" };
+        String raw = spec.getSubtitle() != null ? spec.getSubtitle().trim() : "";
+        if (!raw.isEmpty() && raw.contains(",")) {
+            String[] parts = raw.split(",", 3);
+            for (int i = 0; i < parts.length && i < 3; i++) {
+                defaults[i] = JsonUtils.escapeJson(parts[i].trim());
+            }
+        } else if (!raw.isEmpty()) {
+            defaults[0] = JsonUtils.escapeJson(raw);
+        }
+        Map<String, String> params = new HashMap<>();
+        params.put("feature0", defaults[0]);
+        params.put("feature1", defaults[1]);
+        params.put("feature2", defaults[2]);
+        return params;
     }
 }

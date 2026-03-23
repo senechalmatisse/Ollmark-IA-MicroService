@@ -8,6 +8,7 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
+
     hikari:
       maximum-pool-size: 20
       minimum-idle: 10
@@ -20,18 +21,15 @@ spring:
     show-sql: false
 
   ai:
-    # =================================
-    # OLLAMA (fallback interne)
-    # =================================
     ollama:
       base-url: ${OLLAMA_BASE_URL:http://10.130.163.62:11434/}
 
       chat:
         options:
-          model: ${OLLAMA_CHAT_MODEL:qwen3.5:9b}   # fallback seulement
+          model: ${OLLAMA_CHAT_MODEL:qwen3.5:35b}
           temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
           top-p: ${PENPOT_EXECUTOR_TOP_P:0.95}
-          top-k: ${PENPOT_EXECUTOR_TOP_K:20}
+          top-k: ${PENPOT_EXECUTOR_TOP_K:5}
           repeat-penalty: ${PENPOT_EXECUTOR_REPEAT_PENALTY:1.15}
           presence-penalty: ${PENPOT_EXECUTOR_PRESENCE_PENALTY:0.3}
           max-tokens: ${PENPOT_EXECUTOR_MAX_TOKENS:4096}
@@ -44,13 +42,12 @@ spring:
         observations:
           include-content: true
 
-      # fallback embedding local (remplace ancien modèle)
       embedding:
         options:
-          model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
+          model: ${OLLAMA_EMBEDDING_MODEL:hf.co/unsloth/embeddinggemma-300m-GGUF:Q8_0}
 
     # =================================
-    # OPENROUTER (PRINCIPAL PROD )
+    # OPENROUTER
     # =================================
     openai:
       base-url: https://openrouter.ai/api
@@ -58,17 +55,16 @@ spring:
 
       chat:
         options:
-          model: ${OPENROUTER_CHAT_MODEL:qwen/qwen3.5-9b}   # MODEL PRINCIPAL
+          model: ${OPENROUTER_CHAT_MODEL:qwen/qwen3.5-35b-a3b}
           temperature: 0.7
           max-tokens: 4096
 
-      # embedding principal RAG
       embedding:
         options:
           model: openai/text-embedding-3-large
 
     # =================================
-    # CHAT MEMORY (inchangé)
+    # CHAT MEMORY
     # =================================
     chat:
       memory:
@@ -76,13 +72,12 @@ spring:
           jdbc:
             initialize-schema: never
 
-
 # ─────────────────────────────────────────────
 # CONFIG AI
 # ─────────────────────────────────────────────
 penpot:
   ai:
-    provider: ${AI_PROVIDER:openrouter}   #  ajout propre
+    provider: ${AI_PROVIDER:openrouter}
 
     server-address: ${PENPOT_SERVER_ADDRESS:localhost}
     websocket-port: ${PENPOT_WEBSOCKET_PORT:8080}
@@ -94,19 +89,16 @@ penpot:
       query-variants: ${PENPOT_RAG_QUERY_VARIANTS:2}
       eager-embedding: true
 
-
 # ─────────────────────────────────────────────
-# CORS (INCHANGÉ )
+# CORS
 # ─────────────────────────────────────────────
 cors:
-  allowed-origins:
-    http://10.130.163.57,
+  allowed-origins: http://10.130.163.57,
     https://10.130.163.57,
     http://10.130.163.57:50012,
     https://10.130.163.57:50012,
     http://10.130.163.57:50030,
     https://10.130.163.57:50030,
-
 
 # ─────────────────────────────────────────────
 # LOGGING (minimal prod)
@@ -115,7 +107,7 @@ logging:
   level:
     com.penpot.ai: WARN
     org.springframework.ai: WARN
-    org.springframework.ai.openai: WARN   #  ajouté
+    org.springframework.ai.openai: WARN
     org.springframework.ai.ollama: WARN
     org.springframework.web.socket: WARN
     org.springframework.web.client: WARN

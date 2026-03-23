@@ -1,24 +1,29 @@
 flowY += COMPONENT_SPACING;
 const features = [
-    "Qualité premium",
-    "Livraison en 24h",
-    "Satisfait ou remboursé"
+    "Qualité premium garantie",
+    "Livraison en 24h offerte",
+    "Satisfait ou remboursé 30 jours"
 ];
 features.forEach(f => {
-    const dot = penpot.createEllipse();
+    const dot = penpot.createRectangle();
+    dot.name = "Feature/Bullet";
     dot.x = columnX;
-    dot.y = flowY + 6;
-    dot.resize(8, 8);
-    dot.fills = [{ fillColor: TEXT_COLOR, fillOpacity: 1 }];
+    dot.y = flowY + 7;
+    dot.resize(10, 10);
+    dot.borderRadius = 5;
+    dot.fills = [{ fillColor: ACCENT_COLOR, fillOpacity: 1 }];
     created.push(dot);
+
     const txt = penpot.createText(f);
-    txt.x = columnX + 20;
+    txt.name = "Feature/Text";
+    txt.x = columnX + 22;
     txt.y = flowY;
     txt.fontSize = 16;
     txt.fontWeight = "bold";
-    txt.fills = [{ fillColor: TEXT_COLOR, fillOpacity: 0.9 }];
-    txt.resize(COMPONENT_WIDTH - 20, 10);
+    txt.fills = [{ fillColor: TEXT_COLOR, fillOpacity: 0.92 }];
+    txt.resize(COMPONENT_WIDTH - 22, 10);
     created.push(txt);
-    flowY += txt.height + 18;
+
+    flowY += txt.height + 20;
 });
-flowY += 10;
+flowY += 12;
