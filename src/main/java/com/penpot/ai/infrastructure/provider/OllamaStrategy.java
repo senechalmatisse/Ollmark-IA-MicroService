@@ -28,7 +28,7 @@ public class OllamaStrategy implements AiProviderStrategy {
     public OllamaStrategy(
         OllamaChatModel chatModel,
         MessageChatMemoryAdvisor memoryAdvisor,
-        @Value("${penpot.ai.executor.model:qwen3:8b}") String model,
+        @Value("${penpot.ai.executor.model:qwen3.5:9b}") String model,
         @Value("${penpot.ai.executor.temperature:0.7}") Double temperature,
         @Value("${penpot.ai.executor.max-tokens:4096}") Integer maxTokens
     ) {
