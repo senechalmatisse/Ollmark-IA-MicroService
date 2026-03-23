@@ -31,7 +31,7 @@ public interface AiServicePort {
      * @return flux de tokens générés par l'IA
      * @throws RuntimeException si l'initialisation du stream échoue
      */
-    Flux<String> chat(String conversationId, String userMessage);
+    Flux<String> chat(String conversationId, String userMessage, String sessionId);
 
     /**
      * Efface complètement l'historique d'une conversation.

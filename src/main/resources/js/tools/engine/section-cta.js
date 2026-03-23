@@ -58,7 +58,7 @@ const totalWidth =
     (hasSecondary ? secondaryWidth : 0) +
     (hasPrimary && hasSecondary ? CTA_GAP : 0);
 
-offset = (620 - totalWidth) / 2;
+offset = (COMPONENT_WIDTH - totalWidth) / 2;
 
 if (hasPrimary) {
     const w = createButton('{{primary}}', "{{primaryBg}}", "{{primaryText}}", offset, true);

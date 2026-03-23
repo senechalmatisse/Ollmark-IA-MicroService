@@ -56,7 +56,7 @@ class ConversationChatUseCaseImplUnit {
             assertThatThrownBy(() -> useCase.chat(null, MESSAGE, SESSION_ID))
                     .isInstanceOf(ValidationException.class);
 
-            verify(aiService, never()).chat(any(), any());
+            verify(aiService, never()).chat(any(), any(), any());
         }
 
         @Test
@@ -66,7 +66,7 @@ class ConversationChatUseCaseImplUnit {
             assertThatThrownBy(() -> useCase.chat("  ", MESSAGE, SESSION_ID))
                     .isInstanceOf(ValidationException.class);
 
-            verify(aiService, never()).chat(any(), any());
+            verify(aiService, never()).chat(any(), any(), any());
         }
 
         @Test
@@ -76,7 +76,7 @@ class ConversationChatUseCaseImplUnit {
             assertThatThrownBy(() -> useCase.chat(PROJECT_ID, null, SESSION_ID))
                     .isInstanceOf(ValidationException.class);
 
-            verify(aiService, never()).chat(any(), any());
+            verify(aiService, never()).chat(any(), any(), any());
         }
 
         @Test
@@ -86,7 +86,7 @@ class ConversationChatUseCaseImplUnit {
             assertThatThrownBy(() -> useCase.chat(PROJECT_ID, "   ", SESSION_ID))
                     .isInstanceOf(ValidationException.class);
 
-            verify(aiService, never()).chat(any(), any());
+            verify(aiService, never()).chat(any(), any(), any());
         }
 
         @Test
@@ -96,7 +96,7 @@ class ConversationChatUseCaseImplUnit {
             assertThatThrownBy(() -> useCase.chat(PROJECT_ID, MESSAGE, null))
                     .isInstanceOf(ValidationException.class);
 
-            verify(aiService, never()).chat(any(), any());
+            verify(aiService, never()).chat(any(), any(), any());
         }
 
         @Test
@@ -106,7 +106,7 @@ class ConversationChatUseCaseImplUnit {
             assertThatThrownBy(() -> useCase.chat(PROJECT_ID, MESSAGE, "   "))
                     .isInstanceOf(ValidationException.class);
 
-            verify(aiService, never()).chat(any(), any());
+            verify(aiService, never()).chat(any(), any(), any());
         }
 
         @Test
@@ -119,7 +119,7 @@ class ConversationChatUseCaseImplUnit {
             assertThatThrownBy(() -> useCase.chat(PROJECT_ID, tooLongMessage, SESSION_ID))
                     .isInstanceOf(ValidationException.class);
 
-            verify(aiService, never()).chat(any(), any());
+            verify(aiService, never()).chat(any(), any(), any());
         }
 
     }
