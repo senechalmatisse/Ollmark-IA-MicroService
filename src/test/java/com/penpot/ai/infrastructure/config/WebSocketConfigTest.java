@@ -30,7 +30,6 @@ class WebSocketConfigTest {
 
     @BeforeEach
     void setUp() {
-        // Injecter les valeurs des propriétés via ReflectionTestUtils
         ReflectionTestUtils.setField(webSocketConfig, "websocketPort", 8080);
         ReflectionTestUtils.setField(webSocketConfig, "allowedOrigins", new String[] {
                 "http://localhost",
@@ -48,9 +47,9 @@ class WebSocketConfigTest {
         MockedRegistry() {
             registry = mock(WebSocketHandlerRegistry.class);
             registration = mock(WebSocketHandlerRegistration.class);
-            // Utiliser doReturn pour éviter les problèmes de stubbing strict
-            doReturn(registration).when(registry).addHandler(any(), anyString());
-            doReturn(registration).when(registration).setAllowedOrigins(any());
+            // Stub avec when().thenReturn() – syntaxe standard et fiable
+            when(registry.addHandler(any(), anyString())).thenReturn(registration);
+            when(registration.setAllowedOrigins(any())).thenReturn(registration);
         }
     }
 
@@ -93,7 +92,7 @@ class WebSocketConfigTest {
             verify(mocked.registration).setAllowedOrigins(captor.capture());
 
             String[] origins = captor.getValue();
-            assertNotNull(origins, "setAllowedOrigins doit recevoir un tableau non-null");
+            assertNotNull(origins, "setAllowedOrigins doit recevoir un tableau non‑null");
             assertTrue(origins.length > 0, "La liste d'origines ne doit pas être vide");
             for (String origin : origins) {
                 assertNotEquals("*", origin.trim(),
