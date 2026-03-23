@@ -47,9 +47,11 @@ class WebSocketConfigTest {
         MockedRegistry() {
             registry = mock(WebSocketHandlerRegistry.class);
             registration = mock(WebSocketHandlerRegistration.class);
-            // Stub avec when().thenReturn() – syntaxe standard et fiable
-            when(registry.addHandler(any(), anyString())).thenReturn(registration);
-            when(registration.setAllowedOrigins(any())).thenReturn(registration);
+            // Utiliser des matchers typés pour éviter les problèmes de stubbing
+            when(registry.addHandler(any(PluginWebSocketHandler.class), anyString()))
+                    .thenReturn(registration);
+            when(registration.setAllowedOrigins(any(String[].class)))
+                    .thenReturn(registration);
         }
     }
 
