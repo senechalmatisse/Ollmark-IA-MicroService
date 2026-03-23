@@ -51,8 +51,10 @@ public class ComponentRenderer {
 
         String textColor = resolveTextColor(theme);
         StringBuilder code = new StringBuilder(
-            JsScriptLoader.loadWith("snippets/component-header.js",
-                Map.of("textColor", textColor))
+            JsScriptLoader.loadWith("snippets/component-header.js", Map.of(
+                "textColor", textColor,
+                "accentColor", theme.accent
+            ))
         );
 
         for (MarketingComponent component : components) {

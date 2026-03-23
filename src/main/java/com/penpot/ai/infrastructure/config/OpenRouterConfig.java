@@ -1,6 +1,7 @@
 package com.penpot.ai.infrastructure.config;
 
 import com.penpot.ai.application.tools.*;
+import com.penpot.ai.infrastructure.session.SessionAwareToolCallingManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
@@ -25,7 +26,7 @@ public class OpenRouterConfig {
     @Bean
     public ToolCallAdvisor toolCallAdvisor(ToolCallingManager toolCallingManager) {
         return ToolCallAdvisor.builder()
-                .toolCallingManager(toolCallingManager)
+                .toolCallingManager(new SessionAwareToolCallingManager(toolCallingManager))
                 .build();
     }
 

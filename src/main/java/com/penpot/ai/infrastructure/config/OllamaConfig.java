@@ -2,6 +2,7 @@ package com.penpot.ai.infrastructure.config;
 
 import com.penpot.ai.application.advisor.ReReadingAdvisor;
 import com.penpot.ai.core.domain.TaskComplexity;
+import com.penpot.ai.infrastructure.session.SessionAwareToolCallingManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -58,7 +59,7 @@ public class OllamaConfig {
     @Bean
     public ToolCallAdvisor toolCallAdvisor(ToolCallingManager toolCallingManager) {
         return ToolCallAdvisor.builder()
-            .toolCallingManager(toolCallingManager)
+            .toolCallingManager(new SessionAwareToolCallingManager(toolCallingManager))
             .build();
     }
 
