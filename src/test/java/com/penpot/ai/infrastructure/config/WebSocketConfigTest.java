@@ -32,7 +32,7 @@ class WebSocketConfigTest {
     // ── Helper ────────────────────────────────────────────────────────────────
 
     private static MockedRegistry buildMockedRegistry() {
-        WebSocketHandlerRegistry     registry     = mock(WebSocketHandlerRegistry.class);
+        WebSocketHandlerRegistry registry = mock(WebSocketHandlerRegistry.class);
         WebSocketHandlerRegistration registration = mock(WebSocketHandlerRegistration.class);
         when(registry.addHandler(any(), any(String.class))).thenReturn(registration);
         when(registration.setAllowedOrigins(any(String[].class))).thenReturn(registration);
@@ -40,8 +40,9 @@ class WebSocketConfigTest {
     }
 
     private record MockedRegistry(
-            WebSocketHandlerRegistry     registry,
-            WebSocketHandlerRegistration registration) {}
+            WebSocketHandlerRegistry registry,
+            WebSocketHandlerRegistration registration) {
+    }
 
     // ── Tests ─────────────────────────────────────────────────────────────────
 
