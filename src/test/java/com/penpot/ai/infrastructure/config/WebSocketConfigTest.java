@@ -1,14 +1,15 @@
 package com.penpot.ai.infrastructure.config;
 
 import com.penpot.ai.adapters.in.websocket.PluginWebSocketHandler;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistration;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
@@ -23,8 +24,19 @@ class WebSocketConfigTest {
     @Mock
     private PluginWebSocketHandler pluginWebSocketHandler;
 
-    @InjectMocks
     private WebSocketConfig webSocketConfig;
+
+    @BeforeEach
+    void setUp() {
+        webSocketConfig = new WebSocketConfig(pluginWebSocketHandler);
+        // Injecter les valeurs des propriétés via ReflectionTestUtils
+        ReflectionTestUtils.setField(webSocketConfig, "websocketPort", 8080);
+        ReflectionTestUtils.setField(webSocketConfig, "allowedOrigins", new String[] {
+                "http://localhost",
+                "http://localhost:4200",
+                "https://design.penpot.app"
+        });
+    }
 
     // ── Helper ────────────────────────────────────────────────────────────────
 
@@ -36,7 +48,7 @@ class WebSocketConfigTest {
             registry = mock(WebSocketHandlerRegistry.class);
             registration = mock(WebSocketHandlerRegistration.class);
             when(registry.addHandler(any(), any(String.class))).thenReturn(registration);
-            when(registration.setAllowedOrigins(any(String[].class))).thenReturn(registration);
+            when(registration.setAllowedOrigins(any())).thenReturn(registration);
         }
     }
 
