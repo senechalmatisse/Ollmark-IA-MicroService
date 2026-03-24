@@ -193,44 +193,32 @@ import java.util.Map;
 @Component
 public class ToolFailureRecoveryAdvisor implements CallAdvisor {
 
+    private static final String RECOVERY_PROMPT = """
+        TOOL EXECUTION FAILED
+        The previous tool returned an error.
+        Analyze the error and retry with corrected parameters.
+        Do not repeat the same failing call.
+        """;
+
     @Override
     public ChatClientResponse adviseCall(
-            ChatClientRequest request,
-            CallAdvisorChain chain
+        ChatClientRequest request,
+        CallAdvisorChain chain
     ) {
-
         ChatClientResponse response = chain.nextCall(request);
-
-        if (response == null || response.chatResponse() == null) {
-            return response;
-        }
+        if (response == null || response.chatResponse() == null) return response;
 
         String text = response.chatResponse()
-                .getResult()
-                .getOutput()
-                .getText();
+            .getResult()
+            .getOutput()
+            .getText();
 
         if (text != null && text.contains("\"error\": true")) {
-
-            log.warn("[ToolFailureRecoveryAdvisor] Tool error detected");
-
-            String recoveryPrompt = """
-                    TOOL EXECUTION FAILED
-                    
-                    The previous tool returned an error.
-                    Analyze the error and retry with corrected parameters.
-                    Do not repeat the same failing call.
-                    """;
-
-            Prompt augmented =
-                    request.prompt()
-                           .augmentSystemMessage(recoveryPrompt);
-
-            Map<String,Object> context = new HashMap<>(request.context());
-
-            return chain.nextCall(
-                    new ChatClientRequest(augmented, context)
-            );
+            log.warn("[ToolFailureRecoveryAdvisor] Tool error detected — flagging for retry limiter");
+            Map<String, Object> context = new HashMap<>(request.context());
+            context.put("toolErrorDetected", true);
+            Prompt augmented = request.prompt().augmentSystemMessage(RECOVERY_PROMPT);
+            return chain.nextCall(new ChatClientRequest(augmented, context));
         }
 
         return response;

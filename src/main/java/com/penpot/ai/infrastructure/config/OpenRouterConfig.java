@@ -1,6 +1,6 @@
 package com.penpot.ai.infrastructure.config;
 
-import com.penpot.ai.application.tools.*;
+import com.penpot.ai.infrastructure.session.SessionAwareToolCallingManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
@@ -20,46 +20,27 @@ import org.springframework.context.annotation.*;
 public class OpenRouterConfig {
 
     /**
-     * 🔥 ACTIVE LE TOOL CALLING
+     * ACTIVE LE TOOL CALLING
      */
     @Bean
     public ToolCallAdvisor toolCallAdvisor(ToolCallingManager toolCallingManager) {
         return ToolCallAdvisor.builder()
-                .toolCallingManager(toolCallingManager)
+                .toolCallingManager(new SessionAwareToolCallingManager(toolCallingManager))
                 .build();
     }
 
     /**
-     * 🔥 BUILDER AVEC TOOLS + TOOL CALLING
+     * BUILDER AVEC TOOLS + TOOL CALLING
      */
     @Bean("executorChatClientBuilder")
     @Primary
     public ChatClient.Builder executorChatClientBuilder(
-            ChatModel chatModel,
-            MessageChatMemoryAdvisor memoryAdvisor,
-            ToolCallAdvisor toolCallAdvisor,
-            PenpotShapeTools shapeTools,
-            PenpotContentTools contentTools,
-            PenpotLayoutTools layoutTools,
-            PenpotTransformTools transformTools,
-            PenpotInspectorTools inspectorTools,
-            PenpotDeleteTools deleteTools
+        ChatModel chatModel,
+        MessageChatMemoryAdvisor memoryAdvisor
     ) {
-        log.info("🔥 TOOLS + TOOL CALLING ACTIVATED");
-
+        log.info("OpenRouter ChatClient.Builder — toolCallAdvisor injecté via UnifiedAiAdapter");
         return ChatClient.builder(chatModel)
-                .defaultAdvisors(
-                        memoryAdvisor,
-                        toolCallAdvisor // 🔥 SINON ÇA MARCHE PAS
-                )
-                .defaultTools(
-                        shapeTools,
-                        contentTools,
-                        layoutTools,
-                        transformTools,
-                        inspectorTools,
-                        deleteTools
-                );
+            .defaultAdvisors(memoryAdvisor);
     }
 
     @Bean("executorChatClient")

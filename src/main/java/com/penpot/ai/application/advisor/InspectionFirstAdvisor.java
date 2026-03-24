@@ -16,7 +16,7 @@ import java.util.*;
  *
  * <h2>Objectif</h2>
  * Injecter automatiquement le contexte actuel de la page Penpot dans le prompt
- * lorsque la catégorie INSPECTION est détectée par le routeur d’intention.
+ * lorsque la catégorie INSPECTION est détectée par le routeur d'intention.
  *
  * <h2>Fonctionnement</h2>
  * <ol>
@@ -41,30 +41,32 @@ public class InspectionFirstAdvisor implements CallAdvisor {
 
     private final PenpotInspectorTools inspectorTools;
 
-    /**
-     * Intercepte l'appel au modèle pour injecter le contexte de page si nécessaire.
-     *
-     * @param request requête chat en cours
-     * @param chain   chaîne d'advisors
-     * @return réponse du modèle (avec ou sans injection)
-     */
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain chain) {
         Map<String, Object> context = new HashMap<>(request.context());
 
         boolean alreadyInjected = Boolean.TRUE.equals(context.get(CTX_ALREADY_INJECTED));
-        Set<String> categories = extractCategories(context.get(CTX_TOOL_CATEGORIES));
+        Set<String> categories  = extractCategories(context.get(CTX_TOOL_CATEGORIES));
 
         boolean needsInspection =
-                categories.contains("INSPECTION")
-                        || categories.contains("COLOR_AND_STYLE")
-                        || categories.contains("SHAPE_MODIFICATION")
-                        || categories.contains("DELETION");
+            categories.contains("INSPECTION")
+            || categories.contains("COLOR_AND_STYLE")
+            || categories.contains("SHAPE_MODIFICATION")
+            || categories.contains("DELETION");
 
         if (needsInspection && !alreadyInjected) {
-            log.debug("[InspectionFirstAdvisor] INSPECTION detected → injecting PAGE context");
+            log.debug("[InspectionFirstAdvisor] INSPECTION detected → fetching PAGE context");
 
             String inspectionJson = inspectorTools.getPageContext("compact");
+
+            boolean isError = inspectionJson == null
+                || inspectionJson.contains("\"success\": false")
+                || inspectionJson.contains("\"success\":false");
+
+            if (isError) {
+                log.warn("[InspectionFirstAdvisor] Page context unavailable — skipping injection");
+                return chain.nextCall(request);
+            }
 
             String injection = """
                 # CONTEXTE ACTUEL DE LA PAGE
