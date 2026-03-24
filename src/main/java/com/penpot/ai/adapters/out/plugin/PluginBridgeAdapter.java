@@ -65,20 +65,25 @@ public class PluginBridgeAdapter implements PluginCommunicationPort {
      */
     @Override
     public <T> PluginTaskResponse<T> sendTask(Task task) {
-        log.info("Sending task {} to plugin (type: {})", task.getId(), task.getType());
-
         SessionCriteria criteria = buildCriteria(task);
+        log.info("[PLUGIN SEND] taskId={} | type={} | criteria.sessionId={}",
+            task.getId(), task.getType(),
+            criteria.getSessionId().orElse("ANY ⚠ — no sessionId in task !"));
+
         WebSocketSession session = sessionManager.findSession(criteria)
             .orElseThrow(() -> new PluginConnectionException(
                 "No active plugin session found for criteria: " + criteria
             ));
+
+        log.info("[PLUGIN SESSION] task={} → WS session={} (open={})",
+            task.getId(), session.getId(), session.isOpen());
 
         PluginTaskRequest request = buildRequest(task);
         CompletableFuture<PluginTaskResponse<?>> future = responseOrchestrator.registerTask(task.getId());
 
         try {
             sendWebSocketMessage(session, request);
-            log.debug("Task {} sent successfully, waiting for response...", task.getId());
+            log.info("[PLUGIN WAIT] task={} sent to WS session={}, waiting for response...", task.getId(), session.getId());
 
             PluginTaskResponse<?> response = future.get(pluginTimeoutMs, TimeUnit.MILLISECONDS);
             log.info(

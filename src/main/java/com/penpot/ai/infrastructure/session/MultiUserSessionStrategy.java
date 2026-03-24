@@ -14,7 +14,7 @@ import java.util.*;
 @Slf4j
 @Component
 @ConditionalOnProperty(
-    name = "penpot.multi-user",
+    name = "penpot.ai.multi-user",
     havingValue = "true"
 )
 public class MultiUserSessionStrategy implements SessionSelectionStrategy {

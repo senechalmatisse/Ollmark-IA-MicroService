@@ -25,7 +25,7 @@ function createButton(label, bg, fg, offsetX, isPrimary) {
     if (isPrimary) {
         rect.fills = [{ fillColor: bg, fillOpacity: 1 }];
     } else {
-        rect.fills = [{ fillColor: 'rgba(255,255,255,0.12)', fillOpacity: 1 }];
+        rect.fills = [{ fillColor: "#FFFFFF", fillOpacity: 1 }];
         rect.strokes = [{ strokeColor: fg, strokeWidth: 1, strokeOpacity: 0.4 }];
     }
     created.push(rect);
@@ -36,7 +36,8 @@ function createButton(label, bg, fg, offsetX, isPrimary) {
     text.fontWeight = "bold";
     text.fills = [{ fillColor: fg, fillOpacity: 1 }];
     text.resize(width, 10);
-    text.x = rect.x + (width - text.width) / 2;
+    const tw = (text.width && text.width > 0) ? text.width : estimatedTextWidth;
+    text.x = rect.x + (width - tw) / 2;
     text.y = rect.y + (CTA_HEIGHT - text.height) / 2 - 1;
     created.push(text);
 
@@ -58,7 +59,7 @@ const totalWidth =
     (hasSecondary ? secondaryWidth : 0) +
     (hasPrimary && hasSecondary ? CTA_GAP : 0);
 
-offset = (620 - totalWidth) / 2;
+offset = (COMPONENT_WIDTH - totalWidth) / 2;
 
 if (hasPrimary) {
     const w = createButton('{{primary}}', "{{primaryBg}}", "{{primaryText}}", offset, true);
