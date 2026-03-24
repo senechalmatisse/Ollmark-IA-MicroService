@@ -73,10 +73,9 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService userDetailsService(PasswordEncoder encoder) {
         UserDetails admin = User.withUsername(swaggerUser)
-                .password(encoder.encode(swaggerPassword))
-                .roles("ADMIN") // Le rôle est défini ici "en dur" dans la RAM
-                .build();
-        
+            .password(encoder.encode(swaggerPassword))
+            .roles("ADMIN")
+            .build();
         return new InMemoryUserDetailsManager(admin);
     }
 

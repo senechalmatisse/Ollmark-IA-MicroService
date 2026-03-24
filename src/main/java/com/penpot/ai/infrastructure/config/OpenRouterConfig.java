@@ -21,7 +21,7 @@ import org.springframework.context.annotation.*;
 public class OpenRouterConfig {
 
     /**
-     * 🔥 ACTIVE LE TOOL CALLING
+     * ACTIVE LE TOOL CALLING
      */
     @Bean
     public ToolCallAdvisor toolCallAdvisor(ToolCallingManager toolCallingManager) {
@@ -31,36 +31,22 @@ public class OpenRouterConfig {
     }
 
     /**
-     * 🔥 BUILDER AVEC TOOLS + TOOL CALLING
+     * BUILDER AVEC TOOLS + TOOL CALLING
      */
     @Bean("executorChatClientBuilder")
     @Primary
     public ChatClient.Builder executorChatClientBuilder(
-            ChatModel chatModel,
-            MessageChatMemoryAdvisor memoryAdvisor,
-            ToolCallAdvisor toolCallAdvisor,
-            PenpotShapeTools shapeTools,
-            PenpotContentTools contentTools,
-            PenpotLayoutTools layoutTools,
-            PenpotTransformTools transformTools,
-            PenpotInspectorTools inspectorTools,
-            PenpotDeleteTools deleteTools
+        ChatModel chatModel,
+        MessageChatMemoryAdvisor memoryAdvisor,
+        ToolCallAdvisor toolCallAdvisor
     ) {
-        log.info("🔥 TOOLS + TOOL CALLING ACTIVATED");
+        log.info("TOOLS + TOOL CALLING ACTIVATED");
 
         return ChatClient.builder(chatModel)
-                .defaultAdvisors(
-                        memoryAdvisor,
-                        toolCallAdvisor // 🔥 SINON ÇA MARCHE PAS
-                )
-                .defaultTools(
-                        shapeTools,
-                        contentTools,
-                        layoutTools,
-                        transformTools,
-                        inspectorTools,
-                        deleteTools
-                );
+            .defaultAdvisors(
+                memoryAdvisor,
+                toolCallAdvisor
+            );
     }
 
     @Bean("executorChatClient")
