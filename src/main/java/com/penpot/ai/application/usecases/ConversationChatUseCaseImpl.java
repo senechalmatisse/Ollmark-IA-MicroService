@@ -85,7 +85,7 @@ public class ConversationChatUseCaseImpl implements ConversationChatUseCase {
             projectId, conversationKey, sessionId
         );
 
-        return aiService.chat(conversationKey, message)
+        return aiService.chat(conversationKey, message, sessionId)
             .collectList()
             .map(list -> String.join("", list))
             .doOnSuccess(aiResponse -> {

@@ -1,5 +1,5 @@
 const TEXT_COLOR = '{{textColor}}';
-const COLUMN_WIDTH = 620;
+const COLUMN_WIDTH = {{columnWidth}};
 
 function createTextBlock(content, size, weight, opacity, spacing) {
     const txt = penpot.createText(content);
@@ -13,9 +13,9 @@ function createTextBlock(content, size, weight, opacity, spacing) {
     flowY += txt.height + spacing;
 }
 
-if ({{hasTitle}}) createTextBlock('{{title}}', {{titleSize}}, "bold", 1, 80);
-if ({{hasSubtitle}}) createTextBlock('{{subtitle}}', 22, "normal", 0.9,  40);
-if ({{hasParagraph}}) createTextBlock('{{paragraph}}', 18, "normal", 0.75, 60);
+if ({{hasTitle}})     createTextBlock('{{title}}',    {{titleSize}},    "bold",   1,    20);
+if ({{hasSubtitle}})  createTextBlock('{{subtitle}}',  {{subtitleSize}}, "normal", 0.88, 16);
+if ({{hasParagraph}}) createTextBlock('{{paragraph}}', {{paragraphSize}},"normal", 0.68, 40);
 
 const newHeight = flowY - section.y + 100;
 if (newHeight > section.height) section.resize(section.width, newHeight);

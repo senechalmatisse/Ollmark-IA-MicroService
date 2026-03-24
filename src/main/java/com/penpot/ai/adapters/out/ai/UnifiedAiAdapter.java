@@ -2,12 +2,10 @@ package com.penpot.ai.adapters.out.ai;
 
 import static org.springframework.ai.chat.memory.ChatMemory.CONVERSATION_ID;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import com.penpot.ai.infrastructure.provider.AiProviderStrategy;
+import com.penpot.ai.infrastructure.session.SessionContextHolder;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.client.advisor.ToolCallAdvisor;
@@ -18,13 +16,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.penpot.ai.application.advisor.InspectionFirstAdvisor;
-import com.penpot.ai.application.advisor.ReReadingAdvisor;
-import com.penpot.ai.adapters.out.ai.RequestComplexityAnalyzer;
-import com.penpot.ai.application.advisor.ToolErrorAdvisor;
-import com.penpot.ai.application.advisor.ToolFailureRecoveryAdvisor;
-import com.penpot.ai.application.advisor.ToolResultValidatorAdvisor;
-import com.penpot.ai.application.advisor.ToolRetryLimiterAdvisor;
+import com.penpot.ai.application.advisor.*;
 import com.penpot.ai.application.router.ToolCategoryResolver;
 import com.penpot.ai.application.service.PromptsConfigService;
 import com.penpot.ai.core.domain.TaskComplexity;
@@ -65,7 +57,7 @@ public class UnifiedAiAdapter implements AiServicePort {
     private final ToolFailureRecoveryAdvisor toolFailureRecoveryAdvisor;
     private final ToolRetryLimiterAdvisor toolRetryLimiterAdvisor;
     private final ToolResultValidatorAdvisor toolResultValidatorAdvisor;
-    
+    private final ToolCallAdvisor toolCallAdvisor;
 
     public UnifiedAiAdapter(
         AiProviderStrategy providerStrategy,
@@ -79,7 +71,8 @@ public class UnifiedAiAdapter implements AiServicePort {
         ToolErrorAdvisor toolErrorAdvisor,
         ToolFailureRecoveryAdvisor toolFailureRecoveryAdvisor,
         ToolRetryLimiterAdvisor toolRetryLimiterAdvisor,
-        ToolResultValidatorAdvisor toolResultValidatorAdvisor
+        ToolResultValidatorAdvisor toolResultValidatorAdvisor,
+        ToolCallAdvisor toolCallAdvisor
     ) {
         this.providerStrategy = providerStrategy;
         this.complexityAnalyzer = complexityAnalyzer;
@@ -93,16 +86,27 @@ public class UnifiedAiAdapter implements AiServicePort {
         this.toolFailureRecoveryAdvisor = toolFailureRecoveryAdvisor;
         this.toolRetryLimiterAdvisor = toolRetryLimiterAdvisor;
         this.toolResultValidatorAdvisor = toolResultValidatorAdvisor;
+        this.toolCallAdvisor = toolCallAdvisor;
 
         log.info("[UnifiedAiAdapter] Using provider: {}", providerStrategy.providerId());
     }
 
     @Override
-    public Flux<String> chat(String conversationId, String userMessage) {
+    public Flux<String> chat(String conversationId, String userMessage, String sessionId) {
+        log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        log.info("[CHAT START] thread={} | conversationId={} | sessionId={}",
+            Thread.currentThread().getId(), conversationId, sessionId);
+        log.info("[CHAT PROMPT] message={}", userMessage.length() > 200 ? userMessage.substring(0, 200) + "..." : userMessage);
+
+        if (sessionId != null && !sessionId.isBlank()) {
+            SessionContextHolder.setSessionId(sessionId);
+            log.info("[SESSION BIND] sessionId={} → ThreadLocal on thread {}", sessionId, Thread.currentThread().getId());
+        } else {
+            log.warn("[SESSION BIND] sessionId is null/blank — tools will get no session context !");
+        }
         try {
             TaskComplexity complexity = complexityAnalyzer.analyze(userMessage);
-            log.info("Processing chat (provider={}, conversation={}, complexity={})",
-                providerStrategy.providerId(), conversationId, complexity);
+            log.info("[CHAT] provider={} | complexity={}", providerStrategy.providerId(), complexity);
 
             Set<ToolCategory> categories = toolRouter.route(userMessage);
             log.info("[Router] → categories: {}", categories);
@@ -126,23 +130,29 @@ public class UnifiedAiAdapter implements AiServicePort {
                 .tools(tools)
                 .toolContext(Map.of(
                     "activeCategories", categories.stream().map(Enum::name).toList(),
-                    "conversationId", conversationId
+                    "conversationId", conversationId,
+                    "sessionId", sessionId != null ? sessionId : ""
                 ))
                 .call()
                 .content();
 
             if (response == null || response.isBlank()) {
-                log.warn("[UnifiedAiAdapter] Empty/null response received for conversation={}. Using fallback text.",
-                    conversationId);
+                log.warn("[CHAT RESPONSE] Empty/null response for conversationId={}. Using fallback.", conversationId);
                 response = EMPTY_RESPONSE_FALLBACK;
             }
 
+            log.info("[CHAT END] conversationId={} | sessionId={} | responseLength={}",
+                conversationId, sessionId, response.length());
+            log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
             return Flux.just(response);
 
         } catch (Exception e) {
-            log.error("Failed to process chat for conversation: {}", conversationId, e);
+            log.error("[CHAT ERROR] conversationId={} | sessionId={} | error={}", conversationId, sessionId, e.getMessage(), e);
             return Flux.error(new ToolExecutionException(
                 "Chat failed for conversation " + conversationId + ": " + e.getMessage(), e));
+        } finally {
+            log.info("[SESSION CLEAR] threadLocal cleared for thread {}", Thread.currentThread().getId());
+            SessionContextHolder.clearAll();
         }
     }
 
@@ -166,14 +176,13 @@ public class UnifiedAiAdapter implements AiServicePort {
     private List<Advisor> buildAdvisors(Set<ToolCategory> categories) {
         List<Advisor> advisors = new ArrayList<>();
         advisors.add(inspectionFirstAdvisor);
-        advisors.add(ToolCallAdvisor.builder().build());
+        advisors.add(toolCallAdvisor);
         advisors.add(toolRetryLimiterAdvisor);
         advisors.add(toolErrorAdvisor);
         advisors.add(toolFailureRecoveryAdvisor);
         advisors.add(toolResultValidatorAdvisor);
 
-        if (categories.contains(ToolCategory.TEMPLATE_SEARCH)
-            || categories.contains(ToolCategory.SHAPE_CREATION)) {
+        if (categories.contains(ToolCategory.TEMPLATE_SEARCH)) {
             advisors.add(retrievalAugmentationAdvisor);
         }
 

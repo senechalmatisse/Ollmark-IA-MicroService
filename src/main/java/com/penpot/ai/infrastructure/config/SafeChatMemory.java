@@ -5,13 +5,10 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.AssistantMessage;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class SafeChatMemory implements ChatMemory {
-
     private final ChatMemory delegate;
-    
 
     public SafeChatMemory(ChatMemory delegate) {
         this.delegate = delegate;
@@ -19,25 +16,14 @@ public class SafeChatMemory implements ChatMemory {
 
     @Override
     public void add(String conversationId, List<Message> messages) {
-
         List<Message> safeMessages = messages.stream()
             .filter(m -> {
-
-                // 🔥 cas critique : assistant message sans texte
-                if (m instanceof org.springframework.ai.chat.messages.AssistantMessage
-                    && m.getText() == null) {
-
-                    // 👉 on NE PERSISTE PAS ce message
-                    return false;
-                }
-
+                if (m instanceof AssistantMessage && m.getText() == null) return false;
                 return true;
             })
             .collect(Collectors.toList());
 
-        if (!safeMessages.isEmpty()) {
-            delegate.add(conversationId, safeMessages);
-        }
+        if (!safeMessages.isEmpty()) delegate.add(conversationId, safeMessages);
     }
 
     @Override

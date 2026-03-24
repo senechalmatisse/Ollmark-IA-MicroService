@@ -118,12 +118,28 @@ public class IntentRouterService implements ToolRouterPort {
         - Include INSPECTION when the request is ambiguous or requires reading page state.
         - Be minimal: only include categories truly needed.
 
+        IMPORTANT DISTINCTIONS:
+        - "add text in blue/red/green" → CONTENT_AND_TEXT only (color is a parameter of the tool, NOT a style change)
+        - "change the color of the text to blue" → COLOR_AND_STYLE + INSPECTION (modifying existing)
+        - "create a green rectangle" → SHAPE_CREATION only (color is a creation parameter)
+        - "make the rectangle green" → COLOR_AND_STYLE + INSPECTION (modifying existing)
+        COLOR_AND_STYLE + INSPECTION is ONLY for MODIFYING existing shapes, never for creating new ones.
+
         EXAMPLES:
         User: "put a red fill on the rectangle"
         Response: {"categories": ["COLOR_AND_STYLE", "INSPECTION"]}
 
         User: "create a 400x200 blue rectangle"
         Response: {"categories": ["SHAPE_CREATION"]}
+
+        User: "add the word toto in green"
+        Response: {"categories": ["CONTENT_AND_TEXT"]}
+
+        User: "ajoute le mot toto en vert"
+        Response: {"categories": ["CONTENT_AND_TEXT"]}
+
+        User: "write Hello in red at position 100, 200"
+        Response: {"categories": ["CONTENT_AND_TEXT"]}
 
         User: "align all elements to the left then group them"
         Response: {"categories": ["LAYOUT_AND_ALIGNMENT", "INSPECTION"]}
