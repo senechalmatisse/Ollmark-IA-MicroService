@@ -1,6 +1,8 @@
 # Utilisation de l'image de runtime légère pour Java 21
 FROM eclipse-temurin:21-jre-alpine
 
+RUN apk update && apk upgrade --no-cache
+
 WORKDIR /app
 
 # Copie du jar généré (assure-toi que ton pom.xml génère bien un jar dans /target)
