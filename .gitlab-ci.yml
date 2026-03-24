@@ -193,7 +193,6 @@ trivy-backend:
     - if: $CI_COMMIT_BRANCH == "main"
 
   needs: ["build-backend-image"]
-]
 
 dast-zap-backend:
   stage: dast
