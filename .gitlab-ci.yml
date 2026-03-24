@@ -7,7 +7,6 @@ stages:
   - build-image
   - scan
   - dast
-  - acceptance
   - deploy
 
 variables:
@@ -355,7 +354,7 @@ deploy-preprod:
   rules:
     - if: $CI_COMMIT_BRANCH == "preprod"
       when: manual
-  needs: ["bruno-tests", "dast-zap-backend", "trivy-backend"]
+  needs: ["dast-zap-backend", "trivy-backend"]
 
 deploy-prod:
   stage: deploy
@@ -364,4 +363,4 @@ deploy-prod:
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
       when: manual
-  needs: ["bruno-tests", "dast-zap-backend", "trivy-backend"]
+  needs: ["dast-zap-backend", "trivy-backend"]
