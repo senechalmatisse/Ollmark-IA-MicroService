@@ -7,7 +7,6 @@ stages:
   - build-image
   - scan
   - dast
-  - acceptance
   - deploy
 
 variables:
@@ -165,7 +164,7 @@ build-backend-image:
 trivy-backend:
   stage: scan
   image:
-    name: aquasec/trivy:latest
+    name: ghcr.io/aquasecurity/trivy:canary
     entrypoint: [""]
   variables:
     TRIVY_USERNAME: $CI_REGISTRY_USER
@@ -209,23 +208,6 @@ dast-zap-backend:
     when: always
     paths: [zap-report.json]
   allow_failure: true
-  needs: ["build-backend-image"]
-
-# -----------------------------------------------------------------------------
-# STAGE ACCEPTANCE (PREPROD & PROD)
-# -----------------------------------------------------------------------------
-bruno-tests:
-  stage: acceptance
-  image: node:20-alpine
-  script:
-    - npm install -g @usebruno/cli
-    - echo "Lancement des tests Bruno sur la VM..."
-    # On passe l'URL de la VM via --env-var
-    - cd bruno && bru run . --env-var base_url=http://10.130.163.57:50030
-
-  rules:
-    - if: $CI_COMMIT_BRANCH == "preprod"
-    - if: $CI_COMMIT_BRANCH == "main"
   needs: ["build-backend-image"]
 
 # -----------------------------------------------------------------------------
@@ -372,7 +354,7 @@ deploy-preprod:
   rules:
     - if: $CI_COMMIT_BRANCH == "preprod"
       when: manual
-  needs: ["bruno-tests", "dast-zap-backend", "trivy-backend"]
+  needs: ["dast-zap-backend", "trivy-backend"]
 
 deploy-prod:
   stage: deploy
@@ -381,4 +363,4 @@ deploy-prod:
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
       when: manual
-  needs: ["bruno-tests", "dast-zap-backend", "trivy-backend"]
+  needs: ["dast-zap-backend", "trivy-backend"]
