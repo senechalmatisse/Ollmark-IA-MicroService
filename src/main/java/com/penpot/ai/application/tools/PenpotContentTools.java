@@ -49,10 +49,10 @@ public class PenpotContentTools {
     private static final int P_SIZE = 16;
 
     /** Constante définissant l'épaisseur de police en gras. */
-    private static final String BOLD = "bold";
+    private static final String BOLD   = "700";
 
     /** Constante définissant l'épaisseur de police normale. */
-    private static final String NORMAL = "normal";
+    private static final String NORMAL = "400";
 
     /**
      * Génère un élément textuel de niveau principal (H1) au sein de la zone de travail.
@@ -103,32 +103,6 @@ public class PenpotContentTools {
         return toolExecutor.createContent(
             PenpotJsSnippets.createText(content, x, y, H2_SIZE, BOLD, color, "Subtitle"),
             "subtitle"
-        );
-    }
-
-    /**
-     * Produit un bloc de texte courant conçu pour l'affichage de paragraphes réguliers.
-     *
-     * @param content Le corps du texte à intégrer.
-     * @param x       L'axe horizontal du point d'insertion.
-     * @param y       L'axe vertical du point d'insertion.
-     * @param color   Le code couleur hexadécimal ciblé.
-     * @return        Le résultat JSON contenant l'identifiant généré par Penpot.
-     */
-    @Tool(description = """
-        Generates standard body text.
-        Use this for descriptions, long paragraphs or any informational text that is not a heading.
-    """)
-    public String createParagraph(
-        @ToolParam(description = "The body text content. Can be multiple sentences.") String content,
-        @ToolParam(description = "Absolute X coordinate on the canvas.") Integer x,
-        @ToolParam(description = "Absolute Y coordinate on the canvas.") Integer y,
-        @ToolParam(description = "Valid CSS hex color code (e.g., '#666666').", required = false) String color
-    ) {
-        log.info("Tool called: createParagraph");
-        return toolExecutor.createContent(
-            PenpotJsSnippets.createText(content, x, y, P_SIZE, NORMAL, color, "Paragraph"),
-            "paragraph"
         );
     }
 

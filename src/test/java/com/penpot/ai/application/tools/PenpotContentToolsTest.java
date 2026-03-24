@@ -80,20 +80,6 @@ public class PenpotContentToolsTest {
                 eq("subtitle")
             );
         }
-
-        @Test
-        @DisplayName("createParagraph — integration success")
-        void createParagraph_integration() {
-            String result = penpotContentTools.createParagraph("Paragraph", 50, 50, "#000000");
-
-            assertThat(result).contains("\"success\": true");
-            verify(toolExecutor).createContent(
-                argThat(code ->
-                    code.contains("text.fontSize = 16") &&
-                    code.contains("fontWeight = 'normal'")),
-                eq("paragraph")
-            );
-        }
     }
 
     // =========================================================================
@@ -177,21 +163,6 @@ public class PenpotContentToolsTest {
                 eq("button")
             );
         }
-    }
-
-    // =========================================================================
-    // GLOBAL ERROR HANDLING
-    // =========================================================================
-
-    @Test
-    @DisplayName("Global — should return formatted failure when executor throws exception")
-    void global_exceptionHandling() {
-        when(toolExecutor.createContent(anyString(), anyString()))
-            .thenReturn("{\"success\": false, \"error\": \"Unexpected Crash\"}");
-
-        String result = penpotContentTools.createParagraph("Error test", 0, 0, null);
-
-        assertThat(result).contains("\"success\": false").contains("Unexpected Crash");
     }
 
     // =========================================================================
