@@ -1,6 +1,5 @@
 package com.penpot.ai.infrastructure.config;
 
-import com.penpot.ai.application.tools.*;
 import com.penpot.ai.infrastructure.session.SessionAwareToolCallingManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -37,16 +36,11 @@ public class OpenRouterConfig {
     @Primary
     public ChatClient.Builder executorChatClientBuilder(
         ChatModel chatModel,
-        MessageChatMemoryAdvisor memoryAdvisor,
-        ToolCallAdvisor toolCallAdvisor
+        MessageChatMemoryAdvisor memoryAdvisor
     ) {
-        log.info("TOOLS + TOOL CALLING ACTIVATED");
-
+        log.info("OpenRouter ChatClient.Builder — toolCallAdvisor injecté via UnifiedAiAdapter");
         return ChatClient.builder(chatModel)
-            .defaultAdvisors(
-                memoryAdvisor,
-                toolCallAdvisor
-            );
+            .defaultAdvisors(memoryAdvisor);
     }
 
     @Bean("executorChatClient")
