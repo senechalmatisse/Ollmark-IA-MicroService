@@ -47,13 +47,13 @@ spring:
 
       chat:
         options:
-          model: ${OPENROUTER_CHAT_MODEL:qwen/qwen3.5-35b-a3b}
+          model: ${OPENROUTER_CHAT_MODEL:qwen/qwen3.5-397b-a17b}
           temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
           max-tokens: ${PENPOT_EXECUTOR_MAX_TOKENS:4096}
 
       embedding:
         options:
-          model: openai/text-embedding-3-large
+          model: google/gemini-embedding-001
     # =================================
     # CHAT MEMORY
     # =================================
@@ -75,7 +75,7 @@ penpot:
     provider: ${AI_PROVIDER:openrouter}
 
     router:
-      model: meta-llama/llama-3.1-8b-instruct
+      model: openai/gpt-4o-mini
       temperature: ${PENPOT_ROUTER_TEMPERATURE:0.0}
       top-p: ${PENPOT_ROUTER_TOP_P:0.9}
       top-k: ${PENPOT_ROUTER_TOP_K:10}
@@ -84,7 +84,7 @@ penpot:
       num-ctx: ${PENPOT_ROUTER_NUM_CTX:8192}
 
     executor:
-      model: qwen/qwen3.5-35b-a3b
+      model: qwen/qwen3.5-397b-a17b
       temperature: ${PENPOT_EXECUTOR_TEMPERATURE:0.7}
       top-p: ${PENPOT_EXECUTOR_TOP_P:0.95}
       top-k: ${PENPOT_EXECUTOR_TOP_K:20}
