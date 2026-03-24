@@ -57,6 +57,7 @@ public class UnifiedAiAdapter implements AiServicePort {
     private final ToolFailureRecoveryAdvisor toolFailureRecoveryAdvisor;
     private final ToolRetryLimiterAdvisor toolRetryLimiterAdvisor;
     private final ToolResultValidatorAdvisor toolResultValidatorAdvisor;
+    private final ToolCallAdvisor toolCallAdvisor;
 
     public UnifiedAiAdapter(
         AiProviderStrategy providerStrategy,
@@ -85,6 +86,7 @@ public class UnifiedAiAdapter implements AiServicePort {
         this.toolFailureRecoveryAdvisor = toolFailureRecoveryAdvisor;
         this.toolRetryLimiterAdvisor = toolRetryLimiterAdvisor;
         this.toolResultValidatorAdvisor = toolResultValidatorAdvisor;
+        this.toolCallAdvisor = toolCallAdvisor;
 
         log.info("[UnifiedAiAdapter] Using provider: {}", providerStrategy.providerId());
     }
@@ -174,6 +176,7 @@ public class UnifiedAiAdapter implements AiServicePort {
     private List<Advisor> buildAdvisors(Set<ToolCategory> categories) {
         List<Advisor> advisors = new ArrayList<>();
         advisors.add(inspectionFirstAdvisor);
+        advisors.add(toolCallAdvisor);
         advisors.add(toolRetryLimiterAdvisor);
         advisors.add(toolErrorAdvisor);
         advisors.add(toolFailureRecoveryAdvisor);
