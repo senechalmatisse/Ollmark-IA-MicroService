@@ -11,7 +11,7 @@ badge.x = columnX;
 badge.y = flowY;
 badge.resize(badgeWidth, 36);
 badge.borderRadius = 999;
-badge.fills = [{ fillColor: 'rgba(255,255,255,0.18)', fillOpacity: 1 }];
+badge.fills = [{ fillColor: "#FFFFFF", fillOpacity: 0.18 }];
 created.push(badge);
 badgeText.x = badge.x + (badgeWidth - badgeText.width) / 2;
 badgeText.y = badge.y + (36 - badgeText.height) / 2;

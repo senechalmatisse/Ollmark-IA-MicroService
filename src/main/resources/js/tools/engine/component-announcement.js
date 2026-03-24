@@ -5,7 +5,7 @@ bar.x = columnX;
 bar.y = flowY;
 bar.resize(COMPONENT_WIDTH, 48);
 bar.borderRadius = 16;
-bar.fills = [{ fillColor: 'rgba(255,255,255,0.18)', fillOpacity: 1 }];
+bar.fills = [{ fillColor: "#FFFFFF", fillOpacity: 0.18 }];
 created.push(bar);
 const barText = penpot.createText("Offre du jour • Livraison rapide • Stock limité");
 barText.x = bar.x + 20;

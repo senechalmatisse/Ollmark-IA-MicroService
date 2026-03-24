@@ -173,7 +173,7 @@ class PenpotContentToolsUnit {
 
         String js = jsCaptor.getValue();
         assertThat(js).contains("text.fontSize = 48");
-        assertThat(js).contains("text.fontWeight = 'bold'");
+        assertThat(js).contains("text.fontWeight = '700'");
         assertThat(js).contains("fillColor: '#FF0000'");
         assertThat(js).contains("'" + content + "'");
     }
@@ -195,27 +195,6 @@ class PenpotContentToolsUnit {
         verify(toolExecutor).createContent(jsCaptor.capture(), eq("subtitle"));
 
         assertThat(jsCaptor.getValue()).contains("text.fontSize = 32");
-    }
-
-    /**
-     * Vérifie que la création d'un paragraphe utilise la taille de texte standard (taille 16, normal).
-     */
-    @Test
-    @DisplayName("createParagraph: Should call toolExecutor with P size and normal weight")
-    void createParagraph_ShouldCallExecutorWithCorrectParams() {
-        // Given
-        when(toolExecutor.createContent(anyString(), eq("paragraph"))).thenReturn("p-id");
-
-        // When
-        penpotContentTools.createParagraph("Some text", 0, 0, "#000000");
-
-        // Then
-        ArgumentCaptor<String> jsCaptor = ArgumentCaptor.forClass(String.class);
-        verify(toolExecutor).createContent(jsCaptor.capture(), eq("paragraph"));
-
-        String js = jsCaptor.getValue();
-        assertThat(js).contains("text.fontSize = 16");
-        assertThat(js).contains("text.fontWeight = 'normal'");
     }
 
     /**

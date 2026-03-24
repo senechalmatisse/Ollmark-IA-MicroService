@@ -5,7 +5,7 @@ preview.x = section.x + ({{imageLeft}} ? 64 : halfWidth);
 preview.y = section.y + 64;
 preview.resize(halfWidth - 64, section.height - 128);
 preview.borderRadius = 24;
-preview.fills = [{ fillColor: 'rgba(255,255,255,0.12)', fillOpacity: 1 }];
+preview.fills = [{ fillColor: "#FFFFFF", fillOpacity: 0.12 }];
 created.push(preview);
 
 columnX = section.x + ({{imageLeft}} ? halfWidth + 64 : 64);
